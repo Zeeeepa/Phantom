@@ -196,6 +196,7 @@ host_permissions: <all_urls>
 - 站点：
   - https://www.cn-fnst.top/
   - https://blog.h-acker.cn/
+  - https://www.hdsec.cn/
 - 开源地址：请参考项目发布页
 - 致谢:隼目安全，D3f4ultX，findsomething，SnowEyes
 
