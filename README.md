@@ -197,5 +197,7 @@ host_permissions: <all_urls>
   - https://www.cn-fnst.top/
   - https://blog.h-acker.cn/
 - 开源地址：请参考项目发布页
-- 致谢:D3f4ultX，findsomething，SnowEyes
- 
+- 致谢:隼目安全，D3f4ultX，findsomething，SnowEyes
+
+## 宣传文章
+URL：https://mp.weixin.qq.com/s/FrUeZ9VYk6EP1EEikpwfzQ
