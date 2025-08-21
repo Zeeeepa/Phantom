@@ -17,7 +17,7 @@ class SettingsManager {
             
             // 域名和URL
             domain: [
-                '(([a-zA-Z0-9]+:)?\\/\\/)?[a-zA-Z0-9\\-\\.]*?\\.(xin|com|cn|net|com\\.cn|vip|top|cc|shop|club|wang|xyz|luxe|site|news|pub|fun|online|win|red|loan|ren|mom|net\\.cn|org|link|biz|bid|help|tech|date|mobi|so|me|tv|co|vc|pw|video|party|pics|website|store|ltd|ink|trade|live|wiki|space|gift|lol|work|band|info|click|photo|market|tel|social|press|game|kim|org\\.cn|games|pro|men|love|studio|rocks|asia|group|science|design|software|engineer|lawyer|fit|beer|tw|我爱你|中国|公司|网络|在线|网址|网店|集团|中文网)(\\:\\d{1,5})?(\\/)?'
+           '(?<!\\w)(?:(?:[a-zA-Z0-9]+:)?\\/\\/)?(?:[a-zA-Z0-9-]{2,}\\.)+(?:xin|com|cn|net|com\\.cn|vip|top|cc|shop|club|wang|xyz|luxe|site|news|pub|fun|online|win|red|loan|ren|mom|net\\.cn|org|link|biz|bid|help|tech|date|mobi|so|me|tv|co|vc|pw|video|party|pics|website|store|ltd|ink|trade|live|wiki|space|gift|lol|work|band|info|click|photo|market|tel|social|press|game|kim|org\\.cn|games|pro|men|love|studio|rocks|asia|group|science|design|software|engineer|lawyer|fit|beer|tw|我爱你|中国|公司|网络|在线|网址|网店|集团|中文网)(?::\\d{1,5})?(?:\\/)?(?![\\.\\w])'
             ].join('|'),
             
             // 邮箱地址（排除静态资源域名）
@@ -27,7 +27,7 @@ class SettingsManager {
             
             // 中国大陆手机号
             phone: [
-                '(1(3([0-35-9]\\d|4[1-8])|4[14-9]\\d|5([\\d]\\d|7[1-79])|66\\d|7[2-35-8]\\d|8\\d{2}|9[89]\\d)\\d{7})'
+            '(?<!\d)(?:1(3([0-35-9]\\d|4[1-8])|4[14-9]\\d|5([\\d]\\d|7[1-79])|66\\d|7[2-35-8]\\d|8\\d{2}|9[89]\\d)\\d{7})(?!\d)'
             ].join('|'),
             
             // IP地址
