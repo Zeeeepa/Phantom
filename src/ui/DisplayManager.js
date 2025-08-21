@@ -23,43 +23,43 @@ class DisplayManager {
         
         const resultsDiv = document.getElementById('results');
         const categories = [
-            { key: 'absoluteApis', title: '🔗 绝对路径API', icon: '/' },
-            { key: 'relativeApis', title: '📁 相对路径API', icon: '~' },
-            { key: 'modulePaths', title: '📦 模块路径', icon: './' },
-            { key: 'domains', title: '🌐 域名', icon: '🌐' },
-            { key: 'subdomains', title: '🌍 子域名', icon: 'sub' },
-            { key: 'urls', title: '🔗 完整URL', icon: 'http' },
-            { key: 'paths', title: '📂 路径', icon: 'path' },
-            { key: 'parameters', title: '🔧 参数', icon: 'param' },
-            { key: 'ports', title: '🚪 端口', icon: 'port' },
-            { key: 'jsFiles', title: '📜 JS文件', icon: '.js' },
-            { key: 'cssFiles', title: '🎨 CSS文件', icon: '.css' },
-            { key: 'vueFiles', title: '🟢 Vue文件', icon: '.vue' },
-            { key: 'images', title: '🖼️ 图片文件', icon: '🖼️' },
-            { key: 'audios', title: '🎵 音频文件', icon: '🎵' },
-            { key: 'videos', title: '🎬 视频文件', icon: '🎬' },
-            { key: 'emails', title: '📧 邮箱地址', icon: '@' },
-            { key: 'phoneNumbers', title: '📱 手机号码', icon: '📱' },
-            { key: 'ipAddresses', title: '🌍 IP地址', icon: 'IP' },
-            { key: 'credentials', title: '🔐 用户凭证', icon: '🔐' },
-            { key: 'jwts', title: '🎫 JWT Token', icon: '🎫' },
-            { key: 'bearerTokens', title: '🔑 Bearer Token', icon: 'Bearer' },
-            { key: 'basicAuth', title: '🔒 Basic Auth', icon: 'Basic' },
-            { key: 'authHeaders', title: '🔓 Authorization Header', icon: 'Auth' },
-            { key: 'wechatAppIds', title: '💬 微信AppID', icon: 'wx' },
-            { key: 'awsKeys', title: '☁️ AWS密钥', icon: 'AWS' },
-            { key: 'googleApiKeys', title: '🔍 Google API Key', icon: 'G' },
-            { key: 'githubTokens', title: '🐙 GitHub Token', icon: 'GH' },
-            { key: 'gitlabTokens', title: '🦊 GitLab Token', icon: 'GL' },
-            { key: 'webhookUrls', title: '🔗 Webhook URLs', icon: 'Hook' },
-            { key: 'idCards', title: '🆔 身份证号', icon: '🆔' },
-            { key: 'cryptoUsage', title: '🔐 加密算法', icon: 'Crypto' },
-            { key: 'githubUrls', title: '🐙 GitHub链接', icon: '🐙' },
-            { key: 'companies', title: '🏢 公司机构', icon: '🏢' },
-            { key: 'cookies', title: '🍪 Cookie信息', icon: '🍪' },
-            { key: 'idKeys', title: '🔑 ID密钥', icon: '🔑' },
-            { key: 'sensitiveKeywords', title: '⚠️ 敏感关键词', icon: '⚠️' },
-            { key: 'comments', title: '💬 代码注释', icon: '<!--' }
+            { key: 'absoluteApis', title: '绝对路径API', icon: '/' },
+            { key: 'relativeApis', title: '相对路径API', icon: '~' },
+            { key: 'modulePaths', title: '模块路径', icon: './' },
+            { key: 'domains', title: '域名', icon: '🌐' },
+            { key: 'subdomains', title: '子域名', icon: 'sub' },
+            { key: 'urls', title: '完整URL', icon: 'http' },
+            { key: 'paths', title: '路径', icon: 'path' },
+            { key: 'parameters', title: '参数', icon: 'param' },
+            { key: 'ports', title: '端口', icon: 'port' },
+            { key: 'jsFiles', title: 'JS文件', icon: '.js' },
+            { key: 'cssFiles', title: 'CSS文件', icon: '.css' },
+            { key: 'vueFiles', title: 'Vue文件', icon: '.vue' },
+            { key: 'images', title: '图片文件', icon: '🖼️' },
+            { key: 'audios', title: '音频文件', icon: '🎵' },
+            { key: 'videos', title: '视频文件', icon: '🎬' },
+            { key: 'emails', title: '邮箱地址', icon: '@' },
+            { key: 'phoneNumbers', title: '手机号码', icon: '📱' },
+            { key: 'ipAddresses', title: 'IP地址', icon: 'IP' },
+            { key: 'credentials', title: '用户凭证', icon: '🔐' },
+            { key: 'jwts', title: 'JWT Token', icon: '🎫' },
+            { key: 'bearerTokens', title: 'Bearer Token', icon: 'Bearer' },
+            { key: 'basicAuth', title: 'Basic Auth', icon: 'Basic' },
+            { key: 'authHeaders', title: 'Authorization Header', icon: 'Auth' },
+            { key: 'wechatAppIds', title: '微信AppID', icon: 'wx' },
+            { key: 'awsKeys', title: 'AWS密钥', icon: 'AWS' },
+            { key: 'googleApiKeys', title: 'Google API Key', icon: 'G' },
+            { key: 'githubTokens', title: 'GitHub Token', icon: 'GH' },
+            { key: 'gitlabTokens', title: 'GitLab Token', icon: 'GL' },
+            { key: 'webhookUrls', title: 'Webhook URLs', icon: 'Hook' },
+            { key: 'idCards', title: '身份证号', icon: '🆔' },
+            { key: 'cryptoUsage', title: '加密算法', icon: 'Crypto' },
+            { key: 'githubUrls', title: 'GitHub链接', icon: '🐙' },
+            { key: 'companies', title: '公司机构', icon: '🏢' },
+            { key: 'cookies', title: 'Cookie信息', icon: '🍪' },
+            { key: 'idKeys', title: 'ID密钥', icon: '🔑' },
+            { key: 'sensitiveKeywords', title: '敏感关键词', icon: '⚠️' },
+            { key: 'comments', title: '代码注释', icon: '<!--' }
         ];
         
         // 尝试加载过滤器
@@ -85,7 +85,7 @@ class DisplayManager {
         if (totalCount === 0) {
             resultsDiv.innerHTML = `
                 <div style="padding: 20px; text-align: center; color: #00d4aa;">
-                    <h3>🔍 扫描完成</h3>
+                    <h3>扫描完成</h3>
                     <p>当前页面未发现可提取的信息</p>
                     <p style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
                         这可能是因为：<br>
@@ -99,7 +99,7 @@ class DisplayManager {
         }
         
         // 更新统计信息 - 支持实时更新标识
-        const scanMode = this.srcMiner.deepScanRunning ? '🔄 深度扫描中' : '✅ 标准扫描';
+        const scanMode = this.srcMiner.deepScanRunning ? '深度扫描中' : '标准扫描';
         const scannedCount = this.srcMiner.scannedUrls ? this.srcMiner.scannedUrls.size : 1;
         const currentDepth = this.srcMiner.currentDepth || 0;
         const maxDepth = this.srcMiner.maxDepth || 2;
@@ -148,17 +148,10 @@ class DisplayManager {
         
         // 展开/收起按钮
         const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'toggle-btn';
+        toggleBtn.className = 'btn toggle-btn';
         toggleBtn.textContent = '展开/收起';
         toggleBtn.title = '展开或收起内容';
-        toggleBtn.style.padding = '2px 5px';
-        toggleBtn.style.fontSize = '11px';
-        toggleBtn.style.background = 'rgba(0, 212, 170, 0.2)';
-        toggleBtn.style.border = '1px solid #00d4aa';
-        toggleBtn.style.borderRadius = '4px';
-        toggleBtn.style.color = '#00d4aa';
-        toggleBtn.style.cursor = 'pointer';
-        toggleBtn.style.marginRight = '5px';
+        toggleBtn.style.transition = 'all 0.3s';
         toggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             content.classList.toggle('collapsed');
@@ -167,17 +160,10 @@ class DisplayManager {
         
         // 批量查看按钮
         const batchViewBtn = document.createElement('button');
-        batchViewBtn.className = 'batch-view-btn';
+        batchViewBtn.className = 'btn batch-view-btn';
         batchViewBtn.textContent = '批量查看';
         batchViewBtn.title = '在新窗口中查看所有内容';
-        batchViewBtn.style.padding = '2px 5px';
-        batchViewBtn.style.fontSize = '11px';
-        batchViewBtn.style.background = 'rgba(0, 212, 170, 0.2)';
-        batchViewBtn.style.border = '1px solid #00d4aa';
-        batchViewBtn.style.borderRadius = '4px';
-        batchViewBtn.style.color = '#00d4aa';
-        batchViewBtn.style.cursor = 'pointer';
-        batchViewBtn.style.marginRight = '5px';
+        batchViewBtn.style.transition = 'all 0.3s';
         batchViewBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.showBatchViewOnly(category.title, items);
@@ -186,17 +172,10 @@ class DisplayManager {
         
         // 复制全部按钮
         const copyAllBtn = document.createElement('button');
-        copyAllBtn.className = 'copy-all-btn';
+        copyAllBtn.className = 'btn copy-all-btn';
         copyAllBtn.textContent = '复制全部';
         copyAllBtn.title = '复制全部内容';
-        copyAllBtn.style.padding = '2px 5px';
-        copyAllBtn.style.fontSize = '11px';
-        copyAllBtn.style.background = 'rgba(0, 212, 170, 0.2)';
-        copyAllBtn.style.border = '1px solid #00d4aa';
-        copyAllBtn.style.borderRadius = '4px';
-        copyAllBtn.style.color = '#00d4aa';
-        copyAllBtn.style.cursor = 'pointer';
-        copyAllBtn.style.marginRight = '5px';
+        copyAllBtn.style.transition = 'all 0.3s';
         copyAllBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.copyAllItems(category.key, items);
@@ -206,16 +185,10 @@ class DisplayManager {
         // 测试全部按钮 (仅对API路径显示)
         if (category.key === 'absoluteApis' || category.key === 'relativeApis') {
             const testAllBtn = document.createElement('button');
-            testAllBtn.className = 'test-all-btn';
+            testAllBtn.className = 'btn test-all-btn';
             testAllBtn.textContent = '测试全部';
             testAllBtn.title = '测试全部API';
-            testAllBtn.style.padding = '2px 5px';
-            testAllBtn.style.fontSize = '11px';
-            testAllBtn.style.background = 'rgba(0, 212, 170, 0.2)';
-            testAllBtn.style.border = '1px solid #00d4aa';
-            testAllBtn.style.borderRadius = '4px';
-            testAllBtn.style.color = '#00d4aa';
-            testAllBtn.style.cursor = 'pointer';
+            testAllBtn.style.transition = 'all 0.3s';
             testAllBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.testAllApis(category.key, items);
@@ -276,26 +249,30 @@ class DisplayManager {
             modal.style.top = '0';
             modal.style.width = '100%';
             modal.style.height = '100%';
-            modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
             
             const modalContent = document.createElement('div');
-            modalContent.style.backgroundColor = '#1e1e1e';
+            modalContent.style.backgroundColor = 'rgb(30, 30, 30)';
             modalContent.style.margin = '15% auto';
             modalContent.style.padding = '20px';
-            modalContent.style.border = '1px solid #333';
+            modalContent.style.border = '1px solid rgba(255, 255, 255, 0.1)';
             modalContent.style.width = '80%';
             modalContent.style.maxWidth = '600px';
-            modalContent.style.borderRadius = '5px';
+            modalContent.style.borderRadius = '10px';
+            modalContent.style.boxShadow = '0px 0px 15px 8px rgba(0, 0, 0, 0.8)';
+            modalContent.style.transition = 'all 0.3s';
             
             const modalHeader = document.createElement('div');
             modalHeader.style.display = 'flex';
             modalHeader.style.justifyContent = 'space-between';
             modalHeader.style.alignItems = 'center';
-            modalHeader.style.marginBottom = '10px';
+            modalHeader.style.marginBottom = '15px';
             
             const modalTitle = document.createElement('h3');
             modalTitle.style.margin = '0';
             modalTitle.style.color = '#00d4aa';
+            modalTitle.style.fontSize = '18px';
+            modalTitle.style.fontWeight = '600';
             
             const closeBtn = document.createElement('button');
             closeBtn.id = 'closeBatchViewBtn';
@@ -303,8 +280,25 @@ class DisplayManager {
             closeBtn.style.background = 'none';
             closeBtn.style.border = 'none';
             closeBtn.style.color = '#ccc';
-            closeBtn.style.fontSize = '20px';
+            closeBtn.style.fontSize = '24px';
             closeBtn.style.cursor = 'pointer';
+            closeBtn.style.transition = 'all 0.3s';
+            closeBtn.style.width = '30px';
+            closeBtn.style.height = '30px';
+            closeBtn.style.display = 'flex';
+            closeBtn.style.justifyContent = 'center';
+            closeBtn.style.alignItems = 'center';
+            closeBtn.style.borderRadius = '50%';
+            
+            closeBtn.onmouseover = () => {
+                closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                closeBtn.style.color = '#fff';
+            };
+            
+            closeBtn.onmouseout = () => {
+                closeBtn.style.backgroundColor = 'transparent';
+                closeBtn.style.color = '#ccc';
+            };
             
             const resultsContainer = document.createElement('div');
             resultsContainer.id = 'batchViewResults';
@@ -332,17 +326,32 @@ class DisplayManager {
         list.style.maxHeight = '400px';
         list.style.overflowY = 'auto';
         list.style.padding = '10px';
-        list.style.border = '1px solid #333';
-        list.style.borderRadius = '4px';
+        list.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+        list.style.borderRadius = '8px';
         list.style.marginTop = '10px';
+        list.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
         
         items.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'result-item';
             itemDiv.textContent = item;
-            itemDiv.style.padding = '5px';
-            itemDiv.style.borderBottom = '1px solid #333';
+            itemDiv.style.padding = '8px 10px';
+            itemDiv.style.margin = '3px 0';
+            itemDiv.style.borderBottom = '1px solid rgba(255, 255, 255, 0.05)';
             itemDiv.style.wordBreak = 'break-all';
+            itemDiv.style.transition = 'all 0.3s';
+            itemDiv.style.borderRadius = '4px';
+            
+            itemDiv.onmouseover = () => {
+                itemDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                itemDiv.style.transform = 'translateX(3px)';
+            };
+            
+            itemDiv.onmouseout = () => {
+                itemDiv.style.backgroundColor = 'transparent';
+                itemDiv.style.transform = 'translateX(0)';
+            };
+            
             list.appendChild(itemDiv);
         });
         
@@ -425,37 +434,58 @@ class DisplayManager {
             modal.style.top = '0';
             modal.style.width = '100%';
             modal.style.height = '100%';
-            modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
             
             const modalContent = document.createElement('div');
-            modalContent.style.backgroundColor = '#1e1e1e';
+            modalContent.style.backgroundColor = 'rgb(30, 30, 30)';
             modalContent.style.margin = '5% auto';
             modalContent.style.padding = '20px';
-            modalContent.style.border = '1px solid #333';
+            modalContent.style.border = '1px solid rgba(255, 255, 255, 0.1)';
             modalContent.style.width = '90%';
             modalContent.style.maxWidth = '800px';
-            modalContent.style.borderRadius = '5px';
+            modalContent.style.borderRadius = '10px';
             modalContent.style.maxHeight = '80vh';
             modalContent.style.overflowY = 'auto';
+            modalContent.style.boxShadow = '0px 0px 15px 8px rgba(0, 0, 0, 0.8)';
+            modalContent.style.transition = 'all 0.3s';
             
             const modalHeader = document.createElement('div');
             modalHeader.style.display = 'flex';
             modalHeader.style.justifyContent = 'space-between';
             modalHeader.style.alignItems = 'center';
-            modalHeader.style.marginBottom = '10px';
+            modalHeader.style.marginBottom = '15px';
             
             const modalTitle = document.createElement('h3');
             modalTitle.textContent = 'API测试结果';
             modalTitle.style.margin = '0';
             modalTitle.style.color = '#00d4aa';
+            modalTitle.style.fontSize = '18px';
+            modalTitle.style.fontWeight = '600';
             
             const closeBtn = document.createElement('button');
             closeBtn.textContent = '×';
             closeBtn.style.background = 'none';
             closeBtn.style.border = 'none';
             closeBtn.style.color = '#ccc';
-            closeBtn.style.fontSize = '20px';
+            closeBtn.style.fontSize = '24px';
             closeBtn.style.cursor = 'pointer';
+            closeBtn.style.transition = 'all 0.3s';
+            closeBtn.style.width = '30px';
+            closeBtn.style.height = '30px';
+            closeBtn.style.display = 'flex';
+            closeBtn.style.justifyContent = 'center';
+            closeBtn.style.alignItems = 'center';
+            closeBtn.style.borderRadius = '50%';
+            
+            closeBtn.onmouseover = () => {
+                closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                closeBtn.style.color = '#fff';
+            };
+            
+            closeBtn.onmouseout = () => {
+                closeBtn.style.backgroundColor = 'transparent';
+                closeBtn.style.color = '#ccc';
+            };
             
             const resultsContainer = document.createElement('div');
             resultsContainer.id = 'apiTestResultsContainer';
@@ -478,20 +508,43 @@ class DisplayManager {
         
         // 添加结果摘要
         const summary = document.createElement('div');
-        summary.style.marginBottom = '15px';
-        summary.style.padding = '10px';
+        summary.style.marginBottom = '20px';
+        summary.style.padding = '15px';
         summary.style.backgroundColor = 'rgba(0, 212, 170, 0.1)';
-        summary.style.borderRadius = '4px';
+        summary.style.borderRadius = '8px';
+        summary.style.border = '1px solid rgba(0, 212, 170, 0.2)';
+        summary.style.transition = 'all 0.3s';
         
         const successCount = results.filter(r => r.success).length;
         const failCount = results.length - successCount;
         
         summary.innerHTML = `
-            <div style="font-weight: bold; margin-bottom: 5px;">测试摘要:</div>
-            <div>总计: ${results.length} 个API</div>
-            <div style="color: #4caf50;">成功: ${successCount} 个</div>
-            <div style="color: #f44336;">失败: ${failCount} 个</div>
+            <div style="font-weight: bold; margin-bottom: 8px; color: #00d4aa;">测试摘要:</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>总计:</span>
+                <span style="font-weight: 600;">${results.length} 个API</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>成功:</span>
+                <span style="color: #4caf50; font-weight: 600;">${successCount} 个</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>失败:</span>
+                <span style="color: #f44336; font-weight: 600;">${failCount} 个</span>
+            </div>
         `;
+        
+        summary.onmouseover = () => {
+            summary.style.backgroundColor = 'rgba(0, 212, 170, 0.15)';
+            summary.style.transform = 'translateY(-2px)';
+            summary.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+        };
+        
+        summary.onmouseout = () => {
+            summary.style.backgroundColor = 'rgba(0, 212, 170, 0.1)';
+            summary.style.transform = 'translateY(0)';
+            summary.style.boxShadow = 'none';
+        };
         
         resultsContainer.appendChild(summary);
         
@@ -500,55 +553,85 @@ class DisplayManager {
         
         results.forEach((result, index) => {
             const resultItem = document.createElement('div');
-            resultItem.style.marginBottom = '10px';
-            resultItem.style.padding = '10px';
-            resultItem.style.border = '1px solid #333';
-            resultItem.style.borderRadius = '4px';
+            resultItem.style.marginBottom = '15px';
+            resultItem.style.padding = '12px';
+            resultItem.style.border = '1px solid ' + (result.success ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)');
+            resultItem.style.borderRadius = '8px';
             resultItem.style.backgroundColor = result.success ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
+            resultItem.style.transition = 'all 0.3s';
             
             const statusColor = result.success ? '#4caf50' : '#f44336';
             const statusText = result.success ? '成功' : '失败';
             const statusCode = result.status || 'N/A';
             
             resultItem.innerHTML = `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <div style="font-weight: bold;">${index + 1}. ${result.url}</div>
-                    <div style="color: ${statusColor};">${statusText} (${statusCode})</div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="font-weight: bold; word-break: break-all; max-width: 80%;">${index + 1}. ${result.url}</div>
+                    <div style="color: ${statusColor}; font-weight: 600; white-space: nowrap;">${statusText} (${statusCode})</div>
                 </div>
-                <div style="margin-bottom: 5px;">
-                    <span style="color: #888;">方法:</span> ${result.method}
-                </div>
-                <div style="margin-bottom: 5px;">
-                    <span style="color: #888;">耗时:</span> ${result.time}ms
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 5px;">
+                    <div>
+                        <span style="color: #888;">方法:</span> 
+                        <span style="color: #fff; font-weight: 500;">${result.method}</span>
+                    </div>
+                    <div>
+                        <span style="color: #888;">耗时:</span> 
+                        <span style="color: #fff; font-weight: 500;">${result.time}ms</span>
+                    </div>
                 </div>
             `;
+            
+            resultItem.onmouseover = () => {
+                resultItem.style.transform = 'translateY(-2px)';
+                resultItem.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.2)';
+                resultItem.style.borderColor = result.success ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)';
+            };
+            
+            resultItem.onmouseout = () => {
+                resultItem.style.transform = 'translateY(0)';
+                resultItem.style.boxShadow = 'none';
+                resultItem.style.borderColor = result.success ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)';
+            };
             
             // 添加响应数据（如果有）
             if (result.data) {
                 const dataContainer = document.createElement('div');
-                dataContainer.style.marginTop = '5px';
+                dataContainer.style.marginTop = '10px';
                 
                 const dataToggle = document.createElement('button');
                 dataToggle.textContent = '显示响应数据';
                 dataToggle.style.background = 'rgba(0, 212, 170, 0.2)';
                 dataToggle.style.border = '1px solid #00d4aa';
-                dataToggle.style.borderRadius = '4px';
-                dataToggle.style.padding = '2px 5px';
-                dataToggle.style.fontSize = '11px';
+                dataToggle.style.borderRadius = '6px';
+                dataToggle.style.padding = '5px 10px';
+                dataToggle.style.fontSize = '12px';
                 dataToggle.style.color = '#00d4aa';
                 dataToggle.style.cursor = 'pointer';
-                dataToggle.style.marginBottom = '5px';
+                dataToggle.style.marginBottom = '8px';
+                dataToggle.style.transition = 'all 0.3s';
                 
                 const dataContent = document.createElement('pre');
                 dataContent.style.display = 'none';
                 dataContent.style.maxHeight = '200px';
                 dataContent.style.overflowY = 'auto';
-                dataContent.style.padding = '5px';
-                dataContent.style.backgroundColor = '#2a2a2a';
-                dataContent.style.borderRadius = '4px';
+                dataContent.style.padding = '10px';
+                dataContent.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                dataContent.style.borderRadius = '8px';
                 dataContent.style.fontSize = '12px';
                 dataContent.style.whiteSpace = 'pre-wrap';
                 dataContent.style.wordBreak = 'break-all';
+                dataContent.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                dataContent.style.transition = 'all 0.3s';
+                
+                dataToggle.onmouseover = () => {
+                    dataToggle.style.background = 'rgba(0, 212, 170, 0.3)';
+                    dataToggle.style.transform = 'translateY(-1px)';
+                };
+                
+                dataToggle.onmouseout = () => {
+                    dataToggle.style.background = 'rgba(0, 212, 170, 0.2)';
+                    dataToggle.style.transform = 'translateY(0)';
+                };
                 
                 try {
                     // 尝试格式化JSON
