@@ -189,7 +189,7 @@ host_permissions: <all_urls>
 ## 版本与致谢
 
 - 版本：1.6.4
-- 作者：Phantom&yihuo
+- 作者：Phantom&yihuo&Xuan8a1
 - 站点：
   - https://www.cn-fnst.top/
   - https://blog.h-acker.cn/
