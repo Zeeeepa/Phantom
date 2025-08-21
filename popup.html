@@ -13,7 +13,7 @@
             width: 480px;
             min-height: 650px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: rgb(51, 51, 51);
+            background: rgb(30, 30, 30);
             color: #fff;
             overflow-x: hidden;
         }
@@ -23,7 +23,7 @@
             min-height: 650px;
             border-radius: 10px;
             padding: 1px;
-            background: rgb(51, 51, 51);
+            background: rgb(30, 30, 30);
             position: relative;
         }
         
@@ -41,11 +41,51 @@
             width: 100%;
             height: 100%;
             min-height: 648px;
-            border-radius: 9px;
-            border: solid 1px rgb(70, 70, 70);
-            background: rgb(51, 51, 51);
+            border-radius: 10px;
+            background: rgb(45, 45, 45);
             position: relative;
             color: #fff;
+            overflow: hidden;
+            box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.705);
+            transition: all 0.4s;
+        }
+        
+        .card:hover {
+            border-radius: 15px;
+            transform: scale(1.02);
+            box-shadow: 0px 0px 15px 8px rgba(0, 0, 0, 0.8);
+            background: rgb(30, 30, 30);
+        }
+        
+        /* 内容切换效果 */
+        .card .first-content {
+            position: relative;
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+            transition: all 0.4s;
+        }
+        
+        .card::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 200px;
+            left: -30%;
+            top: -30%;
+            background: #ffffff;
+            filter: blur(60px);
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+            transition: all 0.4s;
+        }
+        
+        .card:hover::after {
+            opacity: 0.6;
+            width: 280px;
+            height: 220px;
+            filter: blur(70px);
         }
         
         
@@ -100,9 +140,10 @@
             display: flex;
             justify-content: center;
             margin: 0 15px 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 5px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 6px;
             position: relative;
             z-index: 10;
         }
@@ -122,14 +163,38 @@
         }
         
         .nav-tab.active {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
         
         .nav-tab:hover {
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-1px);
+        }
+        
+        .nav-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            transition: all 0.3s;
+        }
+        
+        .nav-tab:hover::after {
+            width: 80%;
+            left: 10%;
+        }
+        
+        .nav-tab.active::after {
+            width: 90%;
+            left: 5%;
+            background: linear-gradient(90deg, transparent, #00d4aa, transparent);
         }
         
         /* 页面内容区域 */
@@ -150,23 +215,23 @@
         .action-button {
             position: relative;
             cursor: pointer;
-            padding: 12px 20px;
+            padding: 12px 16px;
             text-align: center;
             display: inline-flex;
             justify-content: center;
             align-items: center;
             font-size: 14px;
-            font-weight: 500;
-            text-transform: uppercase;
-            color: white;
-            border-radius: 8px;
-            border: none;
-            background: transparent;
-            transition: transform 0.3s ease-in-out;
-            outline-offset: 4px;
-            overflow: hidden;
+            font-weight: 600;
+            color: #fff;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(31, 41, 55, 0.3);
+            backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
             width: 100%;
             margin-bottom: 10px;
+            overflow: hidden;
+            will-change: transform;
         }
         
         .action-button:focus {
@@ -181,19 +246,24 @@
         
         .action-button .shine {
             position: absolute;
-            left: -75%;
             top: 0;
-            height: 100%;
-            width: 50%;
+            bottom: 0;
+            left: 0;
+            width: 42px;
             background: rgba(255, 255, 255, 0.2);
-            transform: rotate(12deg);
+            filter: blur(0);
+            transform: skew(-13deg) translateX(-120%);
+            transition: transform 1s ease;
             z-index: 10;
-            filter: blur(10px);
-            transition: all 1s ease-in-out;
+            pointer-events: none;
         }
         
         .action-button:hover .shine {
-            left: 125%;
+            transform: skew(-13deg) translateX(120%);
+        }
+        .action-button:hover {
+            transform: scale(1.08);
+            box-shadow: 0 20px 25px -5px rgba(107, 114, 128, 0.5);
         }
         
         .action-button .border-tl {
@@ -255,29 +325,45 @@
             right: 0;
             bottom: 0;
         }
+        /* 弱化霓虹装饰 */
+        .action-button .border-tl,
+        .action-button .border-tr,
+        .action-button .border-bl,
+        .action-button .border-br {
+            display: none !important;
+        }
         
         /* 扫描按钮特殊样式 */
         .scan-button {
-            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
+            background: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.5);
         }
-        
+        .scan-button:hover {
+            background: #2563eb;
+        }
         .scan-button.scanning {
-            animation: pulse 2s infinite;
+            animation: bluepulse 2s infinite;
         }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 5px rgba(0, 212, 170, 0.3); }
-            50% { box-shadow: 0 0 20px rgba(0, 212, 170, 0.6); }
-            100% { box-shadow: 0 0 5px rgba(0, 212, 170, 0.3); }
+        @keyframes bluepulse {
+            0% { box-shadow: 0 0 5px rgba(59,130,246,0.25); }
+            50% { box-shadow: 0 0 18px rgba(59,130,246,0.45); }
+            100% { box-shadow: 0 0 5px rgba(59,130,246,0.25); }
         }
         
         /* 深度扫描配置 */
         .deep-scan-config {
-            background: rgba(51, 51, 51, 0.5);
+            background: rgba(40, 40, 40, 0.5);
             border: 1px solid rgba(90, 90, 90, 0.3);
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .deep-scan-config:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
         }
         
         .config-title {
@@ -303,7 +389,7 @@
         }
         
         .config-option input[type="checkbox"] {
-            accent-color: #00d4aa;
+            accent-color: #3b82f6;
         }
         
         .config-controls {
@@ -354,11 +440,18 @@
         
         /* API测试区域 */
         .api-test-section {
-            background: rgba(51, 51, 51, 0.5);
+            background: rgba(40, 40, 40, 0.5);
             border: 1px solid rgba(90, 90, 90, 0.3);
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .api-test-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
         }
         
         .test-controls {
@@ -389,6 +482,16 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 12px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .category:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
         }
         
         .category-header {
@@ -406,8 +509,8 @@
         }
         
         .count-badge {
-            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
-            color: #000;
+            background: linear-gradient(45deg, #60a5fa, #3b82f6);
+            color: #0b1220;
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 12px;
@@ -427,24 +530,42 @@
         .item {
             padding: 6px 10px;
             margin: 3px 0;
-            background: rgba(51, 51, 51, 0.5);
+            background: rgba(40, 40, 40, 0.5);
             border: 1px solid rgba(90, 90, 90, 0.3);
             border-radius: 4px;
             word-break: break-all;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             color: #ccc;
+            position: relative;
+            overflow: hidden;
         }
         
         .item:hover {
             background: rgba(255, 255, 255, 0.1);
-            border-color: #00d4aa;
+            border-color: #3b82f6;
             color: #fff;
+            transform: translateX(3px);
+        }
+        
+        .item::after {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: all 0.5s;
+        }
+        
+        .item:hover::after {
+            left: 100%;
         }
         
         .item.copied {
-            background: rgba(0, 212, 170, 0.2);
-            border-color: #00d4aa;
+            background: rgba(59, 130, 246, 0.16);
+            border-color: #3b82f6;
             color: #fff;
         }
         
@@ -481,6 +602,14 @@
             border-radius: 6px;
             font-size: 12px;
             color: #ccc;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .stats:hover {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
         
         /* 滚动条样式 */
@@ -505,13 +634,16 @@
         }
         
         ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 3px;
+            background: transparent;
+            border-radius: 4px;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
-            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.8);
         }
         
         /* 模态框样式 */
@@ -864,6 +996,61 @@
         .settings-message.warning {
             background: #f39c12;
         }
+
+        /* 轻量 UI 增强：隐藏装饰线，分类标题低饱和多色 */
+        .ray, .line { display: none !important; }
+        .results-container .category:nth-of-type(6n+1) .category-title { color: #93c5fd; }
+        .results-container .category:nth-of-type(6n+2) .category-title { color: #a5b4fc; }
+        .results-container .category:nth-of-type(6n+3) .category-title { color: #6ee7b7; }
+        .results-container .category:nth-of-type(6n+4) .category-title { color: #fcd34d; }
+        .results-container .category:nth-of-type(6n+5) .category-title { color: #fca5a5; }
+        .results-container .category:nth-of-type(6n+6) .category-title { color: #fde68a; }
+
+        /* Header mini buttons - gradient swipe style */
+        .btn {
+          --color: #00A97F;
+          --color2: #212121;
+          padding: 0.45em 0.9em;
+          background-color: transparent;
+          border-radius: 10px;
+          border: 1.5px solid var(--color);
+          transition: .5s ease;
+          position: relative;
+          overflow: hidden;
+          cursor: pointer;
+          z-index: 1;
+          font-weight: 500;
+          font-size: 12px;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          text-transform: none;
+          color: var(--color);
+          line-height: 1;
+        }
+        .btn::before {
+          content: '';
+          display: block;
+          height: 110%;
+          width: 310%;
+          transform: translate(0, -50%);
+          position: absolute;
+          top: 50%;
+          left: -5%;
+          z-index: -1;
+          transition: .7s;
+          background: -moz-linear-gradient(45deg, var(--color2) 33%, var(--color) 66%);
+          background: -webkit-linear-gradient(45deg, var(--color2) 33%, var(--color) 66%);
+          background: linear-gradient(45deg, var(--color2) 33%, var(--color) 66%);
+        }
+        .btn:hover::before {
+          left: -200%;
+        }
+        .btn:hover {
+          color: var(--color2);
+        }
+        .btn:active {
+          transform: scale(.98);
+          filter: brightness(.9);
+        }
     </style>
 </head>
 <body>
@@ -878,7 +1065,7 @@
             
             <!-- 标题区域 -->
             <div class="header">
-                <h1>🔍 幻影</h1>
+                <h1>幻影</h1>
                 <div class="author-info">by Phantom&yihuo</div>
                 <div id="currentDomain" class="current-domain"></div>
             </div>
@@ -953,7 +1140,7 @@
                     </button>
                     
                     <div id="deepScanConfig" class="deep-scan-config" style="display: none;">
-                        <div class="config-title">🔍 深度扫描配置</div>
+                        <div class="config-title">深度扫描配置</div>
                         <div class="config-options">
                             <label class="config-option">
                                 <input type="checkbox" id="scanJsFiles" checked>
@@ -1008,7 +1195,7 @@
                 <!-- API测试页面 -->
                 <div class="page" id="test-page">
                     <div class="api-test-section">
-                        <div class="config-title">🧪 批量API测试</div>
+                        <div class="config-title">批量API测试</div>
                         <div class="test-controls">
                             <select id="requestMethod">
                                 <option value="GET">GET</option>
@@ -1016,14 +1203,14 @@
                             </select>
                             <select id="categorySelect">
                                 <option value="">选择要测试的分类</option>
-                                <option value="absoluteApis">🔗 绝对路径API</option>
-                                <option value="relativeApis">📁 相对路径API</option>
-                                <option value="jsFiles">📜 JS文件</option>
-                                <option value="cssFiles">🎨 CSS文件</option>
-                                <option value="images">🖼️ 图片文件</option>
-                                <option value="urls">🔗 完整URL</option>
-                                <option value="domains">🌐 域名</option>
-                                <option value="paths">📂 路径</option>
+                                <option value="absoluteApis">绝对路径API</option>
+                                <option value="relativeApis">相对路径API</option>
+                                <option value="jsFiles">JS文件</option>
+                                <option value="cssFiles">CSS文件</option>
+                                <option value="images">图片文件</option>
+                                <option value="urls">完整URL</option>
+                                <option value="domains">域名</option>
+                                <option value="paths">路径</option>
                             </select>
                         </div>
                         <div class="test-controls">
@@ -1048,11 +1235,11 @@
                 <div class="page" id="settings-page">
                     <!-- Cookie设置 -->
                     <div class="api-test-section">
-                        <div class="config-title">🍪 Cookie设置</div>
+                        <div class="config-title">Cookie设置</div>
                         <div class="cookie-controls">
                             <div class="cookie-input-group">
                                 <textarea id="cookieInput" placeholder="请输入Cookie或点击获取当前网站Cookie..." rows="3"></textarea>
-                                <button id="getCookieBtn" class="get-cookie-btn" title="获取当前网站Cookie">📋</button>
+                                <button id="getCookieBtn" class="get-cookie-btn" title="获取当前网站Cookie">获取</button>
                             </div>
                             <div class="cookie-actions">
                                 <button id="saveCookieBtn" class="action-button">
@@ -1077,7 +1264,7 @@
 
                     <!-- 正则配置 -->
                     <div class="api-test-section">
-                        <div class="config-title">🔧 正则表达式配置</div>
+                        <div class="config-title">正则表达式配置</div>
                         <div class="regex-config">
                             <div class="regex-item">
                                 <label>API接口正则:</label>
@@ -1212,14 +1399,13 @@
                 <!-- 关于页面 -->
                 <div class="page" id="about-page">
                     <div class="api-test-section">
-                        <div class="config-title">📋 工具信息</div>
+                        <div class="config-title">工具信息</div>
                         <div style="color: #ccc; line-height: 1.6; font-size: 13px;">
                             <p><strong>工具名称:</strong> 幻影</p>
-                            <p><strong>版本:</strong> 1.6.3</p>
+                            <p><strong>版本:</strong> 1.6.4</p>
                             <p><strong>作者:</strong> Phantom&yihuo</p>
                             <p><strong>site:</strong> https://www.cn-fnst.top/</p>
                             <p><strong>site:</strong> https://blog.h-acker.cn/</p>
-                            <p><strong>site:</strong> https://www.hdsec.cn/</p>
                             <p><strong>功能:</strong> 专业的SRC漏洞挖掘辅助工具</p>
                             <p><strong>开源地址:</strong> https://github.com/Team-intN18-SoybeanSeclab/Phantom</p>
                             <br>
