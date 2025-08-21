@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 480px;
+            min-height: 650px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: rgb(51, 51, 51);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .main-container {
+            width: 100%;
+            min-height: 650px;
+            border-radius: 10px;
+            padding: 1px;
+            background: rgb(51, 51, 51);
+            position: relative;
+        }
+        
+        
+        
+        @keyframes moveDot {
+            0%, 100% { top: 10%; right: 10%; }
+            25% { top: 10%; right: calc(100% - 35px); }
+            50% { top: calc(100% - 30px); right: calc(100% - 35px); }
+            75% { top: calc(100% - 30px); right: 10%; }
+        }
+        
+        .card {
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 648px;
+            border-radius: 9px;
+            border: solid 1px rgb(70, 70, 70);
+            background: rgb(51, 51, 51);
+            position: relative;
+            color: #fff;
+        }
+        
+        
+        
+        
+        
+        
+        
+        .bottoml {
+            bottom: 10%;
+        }
+        
+        .leftl {
+            left: 10%;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(180deg, #747474 30%, #222424 70%);
+        }
+        
+        .rightl {
+            right: 10%;
+            width: 1px;
+            height: 100%;
+        }
+        
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            padding: 12px 15px 10px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: bolder;
+            background: linear-gradient(45deg, rgb(30, 30, 30) 4%, #fff, rgb(30, 30, 30));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 3px;
+        }
+        
+        .author-info {
+            font-size: 11px;
+            color: #888;
+            opacity: 0.8;
+        }
+        
+        /* 横向导航 */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin: 0 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 5px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            color: #888;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-tab.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-tab:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* 页面内容区域 */
+        .page-content {
+            padding: 0 15px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .action-button {
+            position: relative;
+            cursor: pointer;
+            padding: 12px 20px;
+            text-align: center;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: white;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            transition: transform 0.3s ease-in-out;
+            outline-offset: 4px;
+            overflow: hidden;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .action-button:focus {
+            outline: 2px solid white;
+            outline-offset: 4px;
+        }
+        
+        .action-button span.text {
+            position: relative;
+            z-index: 20;
+        }
+        
+        .action-button .shine {
+            position: absolute;
+            left: -75%;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(12deg);
+            z-index: 10;
+            filter: blur(10px);
+            transition: all 1s ease-in-out;
+        }
+        
+        .action-button:hover .shine {
+            left: 125%;
+        }
+        
+        .action-button .border-tl {
+            width: 50%;
+            transition: all 0.3s;
+            border: 2px solid #D4EDF9;
+            border-right: none;
+            border-bottom: none;
+            position: absolute;
+            height: 90%;
+            border-radius: 8px 0 0 0;
+            top: 0;
+            left: 0;
+        }
+        
+        .action-button .border-tr {
+            width: 50%;
+            transition: all 0.3s;
+            border: 2px solid #D4EDF9;
+            border-left: none;
+            border-bottom: none;
+            position: absolute;
+            height: 90%;
+            border-radius: 0 8px 0 0;
+            top: 0;
+            right: 0;
+        }
+        
+        .action-button:hover .border-tr {
+            height: 90%;
+        }
+        
+        .action-button .border-bl {
+            width: 50%;
+            transition: all 0.3s;
+            border: 2px solid #D4EDF9;
+            border-right: none;
+            border-top: none;
+            position: absolute;
+            height: 90%;
+            border-radius: 0 0 0 8px;
+            left: 0;
+            bottom: 0;
+        }
+        
+        .action-button:hover .border-bl {
+            height: 90%;
+        }
+        
+        .action-button .border-br {
+            width: 50%;
+            transition: all 0.3s;
+            border: 2px solid #D4EDF9;
+            border-left: none;
+            border-top: none;
+            position: absolute;
+            height: 20%;
+            border-radius: 0 0 8px 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        /* 扫描按钮特殊样式 */
+        .scan-button {
+            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
+        }
+        
+        .scan-button.scanning {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px rgba(0, 212, 170, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 170, 0.6); }
+            100% { box-shadow: 0 0 5px rgba(0, 212, 170, 0.3); }
+        }
+        
+        /* 深度扫描配置 */
+        .deep-scan-config {
+            background: rgba(51, 51, 51, 0.5);
+            border: 1px solid rgba(90, 90, 90, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .config-title {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .config-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .config-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .config-option input[type="checkbox"] {
+            accent-color: #00d4aa;
+        }
+        
+        .config-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .config-controls label {
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .config-controls select {
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        /* 进度条 */
+        .progress-container {
+            margin-top: 10px;
+        }
+        
+        .progress-text {
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        
+        .progress-bar-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            height: 6px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* API测试区域 */
+        .api-test-section {
+            background: rgba(51, 51, 51, 0.5);
+            border: 1px solid rgba(90, 90, 90, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .test-controls select {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 1px solid #444;
+            font-size: 12px;
+        }
+        
+        /* 结果显示区域 */
+        .results-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .category {
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        
+        .category-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #fff;
+        }
+        
+        .count-badge {
+            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .category-content {
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        
+        .category-content.collapsed {
+            display: none;
+        }
+        
+        .item {
+            padding: 6px 10px;
+            margin: 3px 0;
+            background: rgba(51, 51, 51, 0.5);
+            border: 1px solid rgba(90, 90, 90, 0.3);
+            border-radius: 4px;
+            word-break: break-all;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ccc;
+        }
+        
+        .item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00d4aa;
+            color: #fff;
+        }
+        
+        .item.copied {
+            background: rgba(0, 212, 170, 0.2);
+            border-color: #00d4aa;
+            color: #fff;
+        }
+        
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #00d4aa;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 212, 170, 0.3);
+            border-top: 2px solid #00d4aa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 统计信息 */
+        .stats {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        /* 滚动条样式 */
+        /* 隐藏数字输入框的加减按钮 */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -webkit-appearance: textfield;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
+            border-radius: 3px;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80%;
+            background: #1a1a2e;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            overflow-y: auto;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .modal h3 {
+            color: #00d4aa;
+            margin-bottom: 15px;
+        }
+
+        /* 导出弹窗特殊样式 */
+        .export-modal-content {
+            max-width: 500px;
+        }
+
+        .export-modal-body {
+            padding: 0;
+        }
+
+        .export-modal-body p {
+            margin-bottom: 20px;
+            color: #ccc;
+            text-align: center;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .export-option {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
+        }
+
+        .export-option.export-csv {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+
+        .export-option small {
+            opacity: 0.9;
+            font-size: 0.8em;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .export-option:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 当前域名显示 */
+        .current-domain {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        /* 设置页面样式 */
+        .cookie-controls {
+            margin-bottom: 15px;
+        }
+
+        .cookie-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .cookie-input-group textarea {
+            flex: 1;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .get-cookie-btn {
+            padding: 8px 12px;
+            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .get-cookie-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
+        }
+
+        .cookie-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .cookie-actions .action-button {
+            flex: 1;
+        }
+
+        .regex-config {
+            margin-bottom: 15px;
+        }
+
+        .regex-item {
+            margin-bottom: 15px;
+        }
+
+        .regex-item label {
+            display: block;
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        .regex-item textarea {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            resize: vertical;
+            min-height: 40px;
+        }
+
+        .regex-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .regex-actions .action-button {
+            flex: 1;
+        }
+
+        /* 设置页面输入框焦点样式 */
+        .cookie-input-group textarea:focus,
+        .regex-item textarea:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 5px rgba(0, 212, 170, 0.3);
+        }
+
+        /* 消息提示动画 */
+        /* 收放按钮样式 */
+        /* 收放按钮样式 */
+        .toggle-buttons-container {
+            text-align: center;
+            margin: -5px 0 10px 0;
+        }
+
+        .toggle-button {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 6px 15px;
+            color: #ccc;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toggle-button:hover {
+            background: rgba(0, 212, 170, 0.2);
+            border-color: #00d4aa;
+            color: #00d4aa;
+            transform: translateY(-1px);
+        }
+
+        .toggle-icon {
+            font-size: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-button.collapsed .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .scan-buttons-container {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .scan-buttons-container.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 结果容器动态高度调整 */
+        .results-container {
+            max-height: 300px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+        }
+
+        .results-container.expanded {
+            max-height: 450px; /* 增加约150px，相当于三个按钮的高度 */
+        }
+
+        /* 页面内容区域调整 */
+        .page-content {
+            padding: 0 15px;
+            position: relative;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        /* 消息提示动画 */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .settings-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .settings-message.success {
+            background: #00d4aa;
+        }
+
+        .settings-message.error {
+            background: #e74c3c;
+        }
+
+        .settings-message.warning {
+            background: #f39c12;
+        }
+
+        /* 消息提示动画 */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .settings-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .settings-message.success {
+            background: #00d4aa;
+        }
+
+        .settings-message.error {
+            background: #e74c3c;
+        }
+
+        .settings-message.warning {
+            background: #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="dot"></div>
+        <div class="card">
+            <div class="ray"></div>
+            <div class="line topl"></div>
+            <div class="line bottoml"></div>
+            <div class="line leftl"></div>
+            <div class="line rightl"></div>
+            
+            <!-- 标题区域 -->
+            <div class="header">
+                <h1>🔍 幻影</h1>
+                <div class="author-info">by Phantom&yihuo</div>
+                <div id="currentDomain" class="current-domain"></div>
+            </div>
+            
+            <!-- 横向导航 -->
+            <div class="nav-tabs">
+                <div class="nav-tab active" data-page="scan">扫描</div>
+                <div class="nav-tab" data-page="deep">深度扫描</div>
+                <div class="nav-tab" data-page="test">API测试</div>
+                <div class="nav-tab" data-page="settings">设置</div>
+                <div class="nav-tab" data-page="about">关于</div>
+            </div>
+            
+            <!-- 页面内容 -->
+            <!-- 页面内容 -->
+            <div class="page-content">
+                <!-- 扫描页面 -->
+                <div class="page active" id="scan-page">
+                    <div class="scan-buttons-container" id="scanButtonsContainer">
+                        <button id="scanBtn" class="action-button scan-button">
+                            <span class="text">开始扫描</span>
+                            <span class="shine"></span>
+                            <span class="border-tl"></span>
+                            <span class="border-tr"></span>
+                            <span class="border-bl"></span>
+                            <span class="border-br"></span>
+                        </button>
+                        
+                        <button id="clearBtn" class="action-button">
+                            <span class="text">清空结果</span>
+                            <span class="shine"></span>
+                            <span class="border-tl"></span>
+                            <span class="border-tr"></span>
+                            <span class="border-bl"></span>
+                            <span class="border-br"></span>
+                        </button>
+                        
+                        <button id="exportBtn" class="action-button">
+                            <span class="text">导出数据</span>
+                            <span class="shine"></span>
+                            <span class="border-tl"></span>
+                            <span class="border-tr"></span>
+                            <span class="border-bl"></span>
+                            <span class="border-br"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- 收放按钮 -->
+                    <div class="toggle-buttons-container">
+                        <button id="toggleButtonsBtn" class="toggle-button">
+                            <span class="toggle-icon">▲</span>
+                            <span class="toggle-text">收起按钮</span>
+                        </button>
+                    </div>
+                    
+                    <div id="loading" class="loading" style="display: none;">
+                        正在扫描页面内容...
+                    </div>
+                    
+                    <div id="results" class="results-container"></div>
+                </div>
+                
+                <!-- 深度扫描页面 -->
+                <div class="page" id="deep-page">
+                    <button id="deepScanBtn" class="action-button">
+                        <span class="text">深度递归扫描</span>
+                        <span class="shine"></span>
+                        <span class="border-tl"></span>
+                        <span class="border-tr"></span>
+                        <span class="border-bl"></span>
+                        <span class="border-br"></span>
+                    </button>
+                    
+                    <div id="deepScanConfig" class="deep-scan-config" style="display: none;">
+                        <div class="config-title">🔍 深度扫描配置</div>
+                        <div class="config-options">
+                            <label class="config-option">
+                                <input type="checkbox" id="scanJsFiles" checked>
+                                扫描JS文件
+                            </label>
+                            <label class="config-option">
+                                <input type="checkbox" id="scanHtmlFiles" checked>
+                                扫描HTML文件
+                            </label>
+                            <label class="config-option">
+                                <input type="checkbox" id="scanApiFiles" checked>
+                                扫描API接口
+                            </label>
+                        </div>
+                        <div class="config-controls">
+                            <label>最大深度:</label>
+                            <select id="maxDepth">
+                                <option value="1">1层</option>
+                                <option value="2" selected>2层</option>
+                                <option value="3">3层</option>
+                                <option value="4">4层</option>
+                                <option value="5">5层</option>
+                            </select>
+                            <label>并发数:</label>
+                            <select id="concurrency">
+                                <option value="2">2个</option>
+                                <option value="3">3个</option>
+                                <option value="5">5个</option>
+                                <option value="8" selected>8个</option>
+                                <option value="16">16个</option>
+                                <option value="32">32个</option>
+                                <option value="64">64个</option>
+                            </select>
+                            <label>超时:</label>
+                            <select id="timeout">
+                                <option value="3">3秒</option>
+                                <option value="5" selected>5秒</option>
+                                <option value="10">10秒</option>
+                                <option value="15">15秒</option>
+                                <option value="30">30秒</option>
+                            </select>
+                        </div>
+                        <div id="deepScanProgress" class="progress-container" style="display: none;">
+                            <div class="progress-text">扫描进度: <span id="progressText">0/0</span></div>
+                            <div class="progress-bar-container">
+                                <div id="progressBar" class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- API测试页面 -->
+                <div class="page" id="test-page">
+                    <div class="api-test-section">
+                        <div class="config-title">🧪 批量API测试</div>
+                        <div class="test-controls">
+                            <select id="requestMethod">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                            <select id="categorySelect">
+                                <option value="">选择要测试的分类</option>
+                                <option value="absoluteApis">🔗 绝对路径API</option>
+                                <option value="relativeApis">📁 相对路径API</option>
+                                <option value="jsFiles">📜 JS文件</option>
+                                <option value="cssFiles">🎨 CSS文件</option>
+                                <option value="images">🖼️ 图片文件</option>
+                                <option value="urls">🔗 完整URL</option>
+                                <option value="domains">🌐 域名</option>
+                                <option value="paths">📂 路径</option>
+                            </select>
+                        </div>
+                        <div class="test-controls">
+                            <label style="display: flex; align-items: center;">并发数:</label>
+                            <input type="number" id="apiConcurrency" value="8" min="1" max="100" style="flex: 1; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; -moz-appearance: textfield; appearance: textfield;">
+                            <label style="display: flex; align-items: center;">超时:</label>
+                            <input type="number" id="apiTimeout" value="5" min="1" max="300" style="flex: 1; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; -moz-appearance: textfield; appearance: textfield;">
+                            <span style="font-size: 12px; color: #ccc; display: flex; align-items: center;">秒</span>
+                        </div>
+                        <button id="batchRequestBtn" class="action-button">
+                            <span class="text">批量请求测试</span>
+                            <span class="shine"></span>
+                            <span class="border-tl"></span>
+                            <span class="border-tr"></span>
+                            <span class="border-bl"></span>
+                            <span class="border-br"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 设置页面 -->
+                <div class="page" id="settings-page">
+                    <!-- Cookie设置 -->
+                    <div class="api-test-section">
+                        <div class="config-title">🍪 Cookie设置</div>
+                        <div class="cookie-controls">
+                            <div class="cookie-input-group">
+                                <textarea id="cookieInput" placeholder="请输入Cookie或点击获取当前网站Cookie..." rows="3"></textarea>
+                                <button id="getCookieBtn" class="get-cookie-btn" title="获取当前网站Cookie">📋</button>
+                            </div>
+                            <div class="cookie-actions">
+                                <button id="saveCookieBtn" class="action-button">
+                                    <span class="text">保存Cookie</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                                <button id="clearCookieBtn" class="action-button">
+                                    <span class="text">清空Cookie</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 正则配置 -->
+                    <div class="api-test-section">
+                        <div class="config-title">🔧 正则表达式配置</div>
+                        <div class="regex-config">
+                            <div class="regex-item">
+                                <label>API接口正则:</label>
+                                <textarea id="apiRegex" rows="2" placeholder="用于匹配API接口的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>域名正则:</label>
+                                <textarea id="domainRegex" rows="2" placeholder="用于匹配域名的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>邮箱正则:</label>
+                                <textarea id="emailRegex" rows="2" placeholder="用于匹配邮箱的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>电话正则:</label>
+                                <textarea id="phoneRegex" rows="2" placeholder="用于匹配电话号码的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>敏感信息正则:</label>
+                                <textarea id="sensitiveRegex" rows="2" placeholder="用于匹配敏感信息的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>IP地址正则:</label>
+                                <textarea id="ipRegex" rows="2" placeholder="用于匹配IP地址的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>JWT令牌正则:</label>
+                                <textarea id="jwtRegex" rows="2" placeholder="用于匹配JWT令牌的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>GitHub链接正则:</label>
+                                <textarea id="githubRegex" rows="2" placeholder="用于匹配GitHub链接的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>Vue文件正则:</label>
+                                <textarea id="vueRegex" rows="2" placeholder="用于匹配Vue文件的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>公司名称正则:</label>
+                                <textarea id="companyRegex" rows="2" placeholder="用于匹配公司名称的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>路径正则:</label>
+                                <textarea id="pathsRegex" rows="2" placeholder="用于匹配文件路径的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>身份证号正则:</label>
+                                <textarea id="idCardRegex" rows="2" placeholder="用于匹配身份证号的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>Bearer Token正则:</label>
+                                <textarea id="bearerTokenRegex" rows="2" placeholder="用于匹配Bearer Token的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>Basic Auth正则:</label>
+                                <textarea id="basicAuthRegex" rows="2" placeholder="用于匹配Basic Auth的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>Authorization Header正则:</label>
+                                <textarea id="authHeaderRegex" rows="2" placeholder="用于匹配Authorization Header的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>微信AppID正则:</label>
+                                <textarea id="wechatAppIdRegex" rows="2" placeholder="用于匹配微信AppID的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>AWS密钥正则:</label>
+                                <textarea id="awsKeyRegex" rows="2" placeholder="用于匹配AWS密钥的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>Google API Key正则:</label>
+                                <textarea id="googleApiKeyRegex" rows="2" placeholder="用于匹配Google API Key的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>GitHub Token正则:</label>
+                                <textarea id="githubTokenRegex" rows="2" placeholder="用于匹配GitHub Token的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>GitLab Token正则:</label>
+                                <textarea id="gitlabTokenRegex" rows="2" placeholder="用于匹配GitLab Token的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>Webhook URLs正则:</label>
+                                <textarea id="webhookUrlsRegex" rows="2" placeholder="用于匹配Webhook URLs的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>加密算法调用正则:</label>
+                                <textarea id="cryptoUsageRegex" rows="2" placeholder="用于检测加密算法调用的正则表达式"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>注释正则:</label>
+                                <textarea id="commentRegex" rows="2" placeholder="用于匹配代码注释的正则表达式"></textarea>
+                            </div>
+                        </div>
+                        <div class="regex-actions">
+                            <button id="saveRegexBtn" class="action-button">
+                                <span class="text">保存配置</span>
+                                <span class="shine"></span>
+                                <span class="border-tl"></span>
+                                <span class="border-tr"></span>
+                                <span class="border-bl"></span>
+                                <span class="border-br"></span>
+                            </button>
+                            <button id="resetRegexBtn" class="action-button">
+                                <span class="text">恢复默认</span>
+                                <span class="shine"></span>
+                                <span class="border-tl"></span>
+                                <span class="border-tr"></span>
+                                <span class="border-bl"></span>
+                                <span class="border-br"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 数据管理 -->
+                    <!-- <div class="api-test-section">
+                        <div class="config-title">🗑️ 数据管理</div>
+                        <div style="margin-bottom: 10px; color: #ccc; font-size: 12px;">
+                            清空所有页面的扫描数据，包括基础扫描结果、深度扫描结果和相关配置。
+                        </div>
+                        <button id="clearAllDataBtn" class="action-button" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">
+                            <span class="text">清空全部数据</span>
+                            <span class="shine"></span>
+                            <span class="border-tl"></span>
+                            <span class="border-tr"></span>
+                            <span class="border-bl"></span>
+                            <span class="border-br"></span>
+                        </button>
+                    </div> -->
+                </div>
+
+                <!-- 关于页面 -->
+                <div class="page" id="about-page">
+                    <div class="api-test-section">
+                        <div class="config-title">📋 工具信息</div>
+                        <div style="color: #ccc; line-height: 1.6; font-size: 13px;">
+                            <p><strong>工具名称:</strong> 幻影</p>
+                            <p><strong>版本:</strong> 1.6.1</p>
+                            <p><strong>作者:</strong> Phantom&yihuo</p>
+                            <p><strong>site:</strong> https://www.cn-fnst.top/</p>
+                            <p><strong>site:</strong> https://blog.h-acker.cn/</p>
+                            <p><strong>功能:</strong> 专业的SRC漏洞挖掘辅助工具</p>
+                            <p><strong>开源地址:</strong> https://github.com/xxxxx</p>
+                            <br>
+                            <p><strong>主要特性:</strong></p>
+                            <ul style="margin-left: 20px; margin-top: 5px;">
+                                <li>自动扫描页面敏感信息</li>
+                                <li>深度递归扫描多层文件</li>
+                                <li>批量API接口测试</li>
+                                <li>智能信息分类展示</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="stats" id="stats"></div>
+        </div>
+    </div>
+    <div id="requestResultModal" class="modal">
+        <div class="modal-content">
+            <button id="closeModalBtn" class="modal-close">×</button>
+            <h3>批量请求结果</h3>
+            <div id="requestResults"></div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button id="copyAllResultsBtn" class="action-button" style="width: auto; margin: 0;">
+                    <span class="text">复制全部结果</span>
+                    <span class="shine"></span>
+                    <span class="border-tl"></span>
+                    <span class="border-tr"></span>
+                    <span class="border-bl"></span>
+                    <span class="border-br"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导出格式选择弹窗 -->
+    <div id="exportModal" class="modal" style="display: none;">
+        <div class="modal-content export-modal-content">
+            <button id="closeExportModal" class="modal-close">×</button>
+            <h3>选择导出格式</h3>
+            <div class="export-modal-body">
+                <p>请选择要导出的文件格式：</p>
+                <div class="export-buttons">
+                    <button class="action-button export-option" id="exportJSON">
+                        <span class="text">
+                            <strong>JSON格式</strong>
+                            <br><small>包含完整测试信息和结果数据</small>
+                        </span>
+                        <span class="shine"></span>
+                        <span class="border-tl"></span>
+                        <span class="border-tr"></span>
+                        <span class="border-bl"></span>
+                        <span class="border-br"></span>
+                    </button>
+                    <button class="action-button export-option export-csv" id="exportCSV">
+                        <span class="text">
+                            <strong>XLS格式</strong>
+                            <br><small>Excel工作簿，按分类分页存放</small>
+                        </span>
+                        <span class="shine"></span>
+                        <span class="border-tl"></span>
+                        <span class="border-tr"></span>
+                        <span class="border-bl"></span>
+                        <span class="border-br"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 按顺序引入所有模块 -->
+    <script src="src/scanner/PatternExtractor.js"></script>
+    <script src="src/scanner/ContentExtractor.js"></script>
+    <script src="src/scanner/BasicScanner.js"></script>
+    <script src="src/scanner/DeepScanner.js"></script>
+    <script src="src/ui/DisplayManager.js"></script>
+    <script src="src/api/TestWindow.js"></script>
+    <script src="src/api/ApiTester.js"></script>
+    <script src="src/utils/ExportManager.js"></script>
+    <script src="src/utils/SettingsManager.js"></script>
+    <script src="src/main.js"></script>
+</body>
+</html>
