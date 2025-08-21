@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #3a4a5c;
+            background: rgb(30, 30, 30);
             color: #fff;
             min-height: 100vh;
             padding: 20px;
@@ -22,22 +22,33 @@
         .container {
             max-width: 100%;
             margin: 0 auto;
-            background: #4a5a6e;
-            border-radius: 8px;
+            background: rgb(45, 45, 45);
+            border-radius: 12px;
             padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s ease;
+        }
+        
+        .container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
         }
 
         .header {
             text-align: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #3498db;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .header h1 {
             font-size: 1.8em;
             margin-bottom: 10px;
-            color: #3498db;
+            background: linear-gradient(45deg, rgb(30, 30, 30) 4%, #fff, rgb(30, 30, 30));
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
         }
 
         .status-bar {
@@ -45,8 +56,9 @@
             justify-content: space-around;
             margin-bottom: 20px;
             padding: 15px;
-            background: #3a4a5c;
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .status-item {
@@ -77,51 +89,54 @@
         }
 
         .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: background-color 0.2s ease;
+          --color: #00A97F;
+          --color2: #212121;
+          padding: 8px 14px;
+          background-color: transparent;
+          border-radius: 10px;
+          border: 1.5px solid var(--color);
+          transition: .5s ease;
+          position: relative;
+          overflow: hidden;
+          cursor: pointer;
+          z-index: 1;
+          font-weight: 500;
+          font-size: 12px;
+          color: var(--color);
+          line-height: 1;
         }
+        .btn::before {
+          content: '';
+          display: block;
+          height: 110%;
+          width: 310%;
+          transform: translate(0, -50%);
+          position: absolute;
+          top: 50%;
+          left: -5%;
+          z-index: -1;
+          transition: .7s;
+          background: linear-gradient(45deg, var(--color2) 33%, var(--color) 66%);
+        }
+        .btn:hover::before { left: -200%; }
+        .btn:hover { color: var(--color2); }
+        .btn:active { transform: scale(.98); filter: brightness(.9); }
 
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
+        .btn-primary { --color: #3b82f6; }
 
-        .btn-primary:hover {
-            background: #2980b9;
-        }
+        .btn-primary:hover { }
 
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-            border: 1px solid #7f8c8d;
-        }
+        .btn-secondary { --color: #9ca3af; }
 
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
+        .btn-secondary:hover { }
 
-        .btn-success {
-            background: #27ae60;
-            color: white;
-        }
+        .btn-success { --color: #27ae60; }
 
-        .btn-success:hover {
-            background: #229954;
-        }
+        .btn-success:hover { }
 
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
+        .btn-danger { --color: #e74c3c; }
 
-        .btn-danger:hover {
-            background: #c0392b;
-        }
+        .btn-danger:hover { }
 
         .btn:disabled {
             opacity: 0.5;
@@ -129,12 +144,12 @@
         }
 
         .results-container {
-            background: #3a4a5c;
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
             overflow: hidden;
             max-height: 500px;
             overflow-y: auto;
-            border: 1px solid #4a5a6e;
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .results-table {
@@ -144,11 +159,11 @@
         }
 
         .results-table th {
-            background: #3a4a5c;
+            background: rgba(0, 0, 0, 0.3);
             padding: 10px 8px;
             text-align: left;
             font-weight: 600;
-            border-bottom: 2px solid #3498db;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             position: sticky;
             top: 0;
             cursor: pointer;
@@ -158,7 +173,7 @@
         }
 
         .results-table th:hover {
-            background: #4a5a6e;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         /* 自定义滚动条样式 */
@@ -167,18 +182,18 @@
         }
 
         .results-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
+            background: transparent;
             border-radius: 4px;
         }
 
         .results-container::-webkit-scrollbar-thumb {
-            background: #3498db;
+            background: rgba(255, 255, 255, 0.6);
             border-radius: 4px;
             transition: background 0.2s ease;
         }
 
         .results-container::-webkit-scrollbar-thumb:hover {
-            background: #2980b9;
+            background: rgba(255, 255, 255, 0.8);
         }
 
         /* 为整个页面的滚动条也应用相同样式 */
@@ -187,18 +202,18 @@
         }
 
         body::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
+            background: transparent;
             border-radius: 4px;
         }
 
         body::-webkit-scrollbar-thumb {
-            background: #3498db;
+            background: rgba(255, 255, 255, 0.6);
             border-radius: 4px;
             transition: background 0.2s ease;
         }
 
         body::-webkit-scrollbar-thumb:hover {
-            background: #2980b9;
+            background: rgba(255, 255, 255, 0.8);
         }
 
         .sort-btn {
@@ -288,18 +303,19 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
         .modal-content {
-            background-color: #4a5a6e;
-            border-radius: 8px;
+            background-color: rgb(30, 30, 30);
+            border-radius: 10px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .modal-header {
