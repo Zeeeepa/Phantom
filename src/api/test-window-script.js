@@ -419,6 +419,8 @@ async function processSingleRequest(item, index) {
             headers: headersObj,
             bodyPreview: bodyPreview,
             bodyTruncated: bodyTruncated,
+            rawBody: (typeof textContentOuter === 'string' ? textContentOuter.slice(0, 262144) : ''),
+            rawBodyTruncated: (typeof textContentOuter === 'string' && textContentOuter.length > 262144),
             time: duration + 'ms',
             success: isSuccess,
             index: index
@@ -606,26 +608,72 @@ function addResultToTable(result) {
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.style.display = 'flex';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 900px; width: 95%;">
-                    <div class="modal-header">
-                        <h3>响应详情</h3>
-                        <span class="close">&times;</span>
-                    </div>
-                    <div class="modal-body">
-                        <div style="margin-bottom:10px;color:#fff">
-                            <div><strong>URL:</strong> ${escapeHtml(res.fullUrl || res.url)}</div>
-                            <div><strong>状态:</strong> ${escapeHtml(String(res.status))} ${escapeHtml(res.statusText || '')}</div>
-                            <div><strong>大小:</strong> ${escapeHtml(res.size || '')} (${res.byteSize || 0} B)</div>
-                            <div><strong>类型:</strong> ${escapeHtml(res.contentType || '')}</div>
-                        </div>
-                        <h4 style="color:#3498db;margin:10px 0 6px;">Headers</h4>
-                        <pre style="white-space:pre-wrap;max-height:180px;overflow:auto;background:#3a4a5c;padding:10px;border-radius:6px;">${escapeHtml(formatHeaders(res.headers))}</pre>
-                        <h4 style="color:#3498db;margin:10px 0 6px;">Body</h4>
-                        <pre style="white-space:pre-wrap;max-height:280px;overflow:auto;background:#3a4a5c;padding:10px;border-radius:6px;">${escapeHtml(res.bodyPreview || '')}</pre>
-                        ${res.bodyTruncated ? '<div style="font-size:12px;color:#ccc;margin-top:6px;">内容已截断展示（前 2000 字符）</div>' : ''}
-                    </div>
-                </div>`;
+
+            // 构建内容（仅展示原始响应报文：状态行 + 头 + 原始Body；不渲染HTML）
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.style.maxWidth = '900px';
+            modalContent.style.width = '95%';
+
+            const modalHeader = document.createElement('div');
+            modalHeader.className = 'modal-header';
+            const titleEl = document.createElement('h3');
+            titleEl.textContent = '响应详情';
+            const closeBtnEl = document.createElement('span');
+            closeBtnEl.className = 'close';
+            closeBtnEl.textContent = '×';
+            modalHeader.appendChild(titleEl);
+            modalHeader.appendChild(closeBtnEl);
+
+            const modalBody = document.createElement('div');
+            modalBody.className = 'modal-body';
+
+            const metaDiv = document.createElement('div');
+            metaDiv.style.marginBottom = '10px';
+            metaDiv.style.color = '#fff';
+            metaDiv.innerHTML = `
+                <div><strong>URL:</strong> ${escapeHtml(res.fullUrl || res.url)}</div>
+                <div><strong>状态:</strong> ${escapeHtml(String(res.status))} ${escapeHtml(res.statusText || '')}</div>
+                <div><strong>大小:</strong> ${escapeHtml(res.size || '')} (${res.byteSize || 0} B)</div>
+                <div><strong>类型:</strong> ${escapeHtml(res.contentType || '')}</div>
+            `;
+            modalBody.appendChild(metaDiv);
+
+            // 组装原始响应报文
+            const headerLines = [];
+            if (res.headers && typeof res.headers === 'object') {
+                for (const [k, v] of Object.entries(res.headers)) {
+                    headerLines.push(`${k}: ${v}`);
+                }
+            }
+            const statusLine = `HTTP/1.1 ${res.status} ${res.statusText || ''}`.trim();
+            const rawBody = (typeof res.rawBody === 'string') ? res.rawBody : (res.bodyPreview || '');
+            const rawResponse = `${statusLine}\r\n${headerLines.join('\r\n')}\r\n\r\n${rawBody}`;
+
+            const pre = document.createElement('pre');
+            pre.style.whiteSpace = 'pre-wrap';
+            pre.style.maxHeight = '480px';
+            pre.style.overflow = 'auto';
+            pre.style.background = 'rgba(0, 0, 0, 0.3)';
+            pre.style.padding = '10px';
+            pre.style.borderRadius = '8px';
+            pre.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+            pre.textContent = rawResponse; // 仅文本，避免HTML渲染
+            modalBody.appendChild(pre);
+
+            if (res.rawBodyTruncated) {
+                const tip = document.createElement('div');
+                tip.style.fontSize = '12px';
+                tip.style.color = '#ccc';
+                tip.style.marginTop = '6px';
+                tip.textContent = '内容已截断展示（前 256 KB）';
+                modalBody.appendChild(tip);
+            }
+
+            modalContent.appendChild(modalHeader);
+            modalContent.appendChild(modalBody);
+            modal.appendChild(modalContent);
+
             document.body.appendChild(modal);
             const closeEl = modal.querySelector('.close');
             const close = () => { document.body.removeChild(modal); };
