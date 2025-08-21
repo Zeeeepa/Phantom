@@ -176,7 +176,7 @@ host_permissions: <all_urls>
   - 站点需要鉴权：先保存 Cookie 后再执行
   - 并发过高或超时过短：适度调小并发、调大超时
 - Excel 打不开
-  - 导出为 .xls（XML 工作簿）可直接用 Excel 打开；若提示编码，选择 UTF-8
+  - 导出为 .xls可直接用 Excel 打开；若提示编码，选择 UTF-8
 - 性能建议
   - 复杂页面建议使用默认节流与深度参数，避免过高并发导致浏览器卡顿
 
@@ -194,7 +194,7 @@ host_permissions: <all_urls>
   - https://www.cn-fnst.top/
   - https://blog.h-acker.cn/
   - https://www.hdsec.cn/
-- 开源地址：请参考项目发布页
+- 开源地址：https://github.com/Team-intN18-SoybeanSeclab/Phantom/
 - 致谢:隼目安全，D3f4ultX，findsomething，SnowEyes
 
 ## 宣传文章
