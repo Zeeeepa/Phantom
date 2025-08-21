@@ -51,53 +51,48 @@ host_permissions: <all_urls>
 ## 快速上手
 
 - 基础扫描
-
   1) 打开目标页面
-  2) ![image-20250821110310737](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110310737.png)2) !(图像- 20250821110310737)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110310737. - png)[image-20250821110310737](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110310737.png)2) ！（图版- 20250821110310737）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110310737.）- png)
+  2) ![image-20250821110310737](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110310737.png)2) !(图像- 20250821110310737)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110310737. - png)
   3) 点击扩展图标打开弹窗，默认会显示当前域
   4) 点击「开始扫描」或等待自动扫描（首次或超过5分钟未扫描会静默触发）
   5) 结果按分类展示，可点击条目复制
-
+  
 - 深度递归扫描
-
   1) 切换至「深度扫描」页
   2) ![image-20250821110343528](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110343528.png)2) !(图像- 20250821110343528)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110343528. - png)
   3) 展开配置（最大深度、并发数、超时；可选：扫描 JS/HTML/API）
   4) 再次点击按钮启动，新窗口将执行分层递归扫描并实时更新结果
   5) 扫描完成后结果会自动合并保存并回显
-
+  
 - 批量 API 测试
-
   1. 切换至「API测试」页
-
+  
   2. 选择请求方法及要测试的分类（如绝对路径API、相对路径API、JS/CSS/图片/URL/域名/路径）
-
+  
   3. ![image-20250821110504483](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110504483.png)3. !(图像- 20250821110504483)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110504483. - png)
-
+  
   4. 支持选择GET/POST请求方式来进行测试
-
+  
   5. ![image-20250821110540077](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110540077.png)5. !(图像- 20250821110540077)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110540077. - png)
-
+  
   6. 配置并发与超时，点击「批量请求测试」
-
+  
   7. 在弹窗结果中排序，查看与复制
-
+  
   8. ![image-20250821110622952](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110622952.png)8. !(图像- 20250821110622952)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110622952. - png)
-
+  
   9. 支持预览响应
-
+  
      ![image-20250821110716479](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110716479.png)!(图像- 20250821110716479)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110716479. - png)
-
+  
 - 导出数据
-
   1) 在「扫描」页点击「导出数据」
-  2) ![image-20250821110747681](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110747681.png)2) !(图像- 20250821110747681)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110747681. - png)
+  2) ![image-20250821110747681](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110747681.png)2) !(图像- 20250821110747681)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110747681. - png)[image-20250821110747681   图像- 20250821110747681](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110747681.png)2) ！（图版- 20250821110747681）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110747681.）- png)
   3) 选择导出为 JSON 或 Excel（.xls）
-  4) ![image-20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) !(图像- 20250821110810246)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246. - png)[image-20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) ！（图版- 20250821110810246）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246.）- png)[image-20250821110810246   图像- 20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) ！（图版- 20250821110810246）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246.）- png)[image-20250821110810246   图像- 20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) ！（图版- 20250821110810246）(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246.)- png)
+  4) ![image-20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) !(图像- 20250821110810246)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246. - png)[image-20250821110810246   图像- 20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) ！（图版- 20250821110810246）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246.）- png)
   5) 文件名格式：域名__随机数，例如 example.com__123456.xls
-
+  
 - 设置（Cookie与正则）
-
   1) 切换至「设置」页
   2) Cookie：点击获取当前站点 Cookie 或手动粘贴保存
   3) 正则：按分类编辑后「保存配置」即时生效；可「恢复默认」
@@ -169,9 +164,9 @@ host_permissions: <all_urls>
 - src/utils/   - src /跑龙套
   - ExportManager.js（JSON/XLS 导出）
   - SettingsManager.js（Cookie/正则配置、全量清理）
-- filters/   -过滤器/
+- filters/   -过滤器/[image-20250821110747681](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110747681.png)2) ！（图版- 20250821110747681）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110747681.）- png)
   - domain-phone-filter.js（域名/邮箱/手机号增强过滤）
-  - api-filter.js（API 路径增强过滤）
+  - api-filter.js（API 路径增强过滤）[image-20250821110810246   图像- 20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) ！（图版- 20250821110810246）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246.）- png)
 
 ## 常见问题
 
@@ -192,7 +187,7 @@ host_permissions: <all_urls>
 - 工具仅用于授权范围内的安全测试与 SRC 场景自查，请勿用于非法用途
 - 结果保存在本地 storage，不会自动对外发送
 - 在进行深度扫描与批量请求时，请遵循目标站点策略与相关法律法规
-[image-20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)4) ！（图版- 20250821110810246）（https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246.）- png)(图片- 20250821110810246)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246. - png) 4) !（图版- 20250821110810246）(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110810246.)- png)
+
 ## 版本与致谢
 
 - 版本：1.6.2
@@ -201,4 +196,4 @@ host_permissions: <all_urls>
   - https://www.cn-fnst.top/
   - https://blog.h-acker.cn/
 - 开源地址：请参考项目发布页
-- 致谢:D3f4ultX，SnowEyes，findsomething
+- 致谢:D3f4ultX，findsomething，SnowEyes
