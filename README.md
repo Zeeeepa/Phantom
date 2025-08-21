@@ -1,6 +1,6 @@
 # 幻影（Phantom）SRC漏洞挖掘辅助工具
 
-一款面向 SRC 场景的浏览器扩展，自动收集页面及相关资源中的敏感信息与可疑线索，支持基础扫描、深度递归扫描、批量 API 测试及结果导出与自定义正则配置。
+一款面向 SRC 场景的浏览器扩展），自动收集页面及相关资源中的敏感信息与可疑线索，支持基础扫描、深度递归扫描、批量 API 测试及结果导出与自定义正则配置。
 
 版本：1.6.2  
 作者：Phantom&yihuo
@@ -8,18 +8,18 @@
 ## 特性概览
 
 - 一键基础扫描：自动提取页面内的 API、URL、域名、邮箱、手机号、路径、参数、注释、多类 Token/Key 等
-- ![image-20250821105907662](.\icon\image-20250821105907662.png)
+- ![image-20250821105907662](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821105907662.png)
 - 深度递归扫描：多层链接/资源爬取，支持并发、超时配置，并在新窗口中运行，不阻塞当前操作
-- ![image-20250821105956759](.\icon\image-20250821105956759.png
-- ![image-20250821110030658](.\icon\image-20250821110030658.png)
+- ![image-20250821105956759](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821105956759.png)
+- ![image-20250821110030658](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110030658.png)
 - 批量 API 测试：对扫描到的分类条目进行 GET/POST 批测，并发与超时可配置，结果支持复制
-- ![image-20250821110058048](.\icon\image-20250821110058048.png)
+- ![image-20250821110058048](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110058048.png)
 - 导出能力：支持 JSON 与 Excel（.xls XML 格式）两种导出
-- ![image-20250821110136801](.\icon\image-20250821110136801.png)
+- ![image-20250821110136801](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110136801.png)
 - 自定义正则：内置丰富默认规则，可在「设置」中按分类自定义正则并即时生效
-- ![image-20250821110155338](.\icon\image-20250821110155338.png)
+- ![image-20250821110155338](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110155338.png)
 - Cookie 支持：可一键获取当前站点 Cookie 并保存，便于需要鉴权的请求场景
-- ![image-20250821110217368](.\icon\image-20250821110217368.png)
+- ![image-20250821110217368](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110217368.png)
 - 去重与过滤：内置增强过滤器（域名/邮箱/手机号/API），减少误报
 - 自动与增量：页面加载、DOM 变化与定时策略触发静默扫描；深度扫描过程中分层/分批实时合并与展示
 
@@ -52,14 +52,14 @@ host_permissions: <all_urls>
 
 - 基础扫描
   1) 打开目标页面
-  2) ![image-20250821110310737](.\icon\image-20250821110310737.png)
+  2) ![image-20250821110310737](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110310737.png)
   3) 点击扩展图标打开弹窗，默认会显示当前域
   4) 点击「开始扫描」或等待自动扫描（首次或超过5分钟未扫描会静默触发）
   5) 结果按分类展示，可点击条目复制
   
 - 深度递归扫描
   1) 切换至「深度扫描」页
-  2) ![image-20250821110343528](.\icon\image-20250821110343528.png)
+  2) ![image-20250821110343528](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110343528.png)
   3) 展开配置（最大深度、并发数、超时；可选：扫描 JS/HTML/API）
   4) 再次点击按钮启动，新窗口将执行分层递归扫描并实时更新结果
   5) 扫描完成后结果会自动合并保存并回显
@@ -69,27 +69,27 @@ host_permissions: <all_urls>
   
   2. 选择请求方法及要测试的分类（如绝对路径API、相对路径API、JS/CSS/图片/URL/域名/路径）
   
-  3. ![image-20250821110504483](.\icon\image-20250821110504483.png)
+  3. ![image-20250821110504483](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110504483.png)
   
   4. 支持选择GET/POST请求方式来进行测试
   
-  5. ![image-20250821110540077](.\icon\image-20250821110540077.png)
+  5. ![image-20250821110540077](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110540077.png)
   
   6. 配置并发与超时，点击「批量请求测试」
   
   7. 在弹窗结果中排序，查看与复制
   
-  8. ![image-20250821110622952](.\icon\image-20250821110622952.png)
+  8. ![image-20250821110622952](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110622952.png)
   
   9. 支持预览响应
   
-     ![image-20250821110716479](.\icon\image-20250821110716479.png)
+     ![image-20250821110716479](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110716479.png)
   
 - 导出数据
   1) 在「扫描」页点击「导出数据」
-  2) ![image-20250821110747681](.\icon\image-20250821110747681.png)
+  2) ![image-20250821110747681](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110747681.png)
   3) 选择导出为 JSON 或 Excel（.xls）
-  4) ![image-20250821110810246](.\icon\image-20250821110810246.png)4) !(图像- 20250821110810246)(\ \图标图像- 20250821110810246. png)
+  4) ![image-20250821110810246](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110810246.png)
   5) 文件名格式：域名__随机数，例如 example.com__123456.xls
   
 - 设置（Cookie与正则）
@@ -112,7 +112,7 @@ host_permissions: <all_urls>
 
 - 原理
   - 从当前页初始结果中收集候选 URL（JS/HTML/API）
-  - 分层递归（最大深度可配），队列+并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取
+  - 分层递归（最大深度可配），队列+并发 worker 处理，URL 内容经 PatternExtractor 提取
   - 通过 background.js 代发请求（runtime.sendMessage: makeRequest），处理跨域、超时、类型与文本提取
   - 应用增强过滤器（域名/邮箱/手机号与 API），结果实时合并到 deepScanResults，并回显与持久化
   - 仅同域扫描（same-domain 策略），避免越权和噪音
