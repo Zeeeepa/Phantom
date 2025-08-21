@@ -1,7 +1,7 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 3,   “manifest_version”:3,
   "name": "幻影",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "专业的SRC漏洞挖掘辅助工具，自动提取页面中的敏感信息",
   "author": "Phantom&yihuo",
   
@@ -31,7 +31,7 @@
         "filters/api-filter.js", 
         "filters/domain-phone-filter.js", 
         "src/scanner/PatternExtractor.js",
-        "src/scanner/ContentExtractor.js",
+        “src /扫描仪/ ContentExtractor.js”,"src/scanner/ContentExtractor.js",
         "content.js"
       ],
       "run_at": "document_end",
@@ -42,10 +42,10 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "filters/api-filter.js", 
-        "filters/domain-phone-filter.js", 
-        "src/scanner/PatternExtractor.js",
-        "src/scanner/ContentExtractor.js",
+        "filters/api-filter.js",    “过滤器/ api-filter.js”,
+        "filters/domain-phone-filter.js", “过滤器/ domain-phone-filter.js”,
+        "src/scanner/PatternExtractor.js",“src /扫描仪/ PatternExtractor.js”,
+        "src/scanner/ContentExtractor.js",“src /扫描仪/ ContentExtractor.js”,
         "src/scanner/DeepScanWindow.js",
         "test-results.html", 
         "test-window.html", 
