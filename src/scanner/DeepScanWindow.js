@@ -96,7 +96,7 @@ class DeepScanWindow {
             return;
         }
 
-        console.log('🚀 启动深度扫描窗口...');
+        console.log('启动深度扫描窗口...');
 
         // 获取配置参数
         const maxDepthInput = document.getElementById('maxDepth');
