@@ -644,7 +644,6 @@ class SRCMiner {
             if (domainDisplay) {
                 domainDisplay.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="color: #00d4aa;">🎯</span>
                         <span style="font-size: 12px; opacity: 0.8;">正在扫描:</span>
                         <span style="color: #00d4aa; font-weight: 600;">${protocol}//${domain}${port}</span>
                     </div>
