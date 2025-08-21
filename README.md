@@ -8,26 +8,26 @@
 ## 特性概览
 
 - 一键基础扫描：自动提取页面内的 API、URL、域名、邮箱、手机号、路径、参数、注释、多类 Token/Key 等
-- ![image-20250821105907662](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821105907662.png)
+- ![image-20250821105907662   图像- 20250821105907662](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821105907662.png)
 - 深度递归扫描：多层链接/资源爬取，支持并发、超时配置，并在新窗口中运行，不阻塞当前操作
-- ![image-20250821105956759](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821105956759.png)
-- ![image-20250821110030658](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110030658.png)
+- ![image-20250821105956759   图像- 20250821105956759](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821105956759.png)
+- ![image-20250821110030658   图像- 20250821110030658](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110030658.png)
 - 批量 API 测试：对扫描到的分类条目进行 GET/POST 批测，并发与超时可配置，结果支持复制
-- ![image-20250821110058048](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110058048.png)
+- ![image-20250821110058048   图像- 20250821110058048](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110058048.png)
 - 导出能力：支持 JSON 与 Excel（.xls XML 格式）两种导出
-- ![image-20250821110136801](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110136801.png)
+- ![image-20250821110136801](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110136801.png)——!(图像- 20250821110136801)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110136801. - png)
 - 自定义正则：内置丰富默认规则，可在「设置」中按分类自定义正则并即时生效
-- ![image-20250821110155338](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110155338.png)
+- ![image-20250821110155338](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110155338.png)——!(图像- 20250821110155338)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110155338. - png)
 - Cookie 支持：可一键获取当前站点 Cookie 并保存，便于需要鉴权的请求场景
-- ![image-20250821110217368](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110217368.png)
+- ![image-20250821110217368](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110217368.png)——!(图像- 20250821110217368)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110217368. - png)
 - 去重与过滤：内置增强过滤器（域名/邮箱/手机号/API），减少误报
 - 自动与增量：页面加载、DOM 变化与定时策略触发静默扫描；深度扫描过程中分层/分批实时合并与展示
 
 ## 安装
 
 1. 打开 Chrome/Edge 等 Chromium 内核浏览器，访问 扩展程序
-   - Chrome：chrome://extensions
-   - Edge：edge://extensions
+   - Chrome：chrome://extensions-铬:Chrome:   铬: / /扩展
+   - Edge：edge://extensions   -边缘:优势:/ /扩展
 2. 右上角开启「开发者模式」
 3. 点击「加载已解压的扩展程序」
 4. 选择本项目文件夹（包含 manifest.json 的目录）
@@ -52,14 +52,14 @@ host_permissions: <all_urls>
 
 - 基础扫描
   1) 打开目标页面
-  2) ![image-20250821110310737](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110310737.png)
+  2) ![image-20250821110310737](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110310737.png)2) !(图像- 20250821110310737)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110310737. - png)
   3) 点击扩展图标打开弹窗，默认会显示当前域
   4) 点击「开始扫描」或等待自动扫描（首次或超过5分钟未扫描会静默触发）
   5) 结果按分类展示，可点击条目复制
   
 - 深度递归扫描
   1) 切换至「深度扫描」页
-  2) ![image-20250821110343528](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110343528.png)
+  2) ![image-20250821110343528](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/master/icon/image-20250821110343528.png)2) !(图像- 20250821110343528)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110343528. - png)
   3) 展开配置（最大深度、并发数、超时；可选：扫描 JS/HTML/API）
   4) 再次点击按钮启动，新窗口将执行分层递归扫描并实时更新结果
   5) 扫描完成后结果会自动合并保存并回显
@@ -112,7 +112,7 @@ host_permissions: <all_urls>
 
 - 原理
   - 从当前页初始结果中收集候选 URL（JS/HTML/API）
-  - 分层递归（最大深度可配），队列+并发 worker 处理，URL 内容经 PatternExtractor 提取
+  - 分层递归（最大深度可配），队列+并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取- 分层递归（最大深度可配），队列 并发 worker 处理，URL 内容经 PatternExtractor 提取
   - 通过 background.js 代发请求（runtime.sendMessage: makeRequest），处理跨域、超时、类型与文本提取
   - 应用增强过滤器（域名/邮箱/手机号与 API），结果实时合并到 deepScanResults，并回显与持久化
   - 仅同域扫描（same-domain 策略），避免越权和噪音
@@ -159,7 +159,7 @@ host_permissions: <all_urls>
 - src/scanner/   - src /扫描仪/
   - PatternExtractor.js / ContentExtractor.js / BasicScanner.js / DeepScanner.js / DeepScanWindow.js
 - src/api/
-  - ApiTester.js / TestWindow.js 等
+  - ApiTester.js / TestWindow.js 等——!(图像- 20250821110217368)(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110217368. - png)——!（图版- 20250821110217368）(https://raw.githubusercontent.com/team - intn18 soybeanseclab/phantom/master/icon/image - 20250821110217368。- png)
 - src/ui/   - src /洋葱/
   - DisplayManager.js（结果展示）
 - src/utils/   - src /跑龙套
@@ -197,4 +197,4 @@ host_permissions: <all_urls>
   - https://www.cn-fnst.top/
   - https://blog.h-acker.cn/
 - 开源地址：请参考项目发布页
-- 致谢:D3f4ultX
+- 致谢:D3f4ultX，SnowEyes，findsomething
