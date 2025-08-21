@@ -188,7 +188,7 @@ host_permissions: <all_urls>
 
 ## 版本与致谢
 
-- 版本：1.6.3
+- 版本：1.6.4
 - 作者：Phantom&yihuo
 - 站点：
   - https://www.cn-fnst.top/
