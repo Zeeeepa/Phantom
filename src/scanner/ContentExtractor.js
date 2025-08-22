@@ -236,7 +236,7 @@ class ContentExtractor {
             
             console.log('🔍 ContentExtractor使用PatternExtractor进行提取...');
             window.patternExtractor.extractAPIs(processContent, results);
-            window.patternExtractor.extractOtherResources(processContent, results);
+            window.patternExtractor.extractOtherResources(processContent, results, window.location.href);
             window.patternExtractor.extractSensitiveData(processContent, results);
         } else {
             console.warn('⚠️ PatternExtractor未找到，跳过提取');

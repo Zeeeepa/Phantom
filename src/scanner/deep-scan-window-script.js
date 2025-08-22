@@ -338,10 +338,13 @@ function loadScript(src) {
 }
 
 // 应用筛选器到结果
-function applyFiltersToResults(results) {
+function applyFiltersToResults(results, sourceUrl = '未知URL') {
     console.log('🔍 [DEBUG] 开始应用筛选器，原始数据:', results);
     console.log('🔍 [DEBUG] 其中urls:', results.urls || []);
     console.log('🔍 [DEBUG] urls数量为', (results.urls || []).length);
+    
+    // 设置当前URL变量
+    const currentUrl = sourceUrl;
     
     // 如果筛选器未加载，直接返回原始结果，不进行筛选
     if (!filtersLoaded || !apiFilter || !domainPhoneFilter) {
@@ -425,9 +428,16 @@ function applyFiltersToResults(results) {
     
     if (results.phoneNumbers && Array.isArray(results.phoneNumbers)) {
         console.log(`🔍 [DEBUG] 筛选手机号: ${results.phoneNumbers.length} 个`);
+        console.log(`🌐 [DEBUG] 手机号筛选来源URL: ${currentUrl || '未知URL'}`);
+        results.phoneNumbers.forEach(phone => {
+            console.log(`🎯 [DEBUG] 待筛选手机号: ${phone} (来源URL: ${currentUrl || '未知URL'})`);
+        });
         const validPhones = domainPhoneFilter.filterPhones(results.phoneNumbers, true);
-        validPhones.forEach(phone => resultsSet.phoneNumbers.add(phone));
-        console.log(`🔍 [DEBUG] 手机号筛选结果: ${validPhones.length} 个有效手机号`);
+        validPhones.forEach(phone => {
+            resultsSet.phoneNumbers.add(phone);
+            console.log(`✅ [DEBUG] 有效手机号通过筛选: ${phone} (来源URL: ${currentUrl || '未知URL'})`);
+        });
+        console.log(`🔍 [DEBUG] 手机号筛选结果: ${validPhones.length} 个有效手机号 (来源URL: ${currentUrl || '未知URL'})`);
     }
     
     if (results.emails && Array.isArray(results.emails)) {
@@ -916,7 +926,7 @@ async function scanUrlBatch(urls, depth) {
                     
                     if (content) {
                         const extractedData = extractFromContent(content, url);
-                        const filteredData = applyFiltersToResults(extractedData);
+                        const filteredData = applyFiltersToResults(extractedData, url);
                         mergeResults(filteredData);
                         
                         const discoveredUrls = collectUrlsFromContent(content);
@@ -1020,6 +1030,7 @@ async function makeRequestViaBackground(url, options = {}) {
 // 从内容中提取信息
 function extractFromContent(content, sourceUrl) {
     console.log('🔍 [DEBUG] extractFromContent 开始提取，内容长度:', content.length);
+    console.log('🔍 [DEBUG] 提取来源URL:', sourceUrl || '未知URL');
     console.log('🔍 [DEBUG] PatternExtractor 可用性:', !!patternExtractor);
     
     const maxContentLength = 500000;
@@ -1118,8 +1129,17 @@ function extractFromContent(content, sourceUrl) {
             console.log('🔍 [DEBUG] 其他资源提取完成');
             
             console.log('🔍 [DEBUG] 开始提取敏感数据...');
-            patternExtractor.extractSensitiveData(processedContent, results);
+            patternExtractor.extractSensitiveData(processedContent, results, sourceUrl);
             console.log('🔍 [DEBUG] 敏感数据提取完成');
+            
+            // 详细记录手机号提取结果
+            if (results.phoneNumbers && results.phoneNumbers.size > 0) {
+                console.log(`📱 [DEBUG] 手机号提取汇总 - 来源URL: ${sourceUrl || '未知URL'}`);
+                console.log(`📱 [DEBUG] 本次提取到的手机号数量: ${results.phoneNumbers.size}`);
+                Array.from(results.phoneNumbers).forEach((phone, index) => {
+                    console.log(`📱 [DEBUG] 手机号 ${index + 1}: ${phone} (来源: ${sourceUrl || '未知URL'})`);
+                });
+            }
             
             // 手动补充一些可能遗漏的敏感信息提取
             console.log('🔍 [DEBUG] 开始补充敏感信息提取...');
@@ -1293,16 +1313,35 @@ function extractAdditionalSensitiveData(content, results) {
     console.log('🔍 [DEBUG] 补充身份证号提取...');
     const idCardPattern = /['"](\d{8}(0\d|10|11|12)([0-2]\d|30|31)\d{3}$)|(\d{6}(18|19|20)\d{2}(0[1-9]|10|11|12)([0-2]\d|30|31)\d{3}(\d|X|x))['"]|[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]/g;
     let idCardCount = 0;
+    const extractedIdCards = [];
+    
     while ((match = idCardPattern.exec(processContent)) !== null) {
         const idCard = match[0].replace(/["']/g, '');
         console.log(`🎯 [DEBUG] 补充身份证号匹配到: "${idCard}"`);
         if (idCard && (idCard.length === 15 || idCard.length === 18)) {
-            results.idCards.add(idCard);
-            results.sensitiveKeywords.add(idCard);
-            idCardCount++;
+            extractedIdCards.push(idCard);
         }
     }
-    console.log(`📊 [DEBUG] 补充身份证号提取完成，共找到 ${idCardCount} 个`);
+    
+    // 使用身份证过滤器验证，只保留18位有效身份证
+    let validIdCards = [];
+    if (window.patternExtractor && typeof window.patternExtractor.validateIdCards === 'function') {
+        validIdCards = window.patternExtractor.validateIdCards(extractedIdCards);
+        console.log(`🔍 [DEBUG] 身份证验证完成，原始: ${extractedIdCards.length} 个，有效: ${validIdCards.length} 个`);
+    } else {
+        // 如果没有验证器，只保留18位身份证
+        validIdCards = extractedIdCards.filter(idCard => idCard.length === 18);
+        console.log(`⚠️ [DEBUG] 身份证验证器不可用，仅保留18位身份证: ${validIdCards.length} 个`);
+    }
+    
+    // 将验证通过的身份证添加到结果中
+    for (const validIdCard of validIdCards) {
+        results.idCards.add(validIdCard);
+        results.sensitiveKeywords.add(validIdCard);
+        idCardCount++;
+    }
+    
+    console.log(`📊 [DEBUG] 补充身份证号提取完成，共找到 ${idCardCount} 个有效身份证`);
     
     // 补充加密算法使用检测
     console.log('🔍 [DEBUG] 补充加密算法使用检测...');
@@ -1445,14 +1484,19 @@ function extractBasicPatterns(content, results) {
     
     // 手机号提取
     console.log('🔍 [DEBUG] 基础手机号提取开始...');
-    const phonePattern = /(?:\+86|86)?[-\s]?1[3-9]\d{9}/g;
+    const phonePattern = /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/g;
     let phoneCount = 0;
     while ((match = phonePattern.exec(processContent)) !== null) {
-        results.phoneNumbers.add(match[0]);
+        const phoneNumber = match[0];
+        results.phoneNumbers.add(phoneNumber);
         phoneCount++;
-        console.log(`✅ [DEBUG] 基础手机号提取: ${match[0]}`);
+        console.log(`✅ [DEBUG] 基础手机号提取: ${phoneNumber}`);
+        console.log(`🌐 [DEBUG] 深度扫描手机号发现位置 - URL: ${url || '未知URL'}, 手机号: ${phoneNumber}`);
     }
     console.log(`📊 [DEBUG] 基础手机号提取完成，共找到 ${phoneCount} 个`);
+    if (phoneCount > 0) {
+        console.log(`🔍 [DEBUG] 深度扫描手机号提取汇总 - 来源URL: ${url || '未知URL'}, 总数: ${phoneCount}`);
+    }
     
     // JS文件提取
     console.log('🔍 [DEBUG] 基础JS文件提取开始...');
@@ -1793,7 +1837,23 @@ async function saveResultsToStorage() {
         // 最终检查：确保relativeApis为空数组
         mergedResults.relativeApis = [];
         
-        console.log('🔍 [DEBUG] 最终保存的数据:', mergedResults);
+        // 添加调试：检查数据合并前后的变化
+        console.log('🔍 [DEBUG] 原始扫描结果数据量统计:');
+        Object.keys(processedScanResults).forEach(key => {
+            const count = processedScanResults[key]?.length || 0;
+            if (count > 0) {
+                console.log(`  ${key}: ${count} 个项目`);
+            }
+        });
+        
+        console.log('🔍 [DEBUG] 合并后数据量统计:');
+        Object.keys(mergedResults).forEach(key => {
+            const count = mergedResults[key]?.length || 0;
+            if (count > 0) {
+                console.log(`  ${key}: ${count} 个项目`);
+            }
+        });
+        
         console.log('🔍 [DEBUG] relativeApis数组长度:', mergedResults.relativeApis.length);
         console.log('🔍 [DEBUG] absoluteApis数组长度:', mergedResults.absoluteApis.length);
         

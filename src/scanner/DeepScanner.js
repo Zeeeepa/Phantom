@@ -767,12 +767,12 @@ class DeepScanner {
         // 使用PatternExtractor的方法
         if (this.srcMiner.patternExtractor) {
             this.srcMiner.patternExtractor.extractAPIs(processedContent, results);
-            this.srcMiner.patternExtractor.extractOtherResources(processedContent, results);
+            this.srcMiner.patternExtractor.extractOtherResources(processedContent, results, sourceUrl);
             this.srcMiner.patternExtractor.extractSensitiveData(processedContent, results);
         }
         
         // 应用增强过滤器
-        this.applyFilters(results, processedContent);
+        this.applyFilters(results, processedContent, sourceUrl);
         
         // 转换Set为Array - 优化版本
         const finalResults = {};
@@ -921,7 +921,7 @@ class DeepScanner {
     }
     
     // 应用过滤器处理结果
-    applyFilters(results, content) {
+    applyFilters(results, content, sourceUrl = '未知URL') {
         try {
             // 检查过滤器是否可用
             if (!window.domainPhoneFilter && !window.apiFilter) {
@@ -960,7 +960,10 @@ class DeepScanner {
                     extractedInfo.emails.forEach(email => results.emails.add(email));
                     
                     // 添加有效的手机号
-                    extractedInfo.phoneNumbers.forEach(phone => results.phoneNumbers.add(phone));
+                    extractedInfo.phoneNumbers.forEach(phone => {
+                        console.log(`📱 [DeepScanner] 手机号提取 - URL: ${sourceUrl}, 手机号: ${phone}`);
+                        results.phoneNumbers.add(phone);
+                    });
                     
                     // 添加有效的域名
                     extractedInfo.domains.forEach(domain => results.domains.add(domain));

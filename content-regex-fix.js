@@ -81,9 +81,13 @@ class SRCMinerContentRegexFix {
                 phones.forEach(phone => {
                     if (phone && phone.length > 3 && phone.length < 50) {
                         results.phoneNumbers.add(phone);
+                        console.log(`🌐 [DEBUG] 自定义正则手机号发现 - URL: ${window.location.href}, 手机号: ${phone}`);
                     }
                 });
                 console.log('🔧 使用自定义手机号正则表达式，匹配到', phones.length, '个手机号');
+                if (phones.length > 0) {
+                    console.log(`🔍 [DEBUG] 自定义正则手机号提取汇总 - 来源URL: ${window.location.href}, 总数: ${phones.length}`);
+                }
                 return true;
             } catch (error) {
                 console.error('自定义手机号正则表达式格式错误:', error);

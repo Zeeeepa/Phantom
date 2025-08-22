@@ -711,48 +711,7 @@ class ILoveYouTranslucent7 {
     }
 }
 
-const CURRENT_VERSION = 'v1.6.5'; // 当前版本号
-
-async function checkForUpdate() {
-    try {
-        // 读取上次弹窗时间
-        const lastShown = localStorage.getItem('phantom_update_last_shown');
-        const now = Date.now();
-        if (lastShown && now - Number(lastShown) < 24 * 60 * 60 * 1000) return; // 24小时内不弹
-
-        const res = await fetch('https://api.github.com/repos/Team-intN18-SoybeanSeclab/Phantom/releases');
-        if (!res.ok) return;
-        const releases = await res.json();
-        if (!Array.isArray(releases) || releases.length === 0) return;
-        const latest = releases[0];
-        if (latest.tag_name !== CURRENT_VERSION) {
-            showUpdateModal(latest);
-            localStorage.setItem('phantom_update_last_shown', now); // 记录弹窗时间
-        }
-    } catch (e) {}
-}
-
-function showUpdateModal(release) {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;
-        background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;
-    `;
-    modal.innerHTML = `
-        <div style="background:#222;padding:30px 24px;border-radius:12px;max-width:350px;color:#fff;text-align:center;box-shadow:0 0 20px #000;">
-            <h2 style="color:#00d4aa;">Xuan8a1提醒您，有新版本：${release.tag_name}</h2>
-            <div style="margin:12px 0 18px 0;font-size:13px;">${release.name || ''}</div>
-            <div style="margin-bottom:12px;font-size:12px;color:#ccc;">${release.body || ''}</div>
-            <a href="${release.html_url}" target="_blank" style="display:inline-block;padding:8px 18px;background:#00d4aa;color:#222;border-radius:6px;text-decoration:none;font-weight:bold;">前往下载</a>
-            <br><button style="margin-top:18px;padding:6px 18px;background:#444;color:#fff;border:none;border-radius:6px;cursor:pointer;" id="closeUpdateModal">关闭</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    modal.querySelector('#closeUpdateModal').onclick = () => modal.remove();
-}
-
 // 初始化应用
 document.addEventListener('DOMContentLoaded', () => {
     new ILoveYouTranslucent7();
-    checkForUpdate(); // 页面加载后检测更新
 });

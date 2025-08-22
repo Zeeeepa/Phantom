@@ -560,7 +560,7 @@ class DomainPhoneFilter {
         const matches = [];
         
         // 中国手机号模式：1开头的11位数字
-        const cnPhoneRegex = /(?<!\d)1[3-9]\d{9}(?!\d)/g;
+        const cnPhoneRegex = /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/g;
         let cnMatch;
         while ((cnMatch = cnPhoneRegex.exec(text)) !== null) {
             matches.push(cnMatch[0]);

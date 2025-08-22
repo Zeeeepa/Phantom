@@ -4,6 +4,10 @@
  */
 class PatternExtractor {
     constructor() {
+        // 引入身份证验证过滤器
+        this.idCardFilter = null;
+        this.loadIdCardFilter();
+        
         // 缓存编译好的正则表达式
         this.defaultPatterns = {
             // API提取模式
@@ -28,7 +32,7 @@ class PatternExtractor {
             
             // 敏感信息提取模式 - 更新为增强版本
             email: /['"][a-zA-Z0-9\._\-]*@[a-zA-Z0-9\._\-]{1,63}\.((?!js|css|jpg|jpeg|png|ico)[a-zA-Z]{2,})['"]|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Z|a-z]{2,}/g,
-            phone: /(?<!\d)(?:['"]1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7}['"]|(?:\+86|86)?[-\s]?1[3-9]\d{9}|(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})(?!\d)/g,
+            phone: /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/g,
             ip: /['"]([a-zA-Z0-9]+:)?\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(\/.*?)?['"]|\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g,
             
             // 身份证号
@@ -113,6 +117,74 @@ class PatternExtractor {
         
         // 初始化credentials模式（在方法定义完成后）
         this.patterns.credentials = this.buildCredentialsPatterns();
+    }
+    
+    /**
+     * 加载身份证验证过滤器
+     */
+    loadIdCardFilter() {
+        try {
+            // 尝试从全局变量获取
+            if (typeof window !== 'undefined' && window.idCardFilter) {
+                this.idCardFilter = window.idCardFilter;
+                console.log('✅ 身份证过滤器加载成功 (全局变量)');
+                return;
+            }
+            
+            // 尝试动态加载
+            const script = document.createElement('script');
+            script.src = 'filters/id-card-filter.js';
+            script.onload = () => {
+                if (window.idCardFilter) {
+                    this.idCardFilter = window.idCardFilter;
+                    console.log('✅ 身份证过滤器动态加载成功');
+                } else {
+                    console.warn('⚠️ 身份证过滤器加载失败：未找到 idCardFilter');
+                }
+            };
+            script.onerror = () => {
+                console.error('❌ 身份证过滤器脚本加载失败');
+            };
+            document.head.appendChild(script);
+        } catch (error) {
+            console.error('❌ 加载身份证过滤器时出错:', error);
+        }
+    }
+    
+    /**
+     * 验证并过滤身份证号码，只保留18位有效身份证
+     * @param {Array} idCards - 提取到的身份证号码数组
+     * @returns {Array} 验证通过的18位身份证号码数组
+     */
+    validateIdCards(idCards) {
+        if (!this.idCardFilter || !Array.isArray(idCards)) {
+            return idCards || [];
+        }
+        
+        const validIdCards = [];
+        
+        for (const idCard of idCards) {
+            try {
+                const cleanIdCard = idCard.replace(/['"]/g, '').trim();
+                
+                // 只处理18位身份证
+                if (cleanIdCard.length !== 18) {
+                    continue;
+                }
+                
+                const result = this.idCardFilter.validate(cleanIdCard);
+                if (result.valid && result.type === '18位身份证') {
+                    validIdCards.push(cleanIdCard);
+                    console.log(`✅ 身份证验证通过: ${cleanIdCard} (${result.province}, ${result.gender})`);
+                } else {
+                    console.log(`❌ 身份证验证失败: ${cleanIdCard} - ${result.error || '格式错误'}`);
+                }
+            } catch (error) {
+                console.error('❌ 身份证验证过程出错:', error, '身份证:', idCard);
+            }
+        }
+        
+        return validIdCards;
     }
     
     /**
@@ -672,7 +744,7 @@ class PatternExtractor {
     
     // 提取其他资源 - 优化版本
     // 提取其他资源 - 优化版本
-    extractOtherResources(content, results) {
+    extractOtherResources(content, results, sourceUrl = '') {
         console.log('📁 [PatternExtractor] 开始提取其他资源...');
         
         // 限制内容大小
@@ -680,6 +752,7 @@ class PatternExtractor {
         const processContent = content.length > maxContentSize ? content.substring(0, maxContentSize) : content;
         
         console.log(`📊 [PatternExtractor] 其他资源处理内容大小: ${processContent.length} 字符`);
+        console.log(`🌐 [PatternExtractor] 当前处理的URL: ${sourceUrl}`);
         
         // 提取JS文件
         console.log('🔍 [PatternExtractor] 开始提取JS文件...');
@@ -793,12 +866,17 @@ class PatternExtractor {
         phonePattern.lastIndex = 0;
         let phoneCount = 0;
         while ((match = phonePattern.exec(processContent)) !== null) {
-            console.log(`🎯 [PatternExtractor] 电话号码匹配到: "${match[0]}"`);
-            results.phoneNumbers.add(match[0]);
+            const phoneNumber = match[0];
+            console.log(`🎯 [PatternExtractor] 电话号码匹配到: "${phoneNumber}"`);
+            console.log(`📱 [DEBUG] 手机号提取详情 - URL: ${sourceUrl || '未知URL'}, 手机号: ${phoneNumber}`);
+            results.phoneNumbers.add(phoneNumber);
             phoneCount++;
-            console.log(`✅ [PatternExtractor] 电话号码添加: "${match[0]}"`);
+            console.log(`✅ [PatternExtractor] 电话号码添加成功: "${phoneNumber}" (来源: ${sourceUrl || '未知URL'})`);
         }
         console.log(`📊 [PatternExtractor] 电话号码提取完成，共找到 ${phoneCount} 个`);
+        if (phoneCount > 0) {
+            console.log(`🔍 [DEBUG] 手机号提取汇总 - 来源URL: ${sourceUrl || '未知URL'}, 总数: ${phoneCount}`);
+        }
         
         // 提取IP地址
         console.log('🔍 [PatternExtractor] 开始提取IP地址...');
@@ -835,8 +913,9 @@ class PatternExtractor {
     }
     
     // 提取敏感数据 - 大幅增强版本
-    extractSensitiveData(content, results) {
+    extractSensitiveData(content, results, sourceUrl = '未知URL') {
         console.log('🔐 [PatternExtractor] 开始提取敏感数据...');
+        console.log('🔐 [PatternExtractor] 数据来源URL:', sourceUrl);
         
         // 限制内容大小
         const maxContentSize = 300000;
@@ -1099,23 +1178,34 @@ class PatternExtractor {
         console.log(`🔍 [PatternExtractor] 使用身份证号正则: ${this.patterns.idCard.source}`);
         this.patterns.idCard.lastIndex = 0;
         let idCardCount = 0;
+        const extractedIdCards = [];
+        
         while ((match = this.patterns.idCard.exec(processContent)) !== null) {
             const idCard = match[0].replace(/["']/g, '');
             console.log(`🎯 [PatternExtractor] 身份证号匹配到: "${idCard}"`);
             if (idCard && (idCard.length === 15 || idCard.length === 18)) {
-                if (results.idCards) {
-                    results.idCards.add(idCard);
-                    idCardCount++;
-                    console.log(`✅ [PatternExtractor] 身份证号添加到 idCards: "${idCard}"`);
-                } else if (results.sensitiveKeywords) {
-                    results.sensitiveKeywords.add(idCard);
-                    idCardCount++;
-                    console.log(`✅ [PatternExtractor] 身份证号添加到 sensitiveKeywords: "${idCard}"`);
-                } else {
-                    console.log(`❌ [PatternExtractor] 无法添加身份证号，results中没有相应字段`);
-                }
+                extractedIdCards.push(idCard);
             } else {
-                console.log(`❌ [PatternExtractor] 身份证号验证失败 (长度: ${idCard ? idCard.length : 0}): "${idCard}"`);
+                console.log(`❌ [PatternExtractor] 身份证号长度不符合要求 (长度: ${idCard ? idCard.length : 0}): "${idCard}"`);
+            }
+        }
+        
+        // 使用身份证过滤器验证，只保留18位有效身份证
+        const validIdCards = this.validateIdCards(extractedIdCards);
+        console.log(`🔍 [PatternExtractor] 身份证验证完成，原始: ${extractedIdCards.length} 个，有效: ${validIdCards.length} 个`);
+        
+        // 将验证通过的身份证添加到结果中
+        for (const validIdCard of validIdCards) {
+            if (results.idCards) {
+                results.idCards.add(validIdCard);
+                idCardCount++;
+                console.log(`✅ [PatternExtractor] 有效身份证添加到 idCards: "${validIdCard}"`);
+            } else if (results.sensitiveKeywords) {
+                results.sensitiveKeywords.add(validIdCard);
+                idCardCount++;
+                console.log(`✅ [PatternExtractor] 有效身份证添加到 sensitiveKeywords: "${validIdCard}"`);
+            } else {
+                console.log(`❌ [PatternExtractor] 无法添加身份证号，results中没有相应字段`);
             }
         }
         console.log(`📊 [PatternExtractor] 身份证号提取完成，共找到 ${idCardCount} 个`);

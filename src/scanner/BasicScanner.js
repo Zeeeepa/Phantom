@@ -169,11 +169,12 @@ class BasicScanner {
                     console.warn('加载自定义正则失败（忽略继续）:', e);
                 }
                 
-                // 创建ContentExtractor并执行提取
-                const contentExtractor = new ContentExtractor();
-                const results = await contentExtractor.extractSensitiveInfo(window.location.href);
-                console.log('✅ BasicScanner新系统提取完成，结果:', results);
-                return results;
+                    // 创建ContentExtractor并执行提取
+                    const contentExtractor = new ContentExtractor();
+                    const results = await contentExtractor.extractSensitiveInfo(window.location.href);
+                    console.log('✅ BasicScanner新系统提取完成，结果:', results);
+                    console.log('🌐 [DEBUG] BasicScanner扫描完成 - URL:', window.location.href);
+                    return results;
                 } catch (error) {
                     console.error('❌ BasicScanner新系统提取失败，使用降级方案:', error);
                 }
@@ -229,10 +230,12 @@ class BasicScanner {
             results.emails.push(match[0]);
         }
         
-        // 基础手机号提取
-        const phonePattern = /(?:\+86|86)?[-\s]?1[3-9]\d{9}/g;
+        // 基础手机号提取 - 使用与设置中一致的正则表达式
+        const phonePattern = /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/g;
         while ((match = phonePattern.exec(allContent)) !== null) {
-            results.phoneNumbers.push(match[0]);
+            const phoneNumber = match[0];
+            console.log(`📱 [BasicScanner] 手机号提取 - URL: ${window.location.href}, 手机号: ${phoneNumber}`);
+            results.phoneNumbers.push(phoneNumber);
         }
         
         // 去重并转换为数组
@@ -274,7 +277,19 @@ class BasicScanner {
             companies: [],
             jwts: [],
             githubUrls: [],
-            vueFiles: []
+            vueFiles: [],
+            // 新增的敏感信息类型
+            bearerTokens: [],
+            basicAuth: [],
+            authHeaders: [],
+            wechatAppIds: [],
+            awsKeys: [],
+            googleApiKeys: [],
+            githubTokens: [],
+            gitlabTokens: [],
+            webhookUrls: [],
+            idCards: [],
+            cryptoUsage: []
         };
     }
 }
