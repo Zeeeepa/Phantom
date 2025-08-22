@@ -191,7 +191,7 @@
 + <font style="background-color:rgba(255, 255, 255, 0);">在进行深度扫描与批量请求时，请遵循目标站点策略与相关法律法规</font>
 
 ## <font style="background-color:rgba(255, 255, 255, 0);">版本与致谢</font>
-+ <font style="background-color:rgba(255, 255, 255, 0);">版本：1.6.6</font>
++ <font style="background-color:rgba(255, 255, 255, 0);">版本：1.6.7</font>
 + <font style="background-color:rgba(255, 255, 255, 0);">作者：Phantom&yihuo&Xuan8a1</font>
 + <font style="background-color:rgba(255, 255, 255, 0);">站点： </font>
     - [<font style="background-color:rgba(255, 255, 255, 0);">https://www.cn-fnst.top/</font>](https://www.cn-fnst.top/)
