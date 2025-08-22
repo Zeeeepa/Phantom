@@ -711,7 +711,65 @@ class ILoveYouTranslucent7 {
     }
 }
 
+const CURRENT_VERSION = 'v1.6.6'; // 请根据实际版本修改
+
+function compareVersion(v1, v2) {
+    const arr1 = v1.replace(/^v/, '').split('.').map(Number);
+    const arr2 = v2.replace(/^v/, '').split('.').map(Number);
+    for (let i = 0; i < Math.max(arr1.length, arr2.length); i++) {
+        const num1 = arr1[i] || 0;
+        const num2 = arr2[i] || 0;
+        if (num1 < num2) return -1;
+        if (num1 > num2) return 1;
+    }
+    return 0;
+}
+
+function showUpdateModal(release) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;
+        background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;
+    `;
+    modal.innerHTML = `
+        <div style="background:#222;padding:30px 24px;border-radius:12px;max-width:350px;color:#fff;text-align:center;box-shadow:0 0 20px #000;">
+            <h2 style="color:#00d4aa;">Xuan8a1提醒您，有新版本：${release.tag_name}</h2>
+            <div style="margin:12px 0 18px 0;font-size:13px;">${release.name || ''}</div>
+            <div style="margin-bottom:12px;font-size:12px;color:#ccc;">${release.body || ''}</div>
+            <a href="${release.html_url}" target="_blank" style="display:inline-block;padding:8px 18px;background:#00d4aa;color:#222;border-radius:6px;text-decoration:none;font-weight:bold;">前往下载</a>
+            <br><button style="margin-top:18px;padding:6px 18px;background:#444;color:#fff;border:none;border-radius:6px;cursor:pointer;" id="closeUpdateModal">关闭</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('#closeUpdateModal').onclick = () => modal.remove();
+}
+
+async function checkForUpdate() {
+    try {
+        const lastShown = localStorage.getItem('phantom_update_last_shown');
+        const now = Date.now();
+        if (lastShown && now - Number(lastShown) < 24 * 60 * 60 * 1000) return;
+
+        const res = await fetch('https://www.cn-fnst.top/huanying/');
+        if (!res.ok) return;
+        const releases = await res.json();
+        if (!Array.isArray(releases) || releases.length === 0) return;
+        // 找到最大版本
+        let maxRelease = releases[0];
+        for (const r of releases) {
+            if (compareVersion(maxRelease.tag_name, r.tag_name) < 0) {
+                maxRelease = r;
+            }
+        }
+        if (compareVersion(CURRENT_VERSION, maxRelease.tag_name) < 0) {
+            showUpdateModal(maxRelease);
+            localStorage.setItem('phantom_update_last_shown', now);
+        }
+    } catch (e) {}
+}
+
 // 初始化应用
 document.addEventListener('DOMContentLoaded', () => {
     new ILoveYouTranslucent7();
+    checkForUpdate();
 });
