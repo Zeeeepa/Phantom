@@ -134,6 +134,12 @@ class SRCMiner {
             batchRequestBtn.addEventListener('click', () => this.batchRequestTest());
         }
         
+        // 添加自定义API路径按钮
+        const addCustomApiBtn = document.getElementById('addCustomApiBtn');
+        if (addCustomApiBtn) {
+            addCustomApiBtn.addEventListener('click', () => this.addCustomApiPaths());
+        }
+        
         // 模态框关闭按钮
         const closeModalBtn = document.getElementById('closeModalBtn');
         if (closeModalBtn) {
@@ -296,6 +302,7 @@ class SRCMiner {
         
         // 添加有数据的分类
         const categories = [
+            { key: 'customApis', title: '🔧 自定义API路径' },
             { key: 'absoluteApis', title: '🔗 绝对路径API' },
             { key: 'relativeApis', title: '📁 相对路径API' },
             { key: 'jsFiles', title: '📜 JS文件' },
@@ -951,7 +958,7 @@ class SRCMiner {
         
         const mergedResults = {};
         const categories = [
-            'absoluteApis', 'relativeApis', 'modulePaths', 'domains', 'urls', 
+            'customApis', 'absoluteApis', 'relativeApis', 'modulePaths', 'domains', 'urls', 
             'images', 'jsFiles', 'cssFiles', 'emails', 'phoneNumbers', 
             'ipAddresses', 'sensitiveKeywords', 'comments', 'paths', 
             'parameters', 'credentials', 'cookies', 'idKeys', 'companies', 
@@ -1087,6 +1094,60 @@ class SRCMiner {
             console.error('ApiTester未初始化');
             alert('API测试器未初始化，无法执行测试');
         }
+    }
+    
+        // 添加自定义API路径
+    addCustomApiPaths() {
+        const customApiPathsInput = document.getElementById('customApiPaths');
+        if (!customApiPathsInput) {
+            console.error('找不到自定义API路径输入框');
+            return;
+        }
+        
+        const customApiPaths = customApiPathsInput.value.trim();
+        if (!customApiPaths) {
+            alert('请输入自定义API路径，每行一个路径');
+            return;
+        }
+        
+        // 解析自定义API路径
+        const paths = this.apiTester.parseCustomApiPaths(customApiPaths);
+        if (paths.length === 0) {
+            alert('请输入有效的API路径');
+            return;
+        }
+        
+        // 将自定义API路径添加到扫描结果中
+        if (!this.results.customApis) {
+            this.results.customApis = [];
+        }
+        
+        // 使用Set进行去重
+        const existingSet = new Set(this.results.customApis);
+        let addedCount = 0;
+        
+        paths.forEach(path => {
+            if (!existingSet.has(path)) {
+                this.results.customApis.push(path);
+                existingSet.add(path);
+                addedCount++;
+            }
+        });
+        
+        // 保存结果到存储
+        this.saveResults();
+        
+        // 重新显示结果
+        this.displayResults();
+        
+        // 显示添加成功的提示
+        const message = `成功添加 ${addedCount} 个自定义API路径到扫描结果中:\n${paths.join('\n')}`;
+        alert(message);
+        
+        // 清空输入框
+        customApiPathsInput.value = '';
+        
+        console.log(`✅ 添加了 ${addedCount} 个自定义API路径到扫描结果:`, paths);
     }
     
     // 切换深度扫描 - 使用DeepScanner

@@ -1226,9 +1226,9 @@
                                 <option value="paths">路径</option>
                             </select>
                         </div>
-                        <div class="test-controls">
+                        <div class="test-controls" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                             <label style="display: flex; align-items: center;">Base API路径:</label>
-                            <input type="text" id="baseApiPath" placeholder="/api 或 /prod-api" style="flex: 1; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px;">
+                            <textarea id="baseApiPath" placeholder="输入Base API路径，每行一个路径&#10;例如：&#10;prod-api/v1/common&#10;prod-api/v1/base&#10;prod-api/v1/sys" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 80px; max-height: 120px; resize: vertical; font-family: monospace; line-height: 1.4;"></textarea>
                         </div>
                         <div class="test-controls">
                             <label style="display: flex; align-items: center;">并发数:</label>
@@ -1236,6 +1236,15 @@
                             <label style="display: flex; align-items: center;">超时:</label>
                             <input type="number" id="apiTimeout" value="5" min="1" max="300" style="flex: 1; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; -moz-appearance: textfield; appearance: textfield;">
                             <span style="font-size: 12px; color: #ccc; display: flex; align-items: center;">秒</span>
+                        </div>
+                                                                           <div class="test-controls" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <label style="display: flex; align-items: center;">自定义API路径:</label>
+                                <button id="addCustomApiBtn" class="action-button" style="padding: 6px 12px; font-size: 12px; min-width: 50px; height: fit-content; width: auto; margin: 0;">
+                                    <span class="text">添加</span>
+                                </button>
+                            </div>
+                            <textarea id="customApiPaths" placeholder="输入自定义API路径，每行一个路径" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 60px; max-height: 120px; resize: vertical; font-family: monospace; line-height: 1.4;"></textarea>
                         </div>
                         <button id="batchRequestBtn" class="action-button">
                             <span class="text">批量请求测试</span>

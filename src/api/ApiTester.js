@@ -21,6 +21,49 @@ class ApiTester {
         }
     }
     
+    /**
+     * 检查和自动添加"/"前缀到baseapi路径
+     * @param {string} baseApiPath - 输入的baseapi路径
+     * @returns {string} - 处理后的baseapi路径
+     */
+    normalizeBaseApiPath(baseApiPath) {
+        if (!baseApiPath || typeof baseApiPath !== 'string') {
+            return '';
+        }
+        
+        const trimmedPath = baseApiPath.trim();
+        if (trimmedPath === '') {
+            return '';
+        }
+        
+        // 如果路径不是以"/"开头，自动添加
+        if (!trimmedPath.startsWith('/')) {
+            return '/' + trimmedPath;
+        }
+        
+        return trimmedPath;
+    }
+    
+    /**
+     * 处理多个baseapi路径（每行一个）
+     * @param {string} baseApiPaths - 输入的多个baseapi路径，每行一个
+     * @returns {Array<string>} - 处理后的baseapi路径数组
+     */
+    normalizeMultipleBaseApiPaths(baseApiPaths) {
+        if (!baseApiPaths || typeof baseApiPaths !== 'string') {
+            return [];
+        }
+        
+        // 按换行符分割，去除空白字符，过滤空字符串
+        const paths = baseApiPaths
+            .split('\n')
+            .map(path => path.trim())
+            .filter(path => path.length > 0);
+        
+        // 对每个路径进行标准化处理
+        return paths.map(path => this.normalizeBaseApiPath(path));
+    }
+    
     // 批量请求测试
     async batchRequestTest() {
         const method = document.getElementById('requestMethod').value;
@@ -32,19 +75,59 @@ class ApiTester {
         
         // 获取base API路径配置
         const baseApiPathInput = document.getElementById('baseApiPath');
-        const customBaseApiPath = baseApiPathInput ? baseApiPathInput.value.trim() : '';
+        const rawBaseApiPaths = baseApiPathInput ? baseApiPathInput.value.trim() : '';
+        const customBaseApiPaths = this.normalizeMultipleBaseApiPaths(rawBaseApiPaths);
+        
+        // 如果自动添加了"/"前缀，给出提示
+        if (rawBaseApiPaths) {
+            const originalPaths = rawBaseApiPaths.split('\n').map(p => p.trim()).filter(p => p);
+            const normalizedPaths = customBaseApiPaths;
+            
+            // 检查每个路径是否被修改
+            originalPaths.forEach((originalPath, index) => {
+                const normalizedPath = normalizedPaths[index];
+                if (originalPath && originalPath !== normalizedPath) {
+                    console.log(`🔧 自动为baseapi路径添加"/"前缀: "${originalPath}" -> "${normalizedPath}"`);
+                }
+            });
+            
+            if (customBaseApiPaths.length > 1) {
+                console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi路径: ${customBaseApiPaths.join(', ')}`);
+            }
+        }
+        
+        // 获取自定义API路径配置
+        const customApiPathsInput = document.getElementById('customApiPaths');
+        const customApiPaths = customApiPathsInput ? customApiPathsInput.value.trim() : '';
         
         const concurrency = concurrencyInput ? parseInt(concurrencyInput.value) : 8;
         const timeout = timeoutInput ? parseInt(timeoutInput.value) * 1000 : 5000; // 转换为毫秒
         
-        console.log(`🔧 API测试配置: 并发数=${concurrency}, 超时=${timeout/1000}秒, Base API路径=${customBaseApiPath || '无'}`);
+        console.log(`🔧 API测试配置: 并发数=${concurrency}, 超时=${timeout/1000}秒, Base API路径=${customBaseApiPaths.length > 0 ? customBaseApiPaths.join(', ') : '无'}, 自定义API路径=${customApiPaths || '无'}`);
         
         if (!selectedCategory) {
             alert('请先选择要测试的分类');
             return;
         }
         
-        const items = this.srcMiner.results[selectedCategory] || [];
+        let items = this.srcMiner.results[selectedCategory] || [];
+        
+        // 如果有自定义API路径，添加到测试列表中
+        if (customApiPaths) {
+            const customPaths = this.parseCustomApiPaths(customApiPaths);
+            items = this.mergeAndDeduplicateItems(items, customPaths);
+            console.log(`📝 添加了 ${customPaths.length} 个自定义API路径，去重后总计 ${items.length} 个测试项目`);
+        }
+        
+        // 如果选择了自定义API路径分类，直接使用扫描结果中的自定义API路径
+        if (selectedCategory === 'customApis') {
+            items = this.srcMiner.results.customApis || [];
+            if (items.length === 0) {
+                alert('自定义API路径分类中没有数据，请先添加自定义API路径');
+                return;
+            }
+            console.log(`🔧 使用扫描结果中的自定义API路径进行测试，共 ${items.length} 个`);
+        }
         
         if (items.length === 0) {
             alert(`选中的分类"${this.getCategoryTitle(selectedCategory)}"中没有数据，请先扫描页面`);
@@ -52,7 +135,7 @@ class ApiTester {
         }
         
         if (this.isTestableCategory(selectedCategory)) {
-            await this.testSelectedCategory(selectedCategory, items, method, concurrency, timeout, customBaseApiPath);
+            await this.testSelectedCategory(selectedCategory, items, method, concurrency, timeout, customBaseApiPaths);
         } else {
             alert(`分类"${this.getCategoryTitle(selectedCategory)}"不支持请求测试`);
         }
@@ -61,6 +144,7 @@ class ApiTester {
     // 获取分类标题
     getCategoryTitle(categoryKey) {
         const categoryTitles = {
+            'customApis': '自定义API路径',
             'absoluteApis': '绝对路径API',
             'relativeApis': '相对路径API',
             'jsFiles': 'JS文件',
@@ -76,21 +160,21 @@ class ApiTester {
     // 检查分类是否可以进行请求测试
     isTestableCategory(categoryKey) {
         const testableCategories = [
-            'absoluteApis', 'relativeApis', 'jsFiles', 'cssFiles', 
+            'customApis', 'absoluteApis', 'relativeApis', 'jsFiles', 'cssFiles', 
             'images', 'urls', 'paths'
         ];
         return testableCategories.includes(categoryKey);
     }
     
     // 测试选中的分类
-    async testSelectedCategory(categoryKey, items, method, concurrency = 8, timeout = 5000, customBaseApiPath = '') {
+    async testSelectedCategory(categoryKey, items, method, concurrency = 8, timeout = 5000, customBaseApiPaths = []) {
         try {
             // 获取Cookie设置
             const cookieSetting = await this.getCookieSetting();
             
             // 使用新的TestWindow类创建测试窗口
             const testWindow = new TestWindow();
-            await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, cookieSetting, customBaseApiPath);
+            await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, cookieSetting, customBaseApiPaths);
             
             // 显示成功提示
             const modal = document.getElementById('requestResultModal');
@@ -525,6 +609,49 @@ class ApiTester {
         
         html += `</tbody></table>`;
         return html;
+    }
+    
+    // 解析自定义API路径
+    parseCustomApiPaths(customApiPaths) {
+        if (!customApiPaths || typeof customApiPaths !== 'string') {
+            return [];
+        }
+        
+        // 按换行符分割，去除空白字符，过滤空字符串
+        return customApiPaths
+            .split('\n')
+            .map(path => path.trim())
+            .filter(path => path.length > 0);
+    }
+    
+    // 合并并去重API路径
+    mergeAndDeduplicateItems(existingItems, customPaths) {
+        if (!Array.isArray(existingItems)) {
+            existingItems = [];
+        }
+        if (!Array.isArray(customPaths)) {
+            customPaths = [];
+        }
+        
+        // 创建Set用于去重
+        const uniqueItems = new Set();
+        
+        // 添加现有项目
+        existingItems.forEach(item => {
+            if (item && typeof item === 'string') {
+                uniqueItems.add(item.trim());
+            }
+        });
+        
+        // 添加自定义路径
+        customPaths.forEach(path => {
+            if (path && typeof path === 'string') {
+                uniqueItems.add(path.trim());
+            }
+        });
+        
+        // 转换回数组
+        return Array.from(uniqueItems);
     }
     
     // 格式化字节大小
