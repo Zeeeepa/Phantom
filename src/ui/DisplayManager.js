@@ -23,6 +23,7 @@ class DisplayManager {
         
         const resultsDiv = document.getElementById('results');
         const categories = [
+            { key: 'customApis', title: '自定义API路径', icon: '🔧' },
             { key: 'absoluteApis', title: '绝对路径API', icon: '/' },
             { key: 'relativeApis', title: '相对路径API', icon: '~' },
             { key: 'modulePaths', title: '模块路径', icon: './' },
@@ -412,7 +413,44 @@ class DisplayManager {
                 
                 // 直接测试选中的分类
                 const method = document.getElementById('requestMethod')?.value || 'GET';
-                this.srcMiner.apiTester.testSelectedCategory(categoryKey, items, method, concurrency, timeout);
+
+                
+                // 获取base API路径配置
+                const baseApiPathInput = document.getElementById('baseApiPath');
+                const rawBaseApiPaths = baseApiPathInput ? baseApiPathInput.value.trim() : '';
+                const customBaseApiPaths = this.srcMiner.apiTester.normalizeMultipleBaseApiPaths(rawBaseApiPaths);
+                
+                // 如果自动添加了"/"前缀，给出提示
+                if (rawBaseApiPaths) {
+                    const originalPaths = rawBaseApiPaths.split('\n').map(p => p.trim()).filter(p => p);
+                    const normalizedPaths = customBaseApiPaths;
+                    
+                    // 检查每个路径是否被修改
+                    originalPaths.forEach((originalPath, index) => {
+                        const normalizedPath = normalizedPaths[index];
+                        if (originalPath && originalPath !== normalizedPath) {
+                            console.log(`🔧 自动为baseapi路径添加"/"前缀: "${originalPath}" -> "${normalizedPath}"`);
+                        }
+                    });
+                    
+                    if (customBaseApiPaths.length > 1) {
+                        console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi路径: ${customBaseApiPaths.join(', ')}`);
+                    }
+                }
+                
+                // 获取自定义API路径配置
+                const customApiPathsInput = document.getElementById('customApiPaths');
+                const customApiPaths = customApiPathsInput ? customApiPathsInput.value.trim() : '';
+                
+                // 如果有自定义API路径，添加到测试列表中
+                if (customApiPaths) {
+                    const customPaths = this.srcMiner.apiTester.parseCustomApiPaths(customApiPaths);
+                    items = this.srcMiner.apiTester.mergeAndDeduplicateItems(items, customPaths);
+                    console.log(`📝 添加了 ${customPaths.length} 个自定义API路径，去重后总计 ${items.length} 个测试项目`);
+                }
+                
+                this.srcMiner.apiTester.testSelectedCategory(categoryKey, items, method, concurrency, timeout, customBaseApiPaths);
+
             } else {
                 this.showNotification('API测试器未初始化，无法执行测试', 'error');
             }
