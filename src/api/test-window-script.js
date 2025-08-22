@@ -729,10 +729,17 @@ function addResultToTable(result) {
     const row = document.createElement('tr');
     
     const statusClass = result.success ? 'status-success' : 'status-error';
+    let displayUrl = (result.fullUrl || result.url || '');
+    try {
+        if (displayUrl.startsWith('http')) {
+            const u = new URL(displayUrl);
+            displayUrl = u.pathname + (u.search || '');
+        }
+    } catch (_) {}
     
     row.innerHTML = 
         '<td>' + (result.index + 1) + '</td>' +
-        '<td class="url-cell" title="' + result.url + '">' + result.url + '</td>' +
+        '<td class="url-cell" title="' + displayUrl + '">' + displayUrl + '</td>' +
         '<td class="' + statusClass + '">' + result.status + '</td>' +
         '<td>' + result.size + '</td>' +
         '<td>' + result.time + '</td>' +
