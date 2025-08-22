@@ -14,7 +14,7 @@ class TestWindow {
     }
 
     // 创建测试窗口
-    async createTestWindow(categoryKey, items, method, concurrency = 8, timeout = 5000, cookieSetting = '') {
+    async createTestWindow(categoryKey, items, method, concurrency = 8, timeout = 5000, cookieSetting = '', customBaseApiPath = '') {
         let baseUrl = '';
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -34,7 +34,8 @@ class TestWindow {
             concurrency: concurrency,
             timeout: timeout,
             baseUrl: baseUrl,
-            cookieSetting: cookieSetting
+            cookieSetting: cookieSetting,
+            customBaseApiPath: customBaseApiPath
         };
 
         // 将配置保存到chrome.storage，供测试窗口读取

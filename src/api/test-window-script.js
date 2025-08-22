@@ -33,6 +33,14 @@ async function initializePage() {
             `${testData.categoryTitle} | ${testData.method} | ${testData.items.length} 项`;
         document.getElementById('totalCount').textContent = testData.items.length;
         
+        // 显示base API路径信息
+        const baseUrlInfo = document.getElementById('baseUrlInfo');
+        if (testData.customBaseApiPath) {
+            baseUrlInfo.textContent = `Base API路径: ${testData.customBaseApiPath} | 基础URL: ${testData.baseUrl}`;
+        } else {
+            baseUrlInfo.textContent = `基础URL: ${testData.baseUrl}`;
+        }
+        
     } catch (error) {
         console.error('读取配置数据失败:', error);
         document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 读取配置数据失败 - ' + error.message + '</div>';
@@ -444,17 +452,30 @@ function buildTestUrl(item, categoryKey, baseUrl) {
     try {
         let url = item;
         
+        // 获取自定义base API路径
+        const customBaseApiPath = testData.customBaseApiPath || '';
+        
         switch (categoryKey) {
             case 'absoluteApis':
             case 'paths':
                 if (baseUrl && url.startsWith('/')) {
-                    url = baseUrl + url;
+                    // 如果有自定义base API路径，先添加它
+                    if (customBaseApiPath) {
+                        url = baseUrl + customBaseApiPath + url;
+                    } else {
+                        url = baseUrl + url;
+                    }
                 }
                 break;
                 
             case 'relativeApis':
                 if (baseUrl && !url.startsWith('http')) {
-                    url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                    // 如果有自定义base API路径，先添加它
+                    if (customBaseApiPath) {
+                        url = baseUrl + customBaseApiPath + (url.startsWith('/') ? '' : '/') + url;
+                    } else {
+                        url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                    }
                 }
                 break;
                 
@@ -469,16 +490,31 @@ function buildTestUrl(item, categoryKey, baseUrl) {
             case 'images':
                 if (baseUrl && !url.startsWith('http')) {
                     if (url.startsWith('/')) {
-                        url = baseUrl + url;
+                        // 如果有自定义base API路径，先添加它
+                        if (customBaseApiPath) {
+                            url = baseUrl + customBaseApiPath + url;
+                        } else {
+                            url = baseUrl + url;
+                        }
                     } else {
-                        url = baseUrl + '/' + url;
+                        // 如果有自定义base API路径，先添加它
+                        if (customBaseApiPath) {
+                            url = baseUrl + customBaseApiPath + '/' + url;
+                        } else {
+                            url = baseUrl + '/' + url;
+                        }
                     }
                 }
                 break;
                 
             default:
                 if (baseUrl && !url.startsWith('http')) {
-                    url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                    // 如果有自定义base API路径，先添加它
+                    if (customBaseApiPath) {
+                        url = baseUrl + customBaseApiPath + (url.startsWith('/') ? '' : '/') + url;
+                    } else {
+                        url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                    }
                 }
         }
         
@@ -707,8 +743,14 @@ function completeTest() {
     const successCount = testResults.filter(r => r.success).length;
     const totalCount = testResults.length;
     
-    document.getElementById('testInfo').textContent = 
-        '测试完成! 成功: ' + successCount + '/' + totalCount + ' | ' + testData.categoryTitle + ' | ' + testData.method;
+    let completionMessage = '测试完成! 成功: ' + successCount + '/' + totalCount + ' | ' + testData.categoryTitle + ' | ' + testData.method;
+    
+    // 添加base API路径信息
+    if (testData.customBaseApiPath) {
+        completionMessage += ' | Base API: ' + testData.customBaseApiPath;
+    }
+    
+    document.getElementById('testInfo').textContent = completionMessage;
 }
 
 // 筛选结果
@@ -784,7 +826,9 @@ function exportAsJSON() {
             total: testResults.length,
             success: testResults.filter(r => r.success).length,
             failed: testResults.filter(r => !r.success).length,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            baseUrl: testData.baseUrl,
+            customBaseApiPath: testData.customBaseApiPath || null
         },
         results: testResults
     };
