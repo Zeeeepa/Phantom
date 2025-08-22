@@ -72,7 +72,7 @@ class ApiTester {
         // 获取并发数和超时时间配置
         const concurrencyInput = document.getElementById('apiConcurrency');
         const timeoutInput = document.getElementById('apiTimeout');
-        
+
         // 获取base API路径配置
         const baseApiPathInput = document.getElementById('baseApiPath');
         const rawBaseApiPaths = baseApiPathInput ? baseApiPathInput.value.trim() : '';
@@ -104,6 +104,7 @@ class ApiTester {
         const timeout = timeoutInput ? parseInt(timeoutInput.value) * 1000 : 5000; // 转换为毫秒
         
         console.log(`🔧 API测试配置: 并发数=${concurrency}, 超时=${timeout/1000}秒, Base API路径=${customBaseApiPaths.length > 0 ? customBaseApiPaths.join(', ') : '无'}, 自定义API路径=${customApiPaths || '无'}`);
+
         
         if (!selectedCategory) {
             alert('请先选择要测试的分类');
@@ -136,6 +137,7 @@ class ApiTester {
         
         if (this.isTestableCategory(selectedCategory)) {
             await this.testSelectedCategory(selectedCategory, items, method, concurrency, timeout, customBaseApiPaths);
+
         } else {
             alert(`分类"${this.getCategoryTitle(selectedCategory)}"不支持请求测试`);
         }
@@ -168,13 +170,16 @@ class ApiTester {
     
     // 测试选中的分类
     async testSelectedCategory(categoryKey, items, method, concurrency = 8, timeout = 5000, customBaseApiPaths = []) {
+
         try {
             // 获取Cookie设置
             const cookieSetting = await this.getCookieSetting();
             
             // 使用新的TestWindow类创建测试窗口
             const testWindow = new TestWindow();
+
             await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, cookieSetting, customBaseApiPaths);
+
             
             // 显示成功提示
             const modal = document.getElementById('requestResultModal');

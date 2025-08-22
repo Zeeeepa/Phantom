@@ -413,6 +413,7 @@ class DisplayManager {
                 
                 // 直接测试选中的分类
                 const method = document.getElementById('requestMethod')?.value || 'GET';
+
                 
                 // 获取base API路径配置
                 const baseApiPathInput = document.getElementById('baseApiPath');
@@ -449,6 +450,7 @@ class DisplayManager {
                 }
                 
                 this.srcMiner.apiTester.testSelectedCategory(categoryKey, items, method, concurrency, timeout, customBaseApiPaths);
+
             } else {
                 this.showNotification('API测试器未初始化，无法执行测试', 'error');
             }

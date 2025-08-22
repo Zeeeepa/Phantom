@@ -33,6 +33,7 @@ async function initializePage() {
             `${testData.categoryTitle} | ${testData.method} | ${testData.items.length} 项`;
         document.getElementById('totalCount').textContent = testData.items.length;
         
+
         // 显示base API路径信息
         const baseUrlInfo = document.getElementById('baseUrlInfo');
         if (testData.customBaseApiPaths && testData.customBaseApiPaths.length > 0) {
@@ -44,7 +45,7 @@ async function initializePage() {
         } else {
             baseUrlInfo.textContent = `基础URL: ${testData.baseUrl}`;
         }
-        
+
     } catch (error) {
         console.error('读取配置数据失败:', error);
         document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 读取配置数据失败 - ' + error.message + '</div>';
@@ -479,13 +480,15 @@ function buildTestUrl(item, categoryKey, baseUrl) {
     try {
         let url = item;
         
+
         // 获取自定义base API路径
         const customBaseApiPaths = testData.customBaseApiPaths || [];
-        
+
         switch (categoryKey) {
             case 'absoluteApis':
             case 'paths':
                 if (baseUrl && url.startsWith('/')) {
+
                     // 如果有自定义base API路径，先添加它
                     if (customBaseApiPaths.length > 0) {
                         // 使用第一个baseapi路径（保持向后兼容）
@@ -493,18 +496,20 @@ function buildTestUrl(item, categoryKey, baseUrl) {
                     } else {
                         url = baseUrl + url;
                     }
+
                 }
                 break;
                 
             case 'relativeApis':
                 if (baseUrl && !url.startsWith('http')) {
-                    // 如果有自定义base API路径，先添加它
+                 // 如果有自定义base API路径，先添加它
                     if (customBaseApiPaths.length > 0) {
                         // 使用第一个baseapi路径（保持向后兼容）
                         url = baseUrl + customBaseApiPaths[0] + (url.startsWith('/') ? '' : '/') + url;
                     } else {
                         url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
                     }
+
                 }
                 break;
                 
@@ -519,6 +524,7 @@ function buildTestUrl(item, categoryKey, baseUrl) {
             case 'images':
                 if (baseUrl && !url.startsWith('http')) {
                     if (url.startsWith('/')) {
+
                         // 如果有自定义base API路径，先添加它
                         if (customBaseApiPaths.length > 0) {
                             // 使用第一个baseapi路径（保持向后兼容）
@@ -534,12 +540,14 @@ function buildTestUrl(item, categoryKey, baseUrl) {
                         } else {
                             url = baseUrl + '/' + url;
                         }
+
                     }
                 }
                 break;
                 
             default:
                 if (baseUrl && !url.startsWith('http')) {
+
                     // 如果有自定义base API路径，先添加它
                     if (customBaseApiPaths.length > 0) {
                         // 使用第一个baseapi路径（保持向后兼容）
@@ -547,6 +555,7 @@ function buildTestUrl(item, categoryKey, baseUrl) {
                     } else {
                         url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
                     }
+
                 }
         }
         
@@ -842,6 +851,7 @@ function completeTest() {
     const successCount = testResults.filter(r => r.success).length;
     const totalCount = testResults.length;
     
+
     let completionMessage = '测试完成! 成功: ' + successCount + '/' + totalCount + ' | ' + testData.categoryTitle + ' | ' + testData.method;
     
     // 添加base API路径信息
@@ -854,6 +864,7 @@ function completeTest() {
         }
     
     document.getElementById('testInfo').textContent = completionMessage;
+
 }
 
 // 筛选结果
@@ -929,9 +940,11 @@ function exportAsJSON() {
             total: testResults.length,
             success: testResults.filter(r => r.success).length,
             failed: testResults.filter(r => !r.success).length,
+
             timestamp: new Date().toISOString(),
             baseUrl: testData.baseUrl,
             customBaseApiPaths: testData.customBaseApiPaths || []
+
         },
         results: testResults
     };
