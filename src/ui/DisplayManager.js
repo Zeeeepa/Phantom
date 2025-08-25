@@ -22,7 +22,9 @@ class DisplayManager {
         }
         
         const resultsDiv = document.getElementById('results');
-        const categories = [
+        
+        // 基础预定义类别
+        const baseCategories = [
             { key: 'customApis', title: '自定义API路径', icon: '🔧' },
             { key: 'absoluteApis', title: '绝对路径API', icon: '/' },
             { key: 'relativeApis', title: '相对路径API', icon: '~' },
@@ -30,7 +32,6 @@ class DisplayManager {
             { key: 'domains', title: '域名', icon: '🌐' },
             { key: 'subdomains', title: '子域名', icon: 'sub' },
             { key: 'urls', title: '完整URL', icon: 'http' },
-            { key: 'paths', title: '路径', icon: 'path' },
             { key: 'parameters', title: '参数', icon: 'param' },
             { key: 'ports', title: '端口', icon: 'port' },
             { key: 'jsFiles', title: 'JS文件', icon: '.js' },
@@ -62,12 +63,122 @@ class DisplayManager {
             { key: 'sensitiveKeywords', title: '敏感关键词', icon: '⚠️' },
             { key: 'comments', title: '代码注释', icon: '<!--' }
         ];
+
+        // 动态加载自定义正则配置并添加到显示类别中 - 修复：支持对象和数组两种存储格式
+        let categories = [...baseCategories];
+        try {
+            const result = await chrome.storage.local.get(['customRegexConfigs']);
+            if (result.customRegexConfigs) {
+                console.log('🔄 DisplayManager统一化版本加载动态自定义正则配置用于显示:', result.customRegexConfigs);
+                
+                let configsToProcess = [];
+                
+                // 检查存储格式：对象格式还是数组格式
+                if (Array.isArray(result.customRegexConfigs)) {
+                    // 数组格式
+                    configsToProcess = result.customRegexConfigs;
+                    console.log('📋 DisplayManager检测到数组格式的自定义正则配置');
+                } else if (typeof result.customRegexConfigs === 'object') {
+                    // 对象格式，转换为数组
+                    configsToProcess = Object.entries(result.customRegexConfigs).map(([key, config]) => ({
+                        key: `custom_${key}`, // 添加 custom_ 前缀
+                        name: config.name,
+                        pattern: config.pattern,
+                        createdAt: config.createdAt
+                    }));
+                    console.log('📋 DisplayManager检测到对象格式的自定义正则配置，已转换为数组格式');
+                }
+                
+                if (configsToProcess.length > 0) {
+                    configsToProcess.forEach((config, index) => {
+                        if (config.key && config.name) {
+                            categories.push({
+                                key: config.key,
+                                title: config.name,
+                                icon: '🎯' // 自定义正则使用统一图标
+                            });
+                            console.log(`✅ DisplayManager统一化版本添加自定义正则显示类别: ${config.name} (${config.key})`);
+                        }
+                    });
+                    
+                    console.log(`✅ DisplayManager统一化版本动态自定义正则显示类别加载完成，共添加 ${configsToProcess.length} 个类别`);
+                } else {
+                    console.log('⚠️ DisplayManager统一化版本动态自定义正则配置为空');
+                }
+            } else {
+                console.log('ℹ️ DisplayManager统一化版本未找到动态自定义正则配置');
+            }
+        } catch (error) {
+            console.error('❌ DisplayManager统一化版本加载动态自定义正则配置失败:', error);
+        }
+        
+        console.log('🔍 DisplayManager统一化版本开始显示结果，当前结果数据:', this.srcMiner.results);
+        console.log('🔍 DisplayManager统一化版本开始显示结果，当前结果数据:', this.srcMiner.results);
+        console.log('📊 DisplayManager统一化版本结果统计:', Object.keys(this.srcMiner.results || {}).map(key => `${key}: ${(this.srcMiner.results[key] || []).length}`).join(', '));
         
         // 尝试加载过滤器
         await this.loadFiltersIfNeeded();
         
         // 应用过滤器处理结果
         const filteredResults = await this.applyFiltersToResults(this.srcMiner.results);
+        
+        // 检查是否有动态创建的自定义正则结果，并添加到显示类别中
+        if (filteredResults) {
+            const dynamicCustomKeys = Object.keys(filteredResults).filter(key => 
+                key.startsWith('custom_') && 
+                !categories.some(cat => cat.key === key)
+            );
+            
+            if (dynamicCustomKeys.length > 0) {
+                console.log(`🔍 DisplayManager发现 ${dynamicCustomKeys.length} 个动态自定义正则结果:`, dynamicCustomKeys);
+                
+                // 尝试从存储中获取配置名称以提供更好的显示名称
+                try {
+                    const result = await chrome.storage.local.get(['customRegexConfigs']);
+                    const customConfigs = result.customRegexConfigs || {};
+                    
+                    dynamicCustomKeys.forEach(key => {
+                        let displayName = key.replace('custom_', '自定义正则-');
+                        
+                        // 尝试找到对应的配置名称
+                        const configKey = key.replace('custom_', '');
+                        
+                        // 支持对象和数组两种存储格式
+                        if (Array.isArray(customConfigs)) {
+                            // 数组格式
+                            const config = customConfigs.find(c => c.key === key);
+                            if (config && config.name) {
+                                displayName = config.name;
+                            }
+                        } else if (typeof customConfigs === 'object') {
+                            // 对象格式
+                            if (customConfigs[configKey] && customConfigs[configKey].name) {
+                                displayName = customConfigs[configKey].name;
+                            }
+                        }
+                        
+                        categories.push({
+                            key: key,
+                            title: displayName,
+                            icon: '🎯'
+                        });
+                        console.log(`✅ DisplayManager添加动态自定义正则显示类别: ${displayName} (${key})`);
+                    });
+                } catch (error) {
+                    console.error('❌ 获取自定义正则配置名称失败:', error);
+                    // 降级处理：使用默认名称
+                    dynamicCustomKeys.forEach(key => {
+                        const displayName = key.replace('custom_', '自定义正则-');
+                        categories.push({
+                            key: key,
+                            title: displayName,
+                            icon: '🎯'
+                        });
+                        console.log(`✅ DisplayManager添加动态自定义正则显示类别(降级): ${displayName} (${key})`);
+                    });
+                }
+            }
+        }
         
         resultsDiv.innerHTML = '';
         let totalCount = 0;
@@ -79,6 +190,12 @@ class DisplayManager {
             if (items.length > 0) {
                 const categoryDiv = this.createCategoryDiv(category, items);
                 resultsDiv.appendChild(categoryDiv);
+                
+                // 如果是自定义正则结果，显示详细日志
+                if (category.key.startsWith('custom_')) {
+                    console.log(`✅ DisplayManager显示自定义正则类别: ${category.title} (${category.key}) - ${items.length} 个结果`);
+                    console.log(`🎯 DisplayManager自定义正则 ${category.key} 结果预览:`, items.slice(0, 3));
+                }
             }
         });
         
@@ -183,19 +300,6 @@ class DisplayManager {
         });
         headerActions.appendChild(copyAllBtn);
         
-        // 测试全部按钮 (仅对API路径显示)
-        if (category.key === 'absoluteApis' || category.key === 'relativeApis') {
-            const testAllBtn = document.createElement('button');
-            testAllBtn.className = 'btn test-all-btn';
-            testAllBtn.textContent = '测试全部';
-            testAllBtn.title = '测试全部API';
-            testAllBtn.style.transition = 'all 0.3s';
-            testAllBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.testAllApis(category.key, items);
-            });
-            headerActions.appendChild(testAllBtn);
-        }
         
         // 添加计数徽章
         const countBadge = document.createElement('span');

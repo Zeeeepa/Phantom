@@ -298,14 +298,26 @@ class DeepScanner {
         }
         
         try {
-            // 重新加载正则表达式配置
-            if (this.srcMiner.patternExtractor) {
-                await this.srcMiner.patternExtractor.loadCustomPatterns();
-                if (typeof this.srcMiner.patternExtractor.ensureCustomPatternsLoaded === 'function') {
-                    await this.srcMiner.patternExtractor.ensureCustomPatternsLoaded();
-                }
-                console.log('🔄 深度扫描已重新加载正则表达式配置');
+        // 🔥 统一化版本：强制重新加载正则表达式配置
+        if (this.srcMiner.patternExtractor) {
+            console.log('🔄 深度扫描统一化版本开始强制重新加载正则表达式配置...');
+            
+            // 清除现有配置
+            this.srcMiner.patternExtractor.patterns = {};
+            this.srcMiner.patternExtractor.customPatternsLoaded = false;
+            
+            // 重新加载配置
+            await this.srcMiner.patternExtractor.loadCustomPatterns();
+            if (typeof this.srcMiner.patternExtractor.ensureCustomPatternsLoaded === 'function') {
+                await this.srcMiner.patternExtractor.ensureCustomPatternsLoaded();
             }
+            
+            console.log('✅ 深度扫描统一化版本已强制重新加载正则表达式配置');
+            console.log('📊 深度扫描统一化版本当前可用的正则模式:', Object.keys(this.srcMiner.patternExtractor.patterns));
+            console.log('🔍 深度扫描统一化版本自定义正则配置状态:', this.srcMiner.patternExtractor.customPatternsLoaded);
+        } else {
+            console.error('❌ 深度扫描统一化版本：未找到PatternExtractor实例，无法进行统一化提取');
+        }
             
             // 获取当前页面信息
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -719,72 +731,58 @@ class DeepScanner {
         });
     }
     
-    // 从内容中提取信息 - 优化版本
+    // 🔥 统一化版本：从内容中提取信息 - 完全使用PatternExtractor
     extractFromContent(content, sourceUrl) {
+        console.log(`🔍 深度扫描统一化版本开始提取内容，来源: ${sourceUrl}`);
+        
         // 内容太大时进行截断，避免处理过大的文件
         const maxContentLength = 500000; // 约500KB
         const processedContent = content.length > maxContentLength ? 
             content.substring(0, maxContentLength) : content;
         
-        // 使用PatternExtractor来提取信息
-        const results = {
-            absoluteApis: new Set(),
-            relativeApis: new Set(),
-            modulePaths: new Set(),
-            domains: new Set(),
-            urls: new Set(),
-            images: new Set(),
-            jsFiles: new Set(),
-            cssFiles: new Set(),
-            emails: new Set(),
-            phoneNumbers: new Set(),
-            ipAddresses: new Set(),
-            sensitiveKeywords: new Set(),
-            comments: new Set(),
-            paths: new Set(),
-            parameters: new Set(),
-            credentials: new Set(),
-            cookies: new Set(),
-            idKeys: new Set(),
-            companies: new Set(),
-            jwts: new Set(),
-            githubUrls: new Set(),
-            vueFiles: new Set(),
-            // 补齐所有敏感分类，避免容器缺失导致写入失败
-            bearerTokens: new Set(),
-            basicAuth: new Set(),
-            authHeaders: new Set(),
-            wechatAppIds: new Set(),
-            awsKeys: new Set(),
-            googleApiKeys: new Set(),
-            githubTokens: new Set(),
-            gitlabTokens: new Set(),
-            webhookUrls: new Set(),
-            idCards: new Set(),
-            cryptoUsage: new Set()
-        };
-        
-        // 使用PatternExtractor的方法
+        // 🔥 统一化版本：完全使用PatternExtractor进行提取
         if (this.srcMiner.patternExtractor) {
-            this.srcMiner.patternExtractor.extractAPIs(processedContent, results);
-            this.srcMiner.patternExtractor.extractOtherResources(processedContent, results, sourceUrl);
-            this.srcMiner.patternExtractor.extractSensitiveData(processedContent, results);
+            console.log('✅ 深度扫描统一化版本：使用PatternExtractor进行统一提取');
+            
+            try {
+                // 确保自定义正则配置已加载
+                if (!this.srcMiner.patternExtractor.customPatternsLoaded) {
+                    console.log('🔄 深度扫描统一化版本：重新加载自定义正则配置...');
+                    this.srcMiner.patternExtractor.loadCustomPatterns();
+                }
+                
+                // 使用统一的PatternExtractor进行提取
+                const extractedResults = this.srcMiner.patternExtractor.extractPatterns(processedContent);
+                
+                console.log('📊 深度扫描统一化版本提取结果:', extractedResults);
+                console.log('📈 深度扫描统一化版本提取到的数据类型数量:', Object.keys(extractedResults).length);
+                
+                // 统计每种类型的数量
+                Object.entries(extractedResults).forEach(([type, items]) => {
+                    if (Array.isArray(items) && items.length > 0) {
+                        console.log(`📋 深度扫描统一化版本 ${type}: ${items.length} 个项目`);
+                        // 如果是自定义正则结果，显示更详细的信息
+                        if (type.startsWith('custom_')) {
+                            console.log(`🎯 深度扫描统一化版本自定义正则 ${type} 匹配内容:`, items.slice(0, 3));
+                        }
+                    }
+                });
+                
+                return extractedResults;
+            } catch (error) {
+                console.error('❌ 深度扫描统一化版本提取失败:', error);
+                return {};
+            }
+        } else {
+            console.error('❌ 深度扫描统一化版本：PatternExtractor未初始化，无法进行统一化提取');
+            return {};
         }
-        
-        // 应用增强过滤器
-        this.applyFilters(results, processedContent, sourceUrl);
-        
-        // 转换Set为Array - 优化版本
-        const finalResults = {};
-        Object.keys(results).forEach(key => {
-            finalResults[key] = Array.from(results[key]).filter(Boolean);
-        });
-        
-        return finalResults;
     }
     
-    // 从内容中收集新的URL - 优化版本
+    // 🔥 统一化版本：从内容中收集新的URL - 使用PatternExtractor提取的URL
     collectUrlsFromContent(content, baseUrl, options) {
+        console.log('🔍 深度扫描统一化版本：从内容中收集URL...');
+        
         const urls = new Set();
         const { scanJsFiles, scanHtmlFiles, scanApiFiles } = options;
         
@@ -793,38 +791,55 @@ class DeepScanner {
         const processedContent = content.length > maxContentLength ? 
             content.substring(0, maxContentLength) : content;
         
-        // 使用更高效的正则表达式组合
-        if (scanJsFiles || scanHtmlFiles || scanApiFiles) {
-            // 通用URL提取正则 - 一次性提取所有可能的URL
-            const urlPattern = /(?:href|src|import|require|from|url|endpoint|path|location)\s*[:=]\s*["'`]([^"'`]+)["'`]|["'`]([^"'`]*\/[^"'`]*\.[a-zA-Z0-9]{1,5}(?:\?[^"'`]*)?)["'`]/gi;
-            
-            let match;
-            while ((match = urlPattern.exec(processedContent)) !== null) {
-                const extractedUrl = match[1] || match[2];
-                if (!extractedUrl) continue;
+        // 🔥 统一化版本：使用PatternExtractor提取URL
+        if (this.srcMiner.patternExtractor) {
+            try {
+                const extractedData = this.srcMiner.patternExtractor.extractPatterns(processedContent);
                 
-                // 快速过滤无效URL
-                if (extractedUrl.startsWith('#') || 
-                    extractedUrl.startsWith('javascript:') || 
-                    extractedUrl.startsWith('mailto:') ||
-                    extractedUrl.startsWith('data:')) {
-                    continue;
+                // 从提取结果中收集URL
+                if (scanJsFiles && extractedData.jsFiles) {
+                    extractedData.jsFiles.forEach(jsFile => {
+                        const fullUrl = this.resolveUrl(jsFile, baseUrl);
+                        if (fullUrl && this.isSameDomain(fullUrl, baseUrl)) {
+                            urls.add(fullUrl);
+                        }
+                    });
                 }
                 
-                // 根据扫描选项过滤URL
-                const isJsResource = /\.(js|ts|jsx|tsx|vue|json)(\?|$)/i.test(extractedUrl);
-                const isHtmlResource = this.isValidPageUrl(extractedUrl);
-                const isApiResource = this.isValidApiUrl(extractedUrl);
+                if (scanHtmlFiles && extractedData.urls) {
+                    extractedData.urls.forEach(url => {
+                        const fullUrl = this.resolveUrl(url, baseUrl);
+                        if (fullUrl && this.isSameDomain(fullUrl, baseUrl) && this.isValidPageUrl(url)) {
+                            urls.add(fullUrl);
+                        }
+                    });
+                }
                 
-                if ((scanJsFiles && isJsResource) || 
-                    (scanHtmlFiles && isHtmlResource) || 
-                    (scanApiFiles && isApiResource)) {
+                if (scanApiFiles) {
+                    // 收集绝对API
+                    if (extractedData.absoluteApis) {
+                        extractedData.absoluteApis.forEach(api => {
+                            const fullUrl = this.resolveUrl(api, baseUrl);
+                            if (fullUrl && this.isSameDomain(fullUrl, baseUrl)) {
+                                urls.add(fullUrl);
+                            }
+                        });
+                    }
                     
-                    const fullUrl = this.resolveUrl(extractedUrl, baseUrl);
-                    if (fullUrl && this.isSameDomain(fullUrl, baseUrl)) {
-                        urls.add(fullUrl);
+                    // 收集相对API
+                    if (extractedData.relativeApis) {
+                        extractedData.relativeApis.forEach(api => {
+                            const fullUrl = this.resolveUrl(api, baseUrl);
+                            if (fullUrl && this.isSameDomain(fullUrl, baseUrl)) {
+                                urls.add(fullUrl);
+                            }
+                        });
                     }
                 }
+                
+                console.log(`✅ 深度扫描统一化版本：从PatternExtractor收集到 ${urls.size} 个URL`);
+            } catch (error) {
+                console.error('❌ 深度扫描统一化版本：使用PatternExtractor收集URL失败:', error);
             }
         }
         
@@ -920,86 +935,11 @@ class DeepScanner {
         return hasNewData;
     }
     
-    // 应用过滤器处理结果
+    // 🔥 统一化版本：不再需要单独的过滤器处理，PatternExtractor已经处理了所有逻辑
     applyFilters(results, content, sourceUrl = '未知URL') {
-        try {
-            // 检查过滤器是否可用
-            if (!window.domainPhoneFilter && !window.apiFilter) {
-                console.log('⚠️ 过滤器未加载，跳过过滤步骤');
-                return;
-            }
-            
-            // 应用域名和手机号过滤器
-            if (window.domainPhoneFilter) {
-                // 过滤域名
-                if (results.domains.size > 0) {
-                    const domains = Array.from(results.domains);
-                    const validDomains = window.domainPhoneFilter.filterDomains(domains);
-                    results.domains = new Set(validDomains);
-                }
-                
-                // 过滤邮箱
-                if (results.emails.size > 0) {
-                    const emails = Array.from(results.emails);
-                    const validEmails = window.domainPhoneFilter.filterEmails(emails);
-                    results.emails = new Set(validEmails);
-                }
-                
-                // 过滤手机号
-                if (results.phoneNumbers.size > 0) {
-                    const phones = Array.from(results.phoneNumbers);
-                    const validPhones = window.domainPhoneFilter.filterPhones(phones, true);
-                    results.phoneNumbers = new Set(validPhones);
-                }
-                
-                // 从内容中提取额外的信息
-                try {
-                    const extractedInfo = window.domainPhoneFilter.processText(content);
-                    
-                    // 添加有效的邮箱地址
-                    extractedInfo.emails.forEach(email => results.emails.add(email));
-                    
-                    // 添加有效的手机号
-                    extractedInfo.phoneNumbers.forEach(phone => {
-                        console.log(`📱 [DeepScanner] 手机号提取 - URL: ${sourceUrl}, 手机号: ${phone}`);
-                        results.phoneNumbers.add(phone);
-                    });
-                    
-                    // 添加有效的域名
-                    extractedInfo.domains.forEach(domain => results.domains.add(domain));
-                } catch (e) {
-                    console.warn('处理文本提取失败:', e);
-                }
-            }
-            
-            // 应用API过滤器
-            if (window.apiFilter && typeof window.apiFilter.filterAPIs === 'function') {
-                try {
-                    // 过滤绝对路径API
-                    if (results.absoluteApis.size > 0) {
-                        const apis = Array.from(results.absoluteApis);
-                        const validApis = window.apiFilter.filterAPIs(apis, true);
-                        results.absoluteApis = new Set(validApis);
-                    }
-                    
-                    // 过滤相对路径API
-                    if (results.relativeApis.size > 0) {
-                        const apis = Array.from(results.relativeApis);
-                        const validApis = window.apiFilter.filterAPIs(apis, false);
-                        results.relativeApis = new Set(validApis);
-                    }
-                    
-                    // 从内容中提取额外的API
-                    const extractedAPIs = window.apiFilter.extractAPIsFromText(content);
-                    extractedAPIs.absolute.forEach(api => results.absoluteApis.add(api));
-                    extractedAPIs.relative.forEach(api => results.relativeApis.add(api));
-                } catch (e) {
-                    console.warn('API过滤失败:', e);
-                }
-            }
-        } catch (error) {
-            console.error('应用过滤器时出错:', error);
-        }
+        console.log('🔥 深度扫描统一化版本：跳过旧的过滤器处理，PatternExtractor已经处理了所有提取和过滤逻辑');
+        // 统一化版本不再需要额外的过滤器处理
+        // 所有提取和过滤逻辑都已经在PatternExtractor中统一处理
     }
     
     // 解析相对URL为绝对URL - 优化版本

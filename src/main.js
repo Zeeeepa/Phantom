@@ -255,6 +255,10 @@ class ILoveYouTranslucent7 {
                 if (this.settingsManager) {
                     this.settingsManager.loadSettings();
                 }
+                // 初始化自定义正则弹窗事件
+                this.initCustomRegexModal();
+                // 加载并显示自定义正则配置列表
+                this.loadCustomRegexList();
                 break;
             case 'about':
                 // 关于页面
@@ -490,6 +494,7 @@ class ILoveYouTranslucent7 {
     }
     
     // 收放按钮功能
+    // 收放按钮功能
     toggleScanButtons() {
         const scanButtonsContainer = document.getElementById('scanButtonsContainer');
         const toggleButton = document.getElementById('toggleButtonsBtn');
@@ -523,6 +528,547 @@ class ILoveYouTranslucent7 {
                     resultsContainer.classList.add('expanded');
                 }
             }
+        }
+    }
+
+    // 初始化自定义正则弹窗
+    initCustomRegexModal() {
+        const addCustomRegexBtn = document.getElementById('addCustomRegexBtn');
+        const customRegexModal = document.getElementById('customRegexModal');
+        const closeCustomRegexModal = document.getElementById('closeCustomRegexModal');
+        const confirmCustomRegexBtn = document.getElementById('confirmCustomRegexBtn');
+        const cancelCustomRegexBtn = document.getElementById('cancelCustomRegexBtn');
+
+        // 打开弹窗
+        if (addCustomRegexBtn) {
+            addCustomRegexBtn.addEventListener('click', () => {
+                if (customRegexModal) {
+                    customRegexModal.style.display = 'block';
+                    // 清空输入框
+                    document.getElementById('customRegexName').value = '';
+                    document.getElementById('customRegexKey').value = '';
+                    document.getElementById('customRegexPattern').value = '';
+                }
+            });
+        }
+
+        // 关闭弹窗
+        if (closeCustomRegexModal) {
+            closeCustomRegexModal.addEventListener('click', () => {
+                if (customRegexModal) {
+                    customRegexModal.style.display = 'none';
+                }
+            });
+        }
+
+        // 取消按钮
+        if (cancelCustomRegexBtn) {
+            cancelCustomRegexBtn.addEventListener('click', () => {
+                if (customRegexModal) {
+                    customRegexModal.style.display = 'none';
+                }
+            });
+        }
+
+        // 确认添加按钮
+        if (confirmCustomRegexBtn) {
+            confirmCustomRegexBtn.addEventListener('click', () => {
+                this.handleCustomRegexSubmit();
+            });
+        }
+
+        // 点击弹窗外部关闭
+        if (customRegexModal) {
+            customRegexModal.addEventListener('click', (e) => {
+                if (e.target === customRegexModal) {
+                    customRegexModal.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // 处理自定义正则提交
+    // 处理自定义正则提交
+    async handleCustomRegexSubmit() {
+        const nameInput = document.getElementById('customRegexName');
+        const keyInput = document.getElementById('customRegexKey');
+        const patternInput = document.getElementById('customRegexPattern');
+        const modal = document.getElementById('customRegexModal');
+
+        if (!nameInput || !keyInput || !patternInput) {
+            this.showNotification('输入框元素未找到', 'error');
+            return;
+        }
+
+        const name = nameInput.value.trim();
+        const key = keyInput.value.trim();
+        const pattern = patternInput.value.trim();
+
+        // 验证输入
+        if (!name) {
+            this.showNotification('请输入显示名称', 'warning');
+            nameInput.focus();
+            return;
+        }
+
+        if (!key) {
+            this.showNotification('请输入存储键名', 'warning');
+            keyInput.focus();
+            return;
+        }
+
+        if (!pattern) {
+            this.showNotification('请输入正则表达式', 'warning');
+            patternInput.focus();
+            return;
+        }
+
+        // 验证键名格式（只允许字母、数字、下划线）
+        if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(key)) {
+            this.showNotification('存储键名只能包含字母、数字和下划线，且必须以字母开头', 'warning');
+            keyInput.focus();
+            return;
+        }
+
+        // 验证正则表达式
+        try {
+            new RegExp(pattern);
+        } catch (error) {
+            this.showNotification('正则表达式格式错误: ' + error.message, 'error');
+            patternInput.focus();
+            return;
+        }
+
+        // 检查名称和键名是否重复
+        try {
+            const data = await chrome.storage.local.get('customRegexConfigs');
+            const customConfigs = data.customRegexConfigs || {};
+
+            // 检查键名是否重复
+            if (customConfigs[key]) {
+                this.showNotification(`存储键名 "${key}" 已存在，请使用其他键名`, 'warning');
+                keyInput.focus();
+                return; // 不关闭弹窗
+            }
+
+            // 检查名称是否重复
+            const existingNames = Object.values(customConfigs).map(config => config.name);
+            if (existingNames.includes(name)) {
+                this.showNotification(`显示名称 "${name}" 已存在，请使用其他名称`, 'warning');
+                nameInput.focus();
+                return; // 不关闭弹窗
+            }
+
+            // 如果没有重复，保存配置
+            await this.saveCustomRegexConfig(name, key, pattern);
+            
+            // 关闭弹窗
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            this.showNotification(`自定义正则 "${name}" 添加成功`, 'success');
+
+        } catch (error) {
+            console.error('检查重复或保存配置失败:', error);
+            this.showNotification('操作失败: ' + error.message, 'error');
+        }
+    }
+
+    // 保存自定义正则配置
+    async saveCustomRegexConfig(name, key, pattern) {
+        try {
+            // 获取现有的自定义正则配置
+            const data = await chrome.storage.local.get('customRegexConfigs');
+            const customConfigs = data.customRegexConfigs || {};
+
+            // 检查键名是否已存在
+            if (customConfigs[key]) {
+                if (!confirm(`存储键名 "${key}" 已存在，是否覆盖？`)) {
+                    return;
+                }
+            }
+
+            // 添加新的配置
+            customConfigs[key] = {
+                name: name,
+                pattern: pattern,
+                createdAt: Date.now()
+            };
+
+            // 保存到存储
+            await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+
+            console.log('✅ 自定义正则配置已保存:', { name, key, pattern });
+
+            // 通知PatternExtractor重新加载配置
+            if (this.patternExtractor) {
+                await this.patternExtractor.loadCustomPatterns();
+            }
+
+            // 刷新自定义正则配置列表显示
+            this.loadCustomRegexList();
+
+        } catch (error) {
+            console.error('❌ 保存自定义正则配置失败:', error);
+            throw error;
+        }
+    }
+
+    // 加载并显示自定义正则配置列表
+    async loadCustomRegexList() {
+        try {
+            const data = await chrome.storage.local.get('customRegexConfigs');
+            const customConfigs = data.customRegexConfigs || {};
+            
+            // 查找或创建自定义正则配置列表容器
+            let listContainer = document.getElementById('customRegexList');
+            if (!listContainer) {
+                // 如果容器不存在，创建它并插入到设置页面的正则配置区域后面
+                const regexSection = document.querySelector('#settings-page .api-test-section');
+                if (regexSection) {
+                    listContainer = document.createElement('div');
+                    listContainer.id = 'customRegexList';
+                    listContainer.className = 'api-test-section';
+                    listContainer.innerHTML = `
+                        <div class="config-title">已添加的自定义正则配置</div>
+                        <div id="customRegexItems"></div>
+                    `;
+                    regexSection.parentNode.insertBefore(listContainer, regexSection.nextSibling);
+                }
+            }
+            
+            const itemsContainer = document.getElementById('customRegexItems');
+            if (!itemsContainer) return;
+            
+            // 清空现有内容
+            itemsContainer.innerHTML = '';
+            
+            // 如果没有自定义配置，显示提示信息
+            if (Object.keys(customConfigs).length === 0) {
+                itemsContainer.innerHTML = `
+                    <div style="text-align: center; color: #888; padding: 20px; font-size: 12px;">
+                        暂无自定义正则配置<br>
+                        点击上方"添加自定义正则"按钮来添加配置
+                    </div>
+                `;
+                return;
+            }
+            
+            // 显示每个自定义配置
+            Object.entries(customConfigs).forEach(([key, config]) => {
+                const configItem = document.createElement('div');
+                configItem.className = 'custom-regex-item';
+                configItem.style.cssText = `
+                    background: rgba(40, 40, 40, 0.5);
+                    border: 1px solid rgba(90, 90, 90, 0.3);
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 10px;
+                    transition: all 0.3s;
+                `;
+                
+                const createdDate = config.createdAt ? new Date(config.createdAt).toLocaleString() : '未知';
+                
+                configItem.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #00d4aa; font-size: 14px; margin-bottom: 4px;">
+                                <input type="text" class="edit-name-input" value="${config.name}" style="
+                                    background: transparent;
+                                    border: none;
+                                    color: #00d4aa;
+                                    font-weight: 600;
+                                    font-size: 14px;
+                                    width: 100%;
+                                    outline: none;
+                                    border-bottom: 1px solid transparent;
+                                    transition: all 0.2s;
+                                " readonly>
+                            </div>
+                            <div style="font-size: 12px; color: #888; margin-bottom: 4px;">
+                                键名: <span style="color: #ccc; font-family: monospace;">${key}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #888; margin-bottom: 8px;">
+                                创建时间: ${createdDate}
+                            </div>
+                            <div style="position: relative;">
+                                <textarea class="edit-pattern-textarea" style="
+                                    font-size: 12px;
+                                    color: #ccc;
+                                    font-family: monospace;
+                                    background: rgba(0,0,0,0.3);
+                                    padding: 6px;
+                                    border-radius: 4px;
+                                    word-break: break-all;
+                                    width: 100%;
+                                    border: 1px solid transparent;
+                                    resize: vertical;
+                                    min-height: 40px;
+                                    outline: none;
+                                    transition: all 0.2s;
+                                " readonly>${config.pattern}</textarea>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 5px; margin-left: 10px;">
+                            <button class="edit-custom-regex-btn" data-key="${key}" style="
+                                background: rgba(0, 212, 170, 0.3);
+                                border: 1px solid rgba(0, 212, 170, 0.5);
+                                color: #00d4aa;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                font-size: 12px;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                white-space: nowrap;
+                            ">编辑</button>
+                            <button class="save-custom-regex-btn" data-key="${key}" style="
+                                background: rgba(52, 152, 219, 0.3);
+                                border: 1px solid rgba(52, 152, 219, 0.5);
+                                color: #3498db;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                font-size: 12px;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                white-space: nowrap;
+                                display: none;
+                            ">保存</button>
+                            <button class="cancel-edit-regex-btn" data-key="${key}" style="
+                                background: rgba(149, 165, 166, 0.3);
+                                border: 1px solid rgba(149, 165, 166, 0.5);
+                                color: #95a5a6;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                font-size: 12px;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                white-space: nowrap;
+                                display: none;
+                            ">取消</button>
+                            <button class="delete-custom-regex-btn" data-key="${key}" style="
+                                background: rgba(231, 76, 60, 0.3);
+                                border: 1px solid rgba(231, 76, 60, 0.5);
+                                color: #e74c3c;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                font-size: 12px;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                white-space: nowrap;
+                            ">删除</button>
+                        </div>
+                    </div>
+                `;
+                
+                // 添加悬停效果
+                configItem.addEventListener('mouseenter', () => {
+                    configItem.style.transform = 'translateY(-2px)';
+                    configItem.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.4)';
+                    configItem.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                });
+                
+                configItem.addEventListener('mouseleave', () => {
+                    configItem.style.transform = 'translateY(0)';
+                    configItem.style.boxShadow = 'none';
+                    configItem.style.borderColor = 'rgba(90, 90, 90, 0.3)';
+                });
+                
+                // 获取各个按钮和输入框元素
+                const editBtn = configItem.querySelector('.edit-custom-regex-btn');
+                const saveBtn = configItem.querySelector('.save-custom-regex-btn');
+                const cancelBtn = configItem.querySelector('.cancel-edit-regex-btn');
+                const deleteBtn = configItem.querySelector('.delete-custom-regex-btn');
+                const nameInput = configItem.querySelector('.edit-name-input');
+                const patternTextarea = configItem.querySelector('.edit-pattern-textarea');
+                
+                // 存储原始值用于取消编辑
+                let originalName = config.name;
+                let originalPattern = config.pattern;
+                
+                // 编辑按钮事件
+                editBtn.addEventListener('click', () => {
+                    // 进入编辑模式
+                    nameInput.removeAttribute('readonly');
+                    patternTextarea.removeAttribute('readonly');
+                    nameInput.style.borderBottom = '1px solid #00d4aa';
+                    patternTextarea.style.border = '1px solid #00d4aa';
+                    patternTextarea.style.background = 'rgba(0,0,0,0.5)';
+                    
+                    // 切换按钮显示状态
+                    editBtn.style.display = 'none';
+                    saveBtn.style.display = 'block';
+                    cancelBtn.style.display = 'block';
+                    
+                    // 聚焦到名称输入框
+                    nameInput.focus();
+                });
+                
+                // 保存按钮事件
+                saveBtn.addEventListener('click', async () => {
+                    const newName = nameInput.value.trim();
+                    const newPattern = patternTextarea.value.trim();
+                    
+                    // 验证输入
+                    if (!newName) {
+                        this.showNotification('请输入显示名称', 'warning');
+                        nameInput.focus();
+                        return;
+                    }
+                    
+                    if (!newPattern) {
+                        this.showNotification('请输入正则表达式', 'warning');
+                        patternTextarea.focus();
+                        return;
+                    }
+                    
+                    // 验证正则表达式
+                    try {
+                        new RegExp(newPattern);
+                    } catch (error) {
+                        this.showNotification('正则表达式格式错误: ' + error.message, 'error');
+                        patternTextarea.focus();
+                        return;
+                    }
+                    
+                    // 检查名称是否与其他配置重复（排除当前配置）
+                    const data = await chrome.storage.local.get('customRegexConfigs');
+                    const customConfigs = data.customRegexConfigs || {};
+                    const existingNames = Object.entries(customConfigs)
+                        .filter(([k, v]) => k !== key)
+                        .map(([k, v]) => v.name);
+                    
+                    if (existingNames.includes(newName)) {
+                        this.showNotification(`显示名称 "${newName}" 已存在，请使用其他名称`, 'warning');
+                        nameInput.focus();
+                        return;
+                    }
+                    
+                    try {
+                        // 更新配置
+                        customConfigs[key] = {
+                            ...customConfigs[key],
+                            name: newName,
+                            pattern: newPattern,
+                            updatedAt: Date.now()
+                        };
+                        
+                        // 保存到存储
+                        await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+                        
+                        console.log(`✅ 已更新自定义正则配置: ${newName} (${key})`);
+                        this.showNotification(`自定义正则配置 "${newName}" 已更新`, 'success');
+                        
+                        // 通知PatternExtractor重新加载配置
+                        if (this.patternExtractor) {
+                            await this.patternExtractor.loadCustomPatterns();
+                        }
+                        
+                        // 刷新配置列表显示
+                        this.loadCustomRegexList();
+                        
+                    } catch (error) {
+                        console.error('❌ 更新自定义正则配置失败:', error);
+                        this.showNotification('更新配置失败: ' + error.message, 'error');
+                    }
+                });
+                
+                // 取消编辑按钮事件
+                cancelBtn.addEventListener('click', () => {
+                    // 恢复原始值
+                    nameInput.value = originalName;
+                    patternTextarea.value = originalPattern;
+                    
+                    // 退出编辑模式
+                    nameInput.setAttribute('readonly', true);
+                    patternTextarea.setAttribute('readonly', true);
+                    nameInput.style.borderBottom = '1px solid transparent';
+                    patternTextarea.style.border = '1px solid transparent';
+                    patternTextarea.style.background = 'rgba(0,0,0,0.3)';
+                    
+                    // 切换按钮显示状态
+                    editBtn.style.display = 'block';
+                    saveBtn.style.display = 'none';
+                    cancelBtn.style.display = 'none';
+                });
+                
+                // 删除按钮事件
+                deleteBtn.addEventListener('click', () => this.deleteCustomRegexConfig(key, config.name));
+                
+                // 按钮悬停效果
+                editBtn.addEventListener('mouseenter', () => {
+                    editBtn.style.background = 'rgba(0, 212, 170, 0.5)';
+                    editBtn.style.borderColor = 'rgba(0, 212, 170, 0.7)';
+                });
+                editBtn.addEventListener('mouseleave', () => {
+                    editBtn.style.background = 'rgba(0, 212, 170, 0.3)';
+                    editBtn.style.borderColor = 'rgba(0, 212, 170, 0.5)';
+                });
+                
+                saveBtn.addEventListener('mouseenter', () => {
+                    saveBtn.style.background = 'rgba(52, 152, 219, 0.5)';
+                    saveBtn.style.borderColor = 'rgba(52, 152, 219, 0.7)';
+                });
+                saveBtn.addEventListener('mouseleave', () => {
+                    saveBtn.style.background = 'rgba(52, 152, 219, 0.3)';
+                    saveBtn.style.borderColor = 'rgba(52, 152, 219, 0.5)';
+                });
+                
+                cancelBtn.addEventListener('mouseenter', () => {
+                    cancelBtn.style.background = 'rgba(149, 165, 166, 0.5)';
+                    cancelBtn.style.borderColor = 'rgba(149, 165, 166, 0.7)';
+                });
+                cancelBtn.addEventListener('mouseleave', () => {
+                    cancelBtn.style.background = 'rgba(149, 165, 166, 0.3)';
+                    cancelBtn.style.borderColor = 'rgba(149, 165, 166, 0.5)';
+                });
+                
+                deleteBtn.addEventListener('mouseenter', () => {
+                    deleteBtn.style.background = 'rgba(231, 76, 60, 0.5)';
+                    deleteBtn.style.borderColor = 'rgba(231, 76, 60, 0.7)';
+                });
+                deleteBtn.addEventListener('mouseleave', () => {
+                    deleteBtn.style.background = 'rgba(231, 76, 60, 0.3)';
+                    deleteBtn.style.borderColor = 'rgba(231, 76, 60, 0.5)';
+                });
+                
+                itemsContainer.appendChild(configItem);
+            });
+            
+        } catch (error) {
+            console.error('❌ 加载自定义正则配置列表失败:', error);
+        }
+    }
+
+    // 删除自定义正则配置
+    async deleteCustomRegexConfig(key, name) {
+        if (!confirm(`确定要删除自定义正则配置 "${name}" 吗？此操作不可恢复。`)) {
+            return;
+        }
+        
+        try {
+            const data = await chrome.storage.local.get('customRegexConfigs');
+            const customConfigs = data.customRegexConfigs || {};
+            
+            // 删除指定的配置
+            delete customConfigs[key];
+            
+            // 保存更新后的配置
+            await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+            
+            console.log(`✅ 已删除自定义正则配置: ${name} (${key})`);
+            this.showNotification(`自定义正则配置 "${name}" 已删除`, 'success');
+            
+            // 通知PatternExtractor重新加载配置
+            if (this.patternExtractor) {
+                await this.patternExtractor.loadCustomPatterns();
+            }
+            
+            // 刷新配置列表显示
+            this.loadCustomRegexList();
+            
+        } catch (error) {
+            console.error('❌ 删除自定义正则配置失败:', error);
+            this.showNotification('删除配置失败: ' + error.message, 'error');
         }
     }
     
@@ -772,7 +1318,7 @@ class ILoveYouTranslucent7 {
     }
 }
 
-const CURRENT_VERSION = 'v1.6.7'; // 请根据实际版本修改
+const CURRENT_VERSION = 'v1.6.8'; // 请根据实际版本修改
 
 function compareVersion(v1, v2) {
     const arr1 = v1.replace(/^v/, '').split('.').map(Number);

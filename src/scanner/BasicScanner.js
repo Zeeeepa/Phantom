@@ -43,16 +43,26 @@ class BasicScanner {
                 console.log('Content script未响应，尝试注入脚本');
             }
             
-            // 方法2: 如果content script没有响应，注入新的脚本到主框架
+            // 方法2: 如果content script没有响应，注入必要的脚本文件
             if (!results) {
                 try {
+                    // 先注入依赖的脚本文件
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id, allFrames: false },
+                        files: [
+                            'src/scanner/PatternExtractor.js',
+                            'src/scanner/ContentExtractor.js'
+                        ]
+                    });
+                    
+                    // 然后执行提取函数
                     const injectionResults = await chrome.scripting.executeScript({
                         target: { 
                             tabId: tab.id,
-                            allFrames: false  // 只在主框架执行，不在iframe中执行
+                            allFrames: false
                         },
                         function: this.extractSensitiveInfo,
-                        args: [tab.url]  // 传递目标URL
+                        args: [tab.url]
                     });
                     
                     if (injectionResults && injectionResults[0] && injectionResults[0].result) {
@@ -133,6 +143,10 @@ class BasicScanner {
     // 注入到页面中执行的提取函数
     async extractSensitiveInfo(targetUrl) {
         try {
+            console.log('🚀🚀🚀 BasicScanner.extractSensitiveInfo 方法被调用！时间戳:', Date.now());
+            console.log('🚀🚀🚀 BasicScanner 目标URL:', targetUrl);
+            console.log('🚀🚀🚀 BasicScanner 当前URL:', window.location.href);
+            
             // 确保在顶层窗口执行
             if (window !== window.top) {
                 console.log('跳过iframe扫描，只扫描顶层页面');
@@ -149,40 +163,48 @@ class BasicScanner {
             
             // 检查是否有新的模块化系统可用
             if (typeof PatternExtractor !== 'undefined' && typeof ContentExtractor !== 'undefined') {
-                console.log('🔄 BasicScanner使用新的模块化提取系统');
+                console.log('🔄 BasicScanner使用统一化正则提取系统');
                 try {
                     // 确保PatternExtractor已经初始化并加载了最新配置
+                    console.log('🔧 BasicScanner检查PatternExtractor状态...');
+                    
                     if (!window.patternExtractor) {
-                        console.log('🔧 BasicScanner初始化PatternExtractor...');
+                        console.log('🔧 BasicScanner初始化新的PatternExtractor...');
                         window.patternExtractor = new PatternExtractor();
                     }
                     
-                // 重新加载自定义正则并等待生效
-                try {
-                    if (typeof window.patternExtractor.loadCustomPatterns === 'function') {
-                        await window.patternExtractor.loadCustomPatterns();
+                    // 每次扫描都强制重新加载最新配置，确保使用最新设置
+                    console.log('🔄 BasicScanner强制重新加载最新配置...');
+                    await window.patternExtractor.loadCustomPatterns();
+                    
+                    console.log('✅ BasicScanner配置检查完成');
+                    console.log('📊 BasicScanner最终可用的正则模式:', Object.keys(window.patternExtractor.patterns));
+                    
+                    // 验证自定义正则是否存在
+                    const customKeys = Object.keys(window.patternExtractor.patterns).filter(key => key.startsWith('custom_'));
+                    if (customKeys.length > 0) {
+                        console.log(`✅ BasicScanner发现 ${customKeys.length} 个自定义正则:`, customKeys);
+                    } else {
+                        console.warn('⚠️ BasicScanner未发现任何自定义正则');
                     }
-                    if (typeof window.patternExtractor.ensureCustomPatternsLoaded === 'function') {
-                        await window.patternExtractor.ensureCustomPatternsLoaded();
-                    }
-                } catch (e) {
-                    console.warn('加载自定义正则失败（忽略继续）:', e);
-                }
-                
+                    
                     // 创建ContentExtractor并执行提取
                     const contentExtractor = new ContentExtractor();
                     const results = await contentExtractor.extractSensitiveInfo(window.location.href);
-                    console.log('✅ BasicScanner新系统提取完成，结果:', results);
+                    console.log('✅ BasicScanner统一化系统提取完成，结果:', results);
                     console.log('🌐 [DEBUG] BasicScanner扫描完成 - URL:', window.location.href);
                     return results;
                 } catch (error) {
-                    console.error('❌ BasicScanner新系统提取失败，使用降级方案:', error);
+                    console.error('❌ BasicScanner统一化系统提取失败:', error);
+                    // 统一化版本：不使用降级方案，直接返回空结果
+                    console.log('⚠️ BasicScanner统一化版本：不使用降级方案，返回空结果');
+                    return this.getEmptyResults();
                 }
             }
             
-            // 降级方案：使用基础的提取逻辑
-            console.log('📋 BasicScanner使用基础提取逻辑');
-            return this.performBasicExtraction();
+            // 统一化版本：如果没有模块化系统，直接返回空结果
+            console.log('⚠️ BasicScanner统一化版本：未找到统一化提取系统，返回空结果');
+            return this.getEmptyResults();
             
         } catch (error) {
             console.error('❌ BasicScanner扫描过程中出错:', error);
@@ -190,67 +212,9 @@ class BasicScanner {
         }
     }
     
-    // 基础提取逻辑（降级方案）
-    performBasicExtraction() {
-        const results = this.getEmptyResults();
-        
-        // 获取页面内容
-        const content = document.body ? document.body.innerHTML : '';
-        const scripts = Array.from(document.scripts).map(s => s.innerHTML || s.textContent || '').join('\n');
-        const allContent = content + '\n' + scripts;
-        
-        if (!allContent) {
-            return results;
-        }
-        
-        // 基础API提取
-        const apiPattern = /['"`](?:\/|\.\.\/|\.\/)[^\/\>\< \)\(\}\,\'\"\\](?:[^\^\>\< \)\(\{\}\,\'\"\\])*?['"`]|['"`][a-zA_Z0-9]+(?<!text|application)\/(?:[^\^\>\< \)\(\{\}\,\'\"\\])*?["'`]/g;
-        let match;
-        while ((match = apiPattern.exec(allContent)) !== null) {
-            const path = match[0].slice(1, -1); // 移除引号
-            if (path.startsWith('/')) {
-                results.absoluteApis.push(path);
-            } else if (!path.startsWith('http') && path.includes('/')) {
-                results.relativeApis.push(path);
-            }
-        }
-        
-        // 基础域名提取
-        const domainPattern = /([a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)+)/g;
-        while ((match = domainPattern.exec(allContent)) !== null) {
-            const domain = match[1];
-            if (domain && domain.includes('.') && domain.length > 3) {
-                results.domains.push(domain);
-            }
-        }
-        
-        // 基础邮箱提取
-        const emailPattern = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
-        while ((match = emailPattern.exec(allContent)) !== null) {
-            results.emails.push(match[0]);
-        }
-        
-        // 基础手机号提取 - 使用与设置中一致的正则表达式
-        const phonePattern = /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/g;
-        while ((match = phonePattern.exec(allContent)) !== null) {
-            const phoneNumber = match[0];
-            console.log(`📱 [BasicScanner] 手机号提取 - URL: ${window.location.href}, 手机号: ${phoneNumber}`);
-            results.phoneNumbers.push(phoneNumber);
-        }
-        
-        // 去重并转换为数组
-        Object.keys(results).forEach(key => {
-            if (Array.isArray(results[key])) {
-                results[key] = [...new Set(results[key])].filter(item => item && item.length > 0);
-            }
-        });
-        
-        console.log('📊 BasicScanner基础提取完成:', results);
-        return results;
-    }
 
     getEmptyResults() {
-        return {
+        const baseResults = {
             absoluteApis: [],
             relativeApis: [],
             modulePaths: [],
@@ -291,5 +255,11 @@ class BasicScanner {
             idCards: [],
             cryptoUsage: []
         };
+        
+        // 注意：这里不能异步获取自定义正则配置，因为这是同步函数
+        // 自定义正则的空结果会在PatternExtractor中处理
+        console.log('📦 BasicScanner返回基础空结果结构');
+        
+        return baseResults;
     }
 }

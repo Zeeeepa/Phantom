@@ -12,6 +12,7 @@
     "windows",
     "cookies",
     "offscreen",
+    "scripting",
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"
   ],

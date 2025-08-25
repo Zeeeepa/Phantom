@@ -836,11 +836,49 @@
         }
 
         /* 设置页面输入框焦点样式 */
+        /* 设置页面输入框焦点样式 */
         .cookie-input-group textarea:focus,
         .regex-item textarea:focus {
             outline: none;
             border-color: #00d4aa;
             box-shadow: 0 0 5px rgba(0, 212, 170, 0.3);
+        }
+
+        /* 自定义正则弹窗样式 */
+        .custom-regex-form .regex-item {
+            margin-bottom: 15px;
+        }
+
+        .custom-regex-form .regex-item label {
+            display: block;
+            font-size: 13px;
+            color: #ccc;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .custom-regex-form input[type="text"]:focus,
+        .custom-regex-form textarea:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 8px rgba(0, 212, 170, 0.4);
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .custom-regex-form input[type="text"]:hover,
+        .custom-regex-form textarea:hover {
+            border-color: #666;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .custom-regex-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #cancelCustomRegexBtn:hover {
+            background: rgba(231, 76, 60, 0.5) !important;
+            border-color: rgba(231, 76, 60, 0.7) !important;
         }
 
         /* 消息提示动画 */
@@ -1138,7 +1176,9 @@
                         正在扫描页面内容...
                     </div>
                     
-                    <div id="results" class="results-container"></div>
+                    <div id="results" class="results-container">
+                        <!-- 新增的自定义正则类型显示区域将通过JavaScript动态生成 -->
+                    </div>
                 </div>
                 
                 <!-- 深度扫描页面 -->
@@ -1288,13 +1328,27 @@
                         </div>
                     </div>
 
+                    <!-- 添加自定义正则按钮：移动至“已添加的自定义正则配置”框下方 -->
+                    <button id="addCustomRegexBtn" class="action-button">
+                        <span class="text">添加自定义正则</span>
+                        <span class="shine"></span>
+                        <span class="border-tl"></span>
+                        <span class="border-tr"></span>
+                        <span class="border-bl"></span>
+                        <span class="border-br"></span>
+                    </button>
+
                     <!-- 正则配置 -->
                     <div class="api-test-section">
                         <div class="config-title">正则表达式配置</div>
                         <div class="regex-config">
                             <div class="regex-item">
-                                <label>API接口正则:</label>
-                                <textarea id="apiRegex" rows="2" placeholder="用于匹配API接口的正则表达式"></textarea>
+                                <label>绝对路径API正则:</label>
+                                <textarea id="absoluteApiRegex" rows="2" placeholder="用于匹配绝对路径API的正则表达式，如：/api/user/info"></textarea>
+                            </div>
+                            <div class="regex-item">
+                                <label>相对路径API正则:</label>
+                                <textarea id="relativeApiRegex" rows="2" placeholder="用于匹配相对路径API的正则表达式，如：./api/data.json"></textarea>
                             </div>
                             <div class="regex-item">
                                 <label>域名正则:</label>
@@ -1331,10 +1385,6 @@
                             <div class="regex-item">
                                 <label>公司名称正则:</label>
                                 <textarea id="companyRegex" rows="2" placeholder="用于匹配公司名称的正则表达式"></textarea>
-                            </div>
-                            <div class="regex-item">
-                                <label>路径正则:</label>
-                                <textarea id="pathsRegex" rows="2" placeholder="用于匹配文件路径的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
                                 <label>身份证号正则:</label>
@@ -1491,6 +1541,46 @@
                             <strong>XLS格式</strong>
                             <br><small>Excel工作簿，按分类分页存放</small>
                         </span>
+                        <span class="shine"></span>
+                        <span class="border-tl"></span>
+                        <span class="border-tr"></span>
+                        <span class="border-bl"></span>
+                        <span class="border-br"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义正则配置弹窗 -->
+    <div id="customRegexModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <button id="closeCustomRegexModal" class="modal-close">×</button>
+            <h3 style="color: #00d4aa; margin-bottom: 20px; text-align: center;">添加自定义正则配置</h3>
+            <div class="custom-regex-form">
+                <div class="regex-item">
+                    <label>显示名称:</label>
+                    <input type="text" id="customRegexName" placeholder="输入方便用户查看的提取内容名称，如：自定义API" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 12px;">
+                </div>
+                <div class="regex-item">
+                    <label>存储键名:</label>
+                    <input type="text" id="customRegexKey" placeholder="输入存储在chrome.storage中的键名，如：customApi" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 12px;">
+                </div>
+                <div class="regex-item">
+                    <label>正则表达式:</label>
+                    <textarea id="customRegexPattern" rows="3" placeholder="输入正则表达式内容，如：/api/[a-zA-Z0-9/]+\\.json" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 12px; resize: vertical; font-family: monospace;"></textarea>
+                </div>
+                <div class="custom-regex-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="confirmCustomRegexBtn" class="action-button" style="flex: 1;">
+                        <span class="text">确认添加</span>
+                        <span class="shine"></span>
+                        <span class="border-tl"></span>
+                        <span class="border-tr"></span>
+                        <span class="border-bl"></span>
+                        <span class="border-br"></span>
+                    </button>
+                    <button id="cancelCustomRegexBtn" class="action-button" style="flex: 1; background: rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5);">
+                        <span class="text">取消</span>
                         <span class="shine"></span>
                         <span class="border-tl"></span>
                         <span class="border-tr"></span>

@@ -5,29 +5,29 @@
 class SettingsManager {
     constructor() {
         this.defaultRegexPatterns = {
-            // API路径
-            api: [
-                '/api/[^\\s"\'<>]+',
-                '/v\\d+/[^\\s"\'<>]+',
-                '\\.json[^\\s"\'<>]*',
-                '\\.xml[^\\s"\'<>]*',
-                '/rest/[^\\s"\'<>]+',
-                '/graphql[^\\s"\'<>]*'
+            // 绝对路径API
+            absoluteApi: [
+                '(?<![\\w/\\\\.-])(?:/[\\w.-]+(?:/[\\w.-]+)+|/[\\w.-]+\\.\\w+|[a-zA-Z]:[/\\\\][\\w\\s.-]+(?:[/\\\\][\\w\\s.-]+)+|\\\\\\\\[\\w.-]+(?:[/\\\\][\\w.-]+)+)(?![\\w/\\\\])'
+            ].join('|'),
+            
+            // 相对路径API
+            relativeApi: [
+                '(?<![\\w/\\\\-])(?:\\.{1,2}/)+(?:[^/ \\t\\r\\n<>|"\\\']+/)*[^/ \\t\\r\\n<>|"\\\']*(?![\\w/\\\\])'
             ].join('|'),
             
             // 域名和URL
             domain: [
-           '(?<!\\w)(?:(?:[a-zA-Z0-9]+:)?\\/\\/)?(?:[a-zA-Z0-9-]{2,}\\.)+(?:xin|com|cn|net|com\\.cn|vip|top|cc|shop|club|wang|xyz|luxe|site|news|pub|fun|online|win|red|loan|ren|mom|net\\.cn|org|link|biz|bid|help|tech|date|mobi|so|me|tv|co|vc|pw|video|party|pics|website|store|ltd|ink|trade|live|wiki|space|gift|lol|work|band|info|click|photo|market|tel|social|press|game|kim|org\\.cn|games|pro|men|love|studio|rocks|asia|group|science|design|software|engineer|lawyer|fit|beer|tw|我爱你|中国|公司|网络|在线|网址|网店|集团|中文网)(?::\\d{1,5})?(?:\\/)?(?![\\.\\w])'
+                '(?<!\\w)(?:[a-zA-Z0-9-]{2,}\\.)+(?:xin|com|cn|net|com\\.cn|vip|top|cc|shop|club|wang|xyz|luxe|site|news|pub|fun|online|win|red|loan|ren|mom|net\\.cn|org|link|biz|bid|help|tech|date|mobi|so|me|tv|co|vc|pw|video|party|pics|website|store|ltd|ink|trade|live|wiki|space|gift|lol|work|band|info|click|photo|market|tel|social|press|game|kim|org\\.cn|games|pro|men|love|studio|rocks|asia|group|science|design|software|engineer|lawyer|fit|beer|tw|我爱你|中国|公司|网络|在线|网址|网店|集团|中文网)(?=\\b|(?::\\d{1,5})?(?:\\/|$))(?![.\\w])'
             ].join('|'),
             
             // 邮箱地址（排除静态资源域名）
             email: [
-                '[\'""][a-zA-Z0-9\\._\\-]*@[a-zA-Z0-9\\._\\-]{1,63}\\.((?!js|css|jpg|jpeg|png|ico)[a-zA-Z]{2,})[\'""]'
+                '([a-zA-Z0-9\\._\\-]*@[a-zA-Z0-9\\._\\-]{1,63}\\.((?!js|css|jpg|jpeg|png|ico)[a-zA-Z]{2,}))'
             ].join('|'),
             
             // 中国大陆手机号
             phone: [
-                '(?<!\\d)(?:1(3([0-35-9]\\d|4[1-8])|4[14-9]\\d|5([\\d]\\d|7[1-79])|66\\d|7[2-35-8]\\d|8\\d{2}|9[89]\\d)\\d{7})(?!\\d)'
+                '(?<!\\d)1(?:3\\d{2}|4[14-9]\\d|5\\d{2}|66\\d|7[2-35-8]\\d|8\\d{2}|9[89]\\d)\\d{7}(?!\\d)'
             ].join('|'),
             
             // IP地址
@@ -35,11 +35,6 @@ class SettingsManager {
                 '[\'"](([a-zA-Z0-9]+:)?\\/\\/)?\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(\\/.*?)?[\'"]'
             ].join('|'),
             
-            // 路径
-            paths : [
-            '["\'](?:\\/|\\.\\.\\/|\\.\\/)[^\\/\\>\\< \\)\\(\\{\\}\\,\\\'"\\\\]([^\\>\\< \\)\\(\\{\\}\\,\\\'"\\\\])*?["\']',
-            '["\'][^\\/\\>\\< \\)\\(\\{\\}\\,\\\'"\\\\][\\w\\/]*?\\/[\\w\\/]*?["\']'
-            ].join('|'),
             
             // 身份证号
             idCard: [
@@ -56,7 +51,6 @@ class SettingsManager {
                 '[Bb]earer\\s+[a-zA-Z0-9\\-=._+/\\\\]{20,500}'
             ].join('|'),
             
-            // Basic Auth
             // Basic Auth
             basicAuth: [
                 '[Bb]asic\\s+[A-Za-z0-9+/]{18,}={0,2}'
@@ -75,7 +69,7 @@ class SettingsManager {
             
             // GitHub Token
             githubToken: [
-                '(ghp|gho|ghu|ghs|ghr|github_pat)_[a-zA-Z0-9_]{36,255}'
+                '((ghp|gho|ghu|ghs|ghr|github_pat)_[a-zA-Z0-9_]{36,255})'
             ].join('|'),
             
             // GitLab Token
@@ -105,7 +99,7 @@ class SettingsManager {
             
             // 加密算法调用检测
             cryptoUsage: [
-                '\\W(Base64\\.encode|Base64\\.decode|btoa|atob|CryptoJS\\.AES|CryptoJS\\.DES|JSEncrypt|rsa|KJUR|\\$\\.md5|md5|sha1|sha256|sha512)[\\(\\.)]'
+                '\\b(?:CryptoJS\\.(?:AES|DES)|Base64\\.(?:encode|decode)|btoa|atob|JSEncrypt|rsa|KJUR|\\$\\.md5|md5|sha1|sha256|sha512)(?:\\.\\w+)*\\s*\\([^)]*\\)'
             ].join('|'),
             
             // 敏感信息（综合模式）
@@ -132,8 +126,7 @@ class SettingsManager {
                 '[\\w_-]*?accesskey[\\w_-]*?["\']?[^\\S\\r\\n]*[=:][^\\S\\r\\n]*["\']?[\\w-]+["\']?',
                 '[\\w_-]*?bucket[\\w_-]*?["\']?[^\\S\\r\\n]*[=:][^\\S\\r\\n]*["\']?[\\w-]+["\']?',
                 // 私钥
-                '["\']?[-]+BEGIN \\w+ PRIVATE KEY[-]+',
-                '["\']?private[_-]?key[_-]?(id)?["\']?[^\\S\\r\\n]*[=:][^\\S\\r\\n]*["\']?[\\w-]+["\']?',
+                '-{5}BEGIN[\\s\\S]*?-{5}END[\\s\\S]*?-{5}',
                 // 华为云 OSS
                 'huawei\\.oss\\.(ak|sk|bucket\\.name|endpoint|local\\.path)["\']?[^\\S\\r\\n]*[=:][^\\S\\r\\n]*["\']?[\\w-]+["\']?',
                 // 其他服务密钥
@@ -171,9 +164,9 @@ class SettingsManager {
             
             // 注释
             comment: [
-             '<!--([\\s\\S]*?)-->',
-             '/\\*([\\s\\S]*?)\\*/',
-             '(?<![pst]:)\\/\\/\\s*(.+)$'
+            '<!--(?![\\s\\S]*?Performance optimized)[\\s\\S]*?(?!<|=|\\*)-->',
+            '/\\*(?![\\s\\S]*?Performance optimized)(?![\\s\\S]*External (?:script|stylesheet):)[\\s\\S]*?(?!<|=|\\*)\\*/',
+            '(?:^|[^\\w"\'\':=/])(?!.*Performance optimized)(?!.*External (?:script|stylesheet))//(?!=|\\*|<)((?:(?!<|=|\\*)[^])*?)(?=<|$)'
             ].join('|')
         };
         
@@ -223,14 +216,13 @@ class SettingsManager {
             // 如果 regexSettings 不存在，基于当前配置构建并保存，保证全链路生效
             if (!result.regexSettings) {
                 const regexSettings = {
-                    absoluteApis: regexConfig.api || this.defaultRegexPatterns.api,
-                    relativeApis: regexConfig.api || this.defaultRegexPatterns.api,
+                    absoluteApis: regexConfig.absoluteApi || this.defaultRegexPatterns.absoluteApi,
+                    relativeApis: regexConfig.relativeApi || this.defaultRegexPatterns.relativeApi,
                     domains: regexConfig.domain || this.defaultRegexPatterns.domain,
                     emails: regexConfig.email || this.defaultRegexPatterns.email,
                     phoneNumbers: regexConfig.phone || this.defaultRegexPatterns.phone,
                     credentials: regexConfig.sensitive || this.defaultRegexPatterns.sensitive,
                     ipAddresses: regexConfig.ip || this.defaultRegexPatterns.ip,
-                    paths: regexConfig.paths || this.defaultRegexPatterns.paths,
                     jwts: regexConfig.jwt || this.defaultRegexPatterns.jwt,
                     githubUrls: regexConfig.github || this.defaultRegexPatterns.github,
                     vueFiles: regexConfig.vue || this.defaultRegexPatterns.vue,
@@ -254,7 +246,8 @@ class SettingsManager {
                 // 通知其他模块配置已更新
                 this.notifyConfigUpdate(regexSettings);
             }
-            document.getElementById('apiRegex').value = regexConfig.api || this.defaultRegexPatterns.api;
+            document.getElementById('absoluteApiRegex').value = regexConfig.absoluteApi || this.defaultRegexPatterns.absoluteApi;
+            document.getElementById('relativeApiRegex').value = regexConfig.relativeApi || this.defaultRegexPatterns.relativeApi;
             document.getElementById('domainRegex').value = regexConfig.domain || this.defaultRegexPatterns.domain;
             document.getElementById('emailRegex').value = regexConfig.email || this.defaultRegexPatterns.email;
             document.getElementById('phoneRegex').value = regexConfig.phone || this.defaultRegexPatterns.phone;
@@ -267,7 +260,6 @@ class SettingsManager {
             document.getElementById('commentRegex').value = regexConfig.comment || this.defaultRegexPatterns.comment;
             
             // 新增的正则表达式输入框
-            document.getElementById('pathsRegex').value = regexConfig.paths || this.defaultRegexPatterns.paths;
             document.getElementById('idCardRegex').value = regexConfig.idCard || this.defaultRegexPatterns.idCard;
             document.getElementById('bearerTokenRegex').value = regexConfig.bearerToken || this.defaultRegexPatterns.bearerToken;
             document.getElementById('basicAuthRegex').value = regexConfig.basicAuth || this.defaultRegexPatterns.basicAuth;
@@ -354,7 +346,8 @@ class SettingsManager {
     async saveRegexConfig() {
         try {
             const regexConfig = {
-                api: document.getElementById('apiRegex').value.trim(),
+                absoluteApi: document.getElementById('absoluteApiRegex').value.trim(),
+                relativeApi: document.getElementById('relativeApiRegex').value.trim(),
                 domain: document.getElementById('domainRegex').value.trim(),
                 email: document.getElementById('emailRegex').value.trim(),
                 phone: document.getElementById('phoneRegex').value.trim(),
@@ -366,8 +359,6 @@ class SettingsManager {
                 company: document.getElementById('companyRegex').value.trim(),
                 comment: document.getElementById('commentRegex').value.trim(),
                 
-                // 新增的正则表达式配置
-                paths: document.getElementById('pathsRegex').value.trim(),
                 idCard: document.getElementById('idCardRegex').value.trim(),
                 bearerToken: document.getElementById('bearerTokenRegex').value.trim(),
                 basicAuth: document.getElementById('basicAuthRegex').value.trim(),
@@ -395,14 +386,13 @@ class SettingsManager {
 
             // 转换为PatternExtractor期望的格式
             const regexSettings = {
-                absoluteApis: regexConfig.api || this.defaultRegexPatterns.api,
-                relativeApis: regexConfig.api || this.defaultRegexPatterns.api,
+                absoluteApis: regexConfig.absoluteApi || this.defaultRegexPatterns.absoluteApi,
+                relativeApis: regexConfig.relativeApi || this.defaultRegexPatterns.relativeApi,
                 domains: regexConfig.domain || this.defaultRegexPatterns.domain,
                 emails: regexConfig.email || this.defaultRegexPatterns.email,
                 phoneNumbers: regexConfig.phone || this.defaultRegexPatterns.phone,
                 credentials: regexConfig.sensitive || this.defaultRegexPatterns.sensitive,
                 ipAddresses: regexConfig.ip || this.defaultRegexPatterns.ip,
-                paths: regexConfig.paths || this.defaultRegexPatterns.paths,
                 jwts: regexConfig.jwt || this.defaultRegexPatterns.jwt,
                 githubUrls: regexConfig.github || this.defaultRegexPatterns.github,
                 vueFiles: regexConfig.vue || this.defaultRegexPatterns.vue,
@@ -446,42 +436,58 @@ class SettingsManager {
      */
     async resetRegexConfig() {
         try {
-            document.getElementById('apiRegex').value = this.defaultRegexPatterns.api;
-            document.getElementById('domainRegex').value = this.defaultRegexPatterns.domain;
-            document.getElementById('emailRegex').value = this.defaultRegexPatterns.email;
-            document.getElementById('phoneRegex').value = this.defaultRegexPatterns.phone;
-            document.getElementById('sensitiveRegex').value = this.defaultRegexPatterns.sensitive;
-            document.getElementById('ipRegex').value = this.defaultRegexPatterns.ip;
-            document.getElementById('jwtRegex').value = this.defaultRegexPatterns.jwt;
-            document.getElementById('githubRegex').value = this.defaultRegexPatterns.github;
-            document.getElementById('vueRegex').value = this.defaultRegexPatterns.vue;
-            document.getElementById('companyRegex').value = this.defaultRegexPatterns.company;
-            document.getElementById('commentRegex').value = this.defaultRegexPatterns.comment;
+            // 检查并设置绝对路径和相对路径API正则
+            const absoluteApiRegex = document.getElementById('absoluteApiRegex');
+            const relativeApiRegex = document.getElementById('relativeApiRegex');
             
-            // 新增的正则表达式输入框重置
-            document.getElementById('pathsRegex').value = this.defaultRegexPatterns.paths;
-            document.getElementById('idCardRegex').value = this.defaultRegexPatterns.idCard;
-            document.getElementById('bearerTokenRegex').value = this.defaultRegexPatterns.bearerToken;
-            document.getElementById('basicAuthRegex').value = this.defaultRegexPatterns.basicAuth;
-            document.getElementById('authHeaderRegex').value = this.defaultRegexPatterns.authHeader;
-            document.getElementById('wechatAppIdRegex').value = this.defaultRegexPatterns.wechatAppId;
-            document.getElementById('awsKeyRegex').value = this.defaultRegexPatterns.awsKey;
-            document.getElementById('googleApiKeyRegex').value = this.defaultRegexPatterns.googleApiKey;
-            document.getElementById('githubTokenRegex').value = this.defaultRegexPatterns.githubToken;
-            document.getElementById('gitlabTokenRegex').value = this.defaultRegexPatterns.gitlabToken;
-            document.getElementById('webhookUrlsRegex').value = this.defaultRegexPatterns.webhookUrls;
-            document.getElementById('cryptoUsageRegex').value = this.defaultRegexPatterns.cryptoUsage;
+            if (absoluteApiRegex) {
+                absoluteApiRegex.value = this.defaultRegexPatterns.absoluteApi;
+            }
+            if (relativeApiRegex) {
+                relativeApiRegex.value = this.defaultRegexPatterns.relativeApi;
+            }
+            
+            // 检查并设置其他正则表达式输入框
+            const regexElements = [
+                { id: 'domainRegex', pattern: 'domain' },
+                { id: 'emailRegex', pattern: 'email' },
+                { id: 'phoneRegex', pattern: 'phone' },
+                { id: 'sensitiveRegex', pattern: 'sensitive' },
+                { id: 'ipRegex', pattern: 'ip' },
+                { id: 'jwtRegex', pattern: 'jwt' },
+                { id: 'githubRegex', pattern: 'github' },
+                { id: 'vueRegex', pattern: 'vue' },
+                { id: 'companyRegex', pattern: 'company' },
+                { id: 'commentRegex', pattern: 'comment' },
+                { id: 'idCardRegex', pattern: 'idCard' },
+                { id: 'bearerTokenRegex', pattern: 'bearerToken' },
+                { id: 'basicAuthRegex', pattern: 'basicAuth' },
+                { id: 'authHeaderRegex', pattern: 'authHeader' },
+                { id: 'wechatAppIdRegex', pattern: 'wechatAppId' },
+                { id: 'awsKeyRegex', pattern: 'awsKey' },
+                { id: 'googleApiKeyRegex', pattern: 'googleApiKey' },
+                { id: 'githubTokenRegex', pattern: 'githubToken' },
+                { id: 'gitlabTokenRegex', pattern: 'gitlabToken' },
+                { id: 'webhookUrlsRegex', pattern: 'webhookUrls' },
+                { id: 'cryptoUsageRegex', pattern: 'cryptoUsage' }
+            ];
+            
+            regexElements.forEach(({ id, pattern }) => {
+                const element = document.getElementById(id);
+                if (element && this.defaultRegexPatterns[pattern]) {
+                    element.value = this.defaultRegexPatterns[pattern];
+                }
+            });
             
             // 转换为PatternExtractor期望的格式
             const regexSettings = {
-                absoluteApis: this.defaultRegexPatterns.api,
-                relativeApis: this.defaultRegexPatterns.api,
+                absoluteApis: this.defaultRegexPatterns.absoluteApi,
+                relativeApis: this.defaultRegexPatterns.relativeApi,
                 domains: this.defaultRegexPatterns.domain,
                 emails: this.defaultRegexPatterns.email,
                 phoneNumbers: this.defaultRegexPatterns.phone,
                 credentials: this.defaultRegexPatterns.sensitive,
                 ipAddresses: this.defaultRegexPatterns.ip,
-                paths: this.defaultRegexPatterns.paths,
                 jwts: this.defaultRegexPatterns.jwt,
                 githubUrls: this.defaultRegexPatterns.github,
                 vueFiles: this.defaultRegexPatterns.vue,
@@ -521,23 +527,36 @@ class SettingsManager {
     }
 
     /**
-     * 通知其他模块配置已更新
+     * 通知其他模块配置已更新 - 统一化版本
      */
     notifyConfigUpdate(regexSettings) {
-        console.log('🔄 通知其他模块配置已更新:', regexSettings);
+        console.log('🔄 [SettingsManager] 开始通知其他模块配置已更新:', regexSettings);
         
-        // 如果PatternExtractor存在，更新其配置
-        if (window.patternExtractor && typeof window.patternExtractor.updatePatterns === 'function') {
-            window.patternExtractor.updatePatterns(regexSettings);
-            console.log('✅ PatternExtractor配置已更新');
+        // 强制重新加载PatternExtractor配置
+        if (window.patternExtractor) {
+            console.log('🔄 [SettingsManager] 强制重新加载PatternExtractor配置...');
+            
+            // 清除现有配置
+            window.patternExtractor.patterns = {};
+            window.patternExtractor.customPatternsLoaded = false;
+            
+            // 更新配置
+            if (typeof window.patternExtractor.updatePatterns === 'function') {
+                window.patternExtractor.updatePatterns(regexSettings);
+                console.log('✅ [SettingsManager] PatternExtractor配置已强制更新');
+            } else {
+                console.warn('⚠️ [SettingsManager] PatternExtractor.updatePatterns方法不存在');
+            }
         } else {
-            console.warn('⚠️ PatternExtractor未找到或updatePatterns方法不存在');
+            console.warn('⚠️ [SettingsManager] PatternExtractor未找到');
         }
         
         // 触发全局事件，通知其他可能监听的模块
         window.dispatchEvent(new CustomEvent('regexConfigUpdated', { 
             detail: regexSettings 
         }));
+        
+        console.log('✅ [SettingsManager] 配置更新通知完成');
     }
 
     /**
