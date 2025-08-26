@@ -21,6 +21,8 @@ Tips：由于这个项目刚刚开始，所以可能会有一些bug，师傅们�
 ![](https://cdn.nlark.com/yuque/0/2025/png/44105438/1755856390631-c3102596-b1d8-431f-86d1-46ea883eacdf.png)
 + 去重与过滤：内置增强过滤器（域名/邮箱/手机号/API），减少误报
 + 自动与增量：页面加载、DOM 变化与定时策略触发静默扫描；深度扫描过程中分层/分批实时合并与展示
++ 可添加自定义正则配置，更好的提取你自己想要的内容
+![](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/refs/heads/master/icon/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-08-26%20120117.png)
 
 ## 安装
 1. 打开 Chrome/Edge 等 Chromium 内核浏览器，访问 扩展程序 
