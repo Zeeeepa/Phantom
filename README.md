@@ -165,7 +165,7 @@ host_permissions: <all_urls>
 + 在进行深度扫描与批量请求时，请遵循目标站点策略与相关法律法规
 
 ## 版本与致谢
-+ 版本：1.6.7
++ 版本：1.6.8
 + 作者： 
   - [Phantom](https://github.com/Attack-Phantom)  
   - [Xuan8a1](https://github.com/Xuan8a1)  
@@ -177,7 +177,7 @@ host_permissions: <all_urls>
     - [https://www.hdsec.cn/](https://www.hdsec.cn/)
 + 开源地址：[https://github.com/Team-intN18-SoybeanSeclab/Phantom/](https://github.com/Team-intN18-SoybeanSeclab/Phantom/)
 + 致谢个人/团体/工具：D3f4ultX、findsomething、SnowEyes
-+ 致谢媒体：隼目安全、知攻善防实验室
++ 致谢媒体：隼目安全、知攻善防实验室、零羊Web
 
 ## 宣传文章
 URL：[https://mp.weixin.qq.com/s/FrUeZ9VYk6EP1EEikpwfzQ](https://mp.weixin.qq.com/s/FrUeZ9VYk6EP1EEikpwfzQ)
