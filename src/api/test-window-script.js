@@ -34,17 +34,27 @@ async function initializePage() {
         document.getElementById('totalCount').textContent = testData.items.length;
         
 
-        // 显示base API路径信息
+        // 显示base API路径和自定义域名信息
         const baseUrlInfo = document.getElementById('baseUrlInfo');
+        let infoText = `基础URL: ${testData.baseUrl}`;
+        
         if (testData.customBaseApiPaths && testData.customBaseApiPaths.length > 0) {
             if (testData.customBaseApiPaths.length === 1) {
-                baseUrlInfo.textContent = `Base API路径: ${testData.customBaseApiPaths[0]} | 基础URL: ${testData.baseUrl}`;
+                infoText += ` | Base API路径: ${testData.customBaseApiPaths[0]}`;
             } else {
-                baseUrlInfo.textContent = `Base API路径: ${testData.customBaseApiPaths.length}个 (${testData.customBaseApiPaths.join(', ')}) | 基础URL: ${testData.baseUrl}`;
+                infoText += ` | Base API路径: ${testData.customBaseApiPaths.length}个 (${testData.customBaseApiPaths.join(', ')})`;
             }
-        } else {
-            baseUrlInfo.textContent = `基础URL: ${testData.baseUrl}`;
         }
+        
+        if (testData.customDomains && testData.customDomains.length > 0) {
+            if (testData.customDomains.length === 1) {
+                infoText += ` | 自定义域名: ${testData.customDomains[0]}`;
+            } else {
+                infoText += ` | 自定义域名: ${testData.customDomains.length}个 (${testData.customDomains.join(', ')})`;
+            }
+        }
+        
+        baseUrlInfo.textContent = infoText;
 
     } catch (error) {
         console.error('读取配置数据失败:', error);
@@ -59,6 +69,7 @@ async function initializePage() {
     document.getElementById('clearBtn').addEventListener('click', clearResults);
     document.getElementById('statusFilter').addEventListener('change', filterResults);
     document.getElementById('statusCodeFilter').addEventListener('change', filterResults);
+    document.getElementById('domainFilter').addEventListener('change', filterResults);
     
     // 导出弹窗事件监听器
     document.getElementById('closeModal').addEventListener('click', hideExportModal);
@@ -129,7 +140,7 @@ function sortTable(columnIndex) {
                 aValue = parseInt(aValue);
                 bValue = parseInt(bValue);
                 break;
-            case 2: // 状态码
+            case 3: // 状态码
                 // 数字状态码优先，非数字状态码排在后面
                 const aIsNum = !isNaN(parseInt(aValue));
                 const bIsNum = !isNaN(parseInt(bValue));
@@ -143,16 +154,17 @@ function sortTable(columnIndex) {
                     return sortDirection === 'asc' ? 1 : -1;
                 }
                 break;
-            case 3: // 大小
+            case 4: // 大小
                 aValue = parseSizeToBytes(aValue);
                 bValue = parseSizeToBytes(bValue);
                 break;
-            case 4: // 耗时
+            case 5: // 耗时
                 aValue = parseTimeToMs(aValue);
                 bValue = parseTimeToMs(bValue);
                 break;
-            case 1: // URL
-            case 5: // 结果
+            case 1: // 域名
+            case 2: // URL
+            case 6: // 结果
             default:
                 // 字符串排序
                 aValue = aValue.toLowerCase();
@@ -479,7 +491,6 @@ async function processSingleRequest(item, index) {
 function buildTestUrl(item, categoryKey, baseUrl) {
     try {
         let url = item;
-        
 
         // 获取自定义base API路径
         const customBaseApiPaths = testData.customBaseApiPaths || [];
@@ -568,7 +579,7 @@ function buildTestUrl(item, categoryKey, baseUrl) {
 }
 
 /**
- * 为多个baseapi路径生成测试项目
+ * 为多个baseapi路径和自定义域名生成测试项目
  * @param {Array} items - 原始测试项目
  * @param {string} categoryKey - 分类键
  * @param {string} baseUrl - 基础URL
@@ -576,58 +587,221 @@ function buildTestUrl(item, categoryKey, baseUrl) {
  */
 function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
     const customBaseApiPaths = testData.customBaseApiPaths || [];
+    const customDomains = testData.customDomains || [];
     
-    // 如果没有多个baseapi路径，直接返回原始项目
-    if (customBaseApiPaths.length <= 1) {
+    // 总是需要扩展项目，因为我们需要同时处理原始域名和自定义域名
+    // 如果既没有多个baseapi路径，也没有自定义域名，直接返回原始项目
+    if (customBaseApiPaths.length <= 1 && customDomains.length === 0) {
         return items;
     }
     
     const expandedItems = [];
     
     items.forEach(item => {
-        // 为每个baseapi路径创建一个测试项目
-        customBaseApiPaths.forEach(basePath => {
-            let url = item;
-            
-            switch (categoryKey) {
-                case 'absoluteApis':
-                case 'paths':
-                    if (baseUrl && url.startsWith('/')) {
-                        url = baseUrl + basePath + url;
-                    }
-                    break;
+        // 处理自定义域名
+        if (customDomains.length > 0) {
+            customDomains.forEach(customDomain => {
+                // 如果有自定义Base API路径，为每个自定义域名添加每个Base API路径
+                if (customBaseApiPaths.length > 0) {
+                    customBaseApiPaths.forEach(basePath => {
+                        let url = item;
+                        
+                        switch (categoryKey) {
+                            case 'absoluteApis':
+                            case 'paths':
+                                if (url.startsWith('/')) {
+                                    url = customDomain + basePath + url;
+                                }
+                                break;
+                                
+                            case 'relativeApis':
+                                if (!url.startsWith('http')) {
+                                    url = customDomain + basePath + (url.startsWith('/') ? '' : '/') + url;
+                                }
+                                break;
+                                
+                            case 'jsFiles':
+                            case 'cssFiles':
+                            case 'images':
+                                if (!url.startsWith('http')) {
+                                    if (url.startsWith('/')) {
+                                        url = customDomain + basePath + url;
+                                    } else {
+                                        url = customDomain + basePath + '/' + url;
+                                    }
+                                }
+                                break;
+                                
+                            default:
+                                if (!url.startsWith('http')) {
+                                    url = customDomain + basePath + (url.startsWith('/') ? '' : '/') + url;
+                                }
+                        }
+                        
+                        // 添加自定义域名+Base API路径的测试项目
+                        expandedItems.push({
+                            originalItem: item,
+                            customDomain: customDomain,
+                            baseApiPath: basePath,
+                            fullUrl: url,
+                            displayText: `${item} (${customDomain}${basePath})`
+                        });
+                    });
+                } else {
+                    // 没有自定义Base API路径，直接使用自定义域名
+                    let url = item;
                     
-                case 'relativeApis':
-                    if (baseUrl && !url.startsWith('http')) {
-                        url = baseUrl + basePath + (url.startsWith('/') ? '' : '/') + url;
+                    switch (categoryKey) {
+                        case 'absoluteApis':
+                        case 'paths':
+                            if (url.startsWith('/')) {
+                                url = customDomain + url;
+                            }
+                            break;
+                            
+                        case 'relativeApis':
+                            if (!url.startsWith('http')) {
+                                url = customDomain + (url.startsWith('/') ? '' : '/') + url;
+                            }
+                            break;
+                            
+                        case 'jsFiles':
+                        case 'cssFiles':
+                        case 'images':
+                            if (!url.startsWith('http')) {
+                                if (url.startsWith('/')) {
+                                    url = customDomain + url;
+                                } else {
+                                    url = customDomain + '/' + url;
+                                }
+                            }
+                            break;
+                            
+                        default:
+                            if (!url.startsWith('http')) {
+                                url = customDomain + (url.startsWith('/') ? '' : '/') + url;
+                            }
                     }
-                    break;
                     
-                case 'jsFiles':
-                case 'cssFiles':
-                case 'images':
-                    if (baseUrl && !url.startsWith('http')) {
-                        if (url.startsWith('/')) {
+                    // 添加自定义域名的测试项目
+                    expandedItems.push({
+                        originalItem: item,
+                        customDomain: customDomain,
+                        fullUrl: url,
+                        displayText: `${item} (${customDomain})`
+                    });
+                }
+            });
+        }
+        
+        // 处理Base API路径（如果有多个）
+        if (customBaseApiPaths.length > 1) {
+            customBaseApiPaths.forEach(basePath => {
+                let url = item;
+                
+                switch (categoryKey) {
+                    case 'absoluteApis':
+                    case 'paths':
+                        if (baseUrl && url.startsWith('/')) {
                             url = baseUrl + basePath + url;
+                        }
+                        break;
+                        
+                    case 'relativeApis':
+                        if (baseUrl && !url.startsWith('http')) {
+                            url = baseUrl + basePath + (url.startsWith('/') ? '' : '/') + url;
+                        }
+                        break;
+                        
+                    case 'jsFiles':
+                    case 'cssFiles':
+                    case 'images':
+                        if (baseUrl && !url.startsWith('http')) {
+                            if (url.startsWith('/')) {
+                                url = baseUrl + basePath + url;
+                            } else {
+                                url = baseUrl + basePath + '/' + url;
+                            }
+                        }
+                        break;
+                        
+                    default:
+                        if (baseUrl && !url.startsWith('http')) {
+                            url = baseUrl + basePath + (url.startsWith('/') ? '' : '/') + url;
+                        }
+                }
+                
+                // 添加扩展后的项目，包含原始项目和对应的baseapi路径信息
+                expandedItems.push({
+                    originalItem: item,
+                    baseApiPath: basePath,
+                    fullUrl: url,
+                    displayText: `${item} (${basePath})`
+                });
+            });
+        }
+        
+        // 总是添加原始项目（使用原始域名）
+        let originalUrl = item;
+        
+        // 处理原始域名的URL构建
+        switch (categoryKey) {
+            case 'absoluteApis':
+            case 'paths':
+                if (baseUrl && originalUrl.startsWith('/')) {
+                    if (customBaseApiPaths.length > 0) {
+                        originalUrl = baseUrl + customBaseApiPaths[0] + originalUrl;
+                    } else {
+                        originalUrl = baseUrl + originalUrl;
+                    }
+                }
+                break;
+                
+            case 'relativeApis':
+                if (baseUrl && !originalUrl.startsWith('http')) {
+                    if (customBaseApiPaths.length > 0) {
+                        originalUrl = baseUrl + customBaseApiPaths[0] + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
+                    } else {
+                        originalUrl = baseUrl + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
+                    }
+                }
+                break;
+                
+            case 'jsFiles':
+            case 'cssFiles':
+            case 'images':
+                if (baseUrl && !originalUrl.startsWith('http')) {
+                    if (originalUrl.startsWith('/')) {
+                        if (customBaseApiPaths.length > 0) {
+                            originalUrl = baseUrl + customBaseApiPaths[0] + originalUrl;
                         } else {
-                            url = baseUrl + basePath + '/' + url;
+                            originalUrl = baseUrl + originalUrl;
+                        }
+                    } else {
+                        if (customBaseApiPaths.length > 0) {
+                            originalUrl = baseUrl + customBaseApiPaths[0] + '/' + originalUrl;
+                        } else {
+                            originalUrl = baseUrl + '/' + originalUrl;
                         }
                     }
-                    break;
-                    
-                default:
-                    if (baseUrl && !url.startsWith('http')) {
-                        url = baseUrl + basePath + (url.startsWith('/') ? '' : '/') + url;
+                }
+                break;
+                
+            default:
+                if (baseUrl && !originalUrl.startsWith('http')) {
+                    if (customBaseApiPaths.length > 0) {
+                        originalUrl = baseUrl + customBaseApiPaths[0] + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
+                    } else {
+                        originalUrl = baseUrl + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
                     }
-            }
-            
-            // 添加扩展后的项目，包含原始项目和对应的baseapi路径信息
-            expandedItems.push({
-                originalItem: item,
-                baseApiPath: basePath,
-                fullUrl: url,
-                displayText: `${item} (${basePath})`
-            });
+                }
+        }
+        
+        // 添加原始域名的测试项目
+        expandedItems.push({
+            originalItem: item,
+            fullUrl: originalUrl,
+            displayText: `${item} (原始域名)`
         });
     });
     
@@ -737,8 +911,20 @@ function addResultToTable(result) {
         }
     } catch (_) {}
     
+    // 提取域名信息
+    let domainInfo = '原始域名';
+    try {
+        if (result.fullUrl && result.fullUrl.startsWith('http')) {
+            const urlObj = new URL(result.fullUrl);
+            domainInfo = urlObj.hostname;
+        }
+    } catch (e) {
+        domainInfo = '未知域名';
+    }
+    
     row.innerHTML = 
         '<td>' + (result.index + 1) + '</td>' +
+        '<td class="url-cell" title="' + domainInfo + '">' + domainInfo + '</td>' +
         '<td class="url-cell" title="' + displayUrl + '">' + displayUrl + '</td>' +
         '<td class="' + statusClass + '">' + result.status + '</td>' +
         '<td>' + result.size + '</td>' +
@@ -747,6 +933,9 @@ function addResultToTable(result) {
         '<td><button class="btn btn-primary btn-view" data-index="' + result.index + '">查看</button></td>';
     
     tbody.appendChild(row);
+    
+    // 更新域名筛选选项
+    updateDomainFilter();
 
     // 查看响应内容按钮
     const viewBtn = row.querySelector('.btn-view');
@@ -874,21 +1063,330 @@ function completeTest() {
 
 }
 
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// 更新域名筛选选项
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // 收集所有唯一的域名
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // 保存当前选择的值
+    const currentValue = domainFilter.value;
+    
+    // 清空现有选项（除了"全部域名"）
+    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    
+    // 添加域名选项
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // 恢复之前的选择（如果还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
 // 筛选结果
 function filterResults() {
     const statusFilter = document.getElementById('statusFilter').value;
     const statusCodeFilter = document.getElementById('statusCodeFilter').value;
+    const domainFilter = document.getElementById('domainFilter').value;
     const rows = document.querySelectorAll('#resultsBody tr');
     
     rows.forEach(row => {
         let show = true;
-        const statusCell = row.cells[2].textContent.trim();
-        const resultCell = row.cells[5].textContent.trim();
+        const domainCell = row.cells[1].textContent.trim(); // 域名列是第1列（索引1）
+        const statusCell = row.cells[3].textContent.trim(); // 状态码列现在是第3列（索引3）
+        const resultCell = row.cells[6].textContent.trim(); // 结果列现在是第6列（索引6）
+        
+        // 域名筛选
+        if (domainFilter !== 'all' && domainCell !== domainFilter) {
+            show = false;
+        }
         
         // 状态筛选
-        if (statusFilter === 'success' && resultCell !== '成功') {
+        if (show && statusFilter === 'success' && resultCell !== '成功') {
             show = false;
-        } else if (statusFilter === 'error' && resultCell !== '失败') {
+        } else if (show && statusFilter === 'error' && resultCell !== '失败') {
             show = false;
         }
         
@@ -967,7 +1465,7 @@ function exportAsCSV() {
         headers.join(','),
         ...testResults.map(result => [
             result.index + 1,
-            '"' + result.url + '"',
+            '"' + (result.fullUrl || result.url) + '"',
             result.status,
             '"' + result.statusText + '"',
             result.size,

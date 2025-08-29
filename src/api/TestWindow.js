@@ -14,7 +14,7 @@ class TestWindow {
     }
 
     // 创建测试窗口
-    async createTestWindow(categoryKey, items, method, concurrency = 8, timeout = 5000, cookieSetting = '', customBaseApiPaths = []) {
+    async createTestWindow(categoryKey, items, method, concurrency = 8, timeout = 5000, cookieSetting = '', customBaseApiPaths = [], customDomains = []) {
 
         let baseUrl = '';
         try {
@@ -37,7 +37,8 @@ class TestWindow {
             baseUrl: baseUrl,
 
             cookieSetting: cookieSetting,
-            customBaseApiPaths: customBaseApiPaths
+            customBaseApiPaths: customBaseApiPaths,
+            customDomains: customDomains
 
         };
 
@@ -461,8 +462,8 @@ function filterResults() {
     
     rows.forEach(row => {
         let show = true;
-        const statusCell = row.cells[2].textContent;
-        const resultCell = row.cells[5].textContent;
+        const statusCell = row.cells[3].textContent;
+        const resultCell = row.cells[6].textContent;
         
         if (statusFilter === 'success' && resultCell !== '成功') {
             show = false;

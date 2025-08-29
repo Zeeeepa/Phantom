@@ -1277,7 +1277,12 @@
                             <input type="number" id="apiTimeout" value="5" min="1" max="300" style="flex: 1; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; -moz-appearance: textfield; appearance: textfield;">
                             <span style="font-size: 12px; color: #ccc; display: flex; align-items: center;">秒</span>
                         </div>
-                                                                           <div class="test-controls" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                        <div class="test-controls" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                            <label style="display: flex; align-items: center;">自定义域名/IP:</label>
+                            <textarea id="customDomains" placeholder="输入自定义域名或IP地址，每行一个&#10;例如：&#10;192.168.1.100:8080&#10;192.168.1.1&#10;test.domain.com" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 80px; max-height: 120px; resize: vertical; font-family: monospace; line-height: 1.4;"></textarea>
+                        </div>
+                        
+                        <div class="test-controls" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                             <div style="display: flex; gap: 8px; align-items: center;">
                                 <label style="display: flex; align-items: center;">自定义API路径:</label>
                                 <button id="addCustomApiBtn" class="action-button" style="padding: 6px 12px; font-size: 12px; min-width: 50px; height: fit-content; width: auto; margin: 0;">
@@ -1478,7 +1483,7 @@
                         <div class="config-title">工具信息</div>
                         <div style="color: #ccc; line-height: 1.6; font-size: 13px;">
                             <p><strong>工具名称:</strong> 幻影</p>
-                            <p><strong>版本:</strong> 1.6.7</p>
+                            <p><strong>版本:</strong> 1.6.9</p>
                             <p><strong>作者:</strong> Phantom&yihuo&Xuan8a1</p>
                             <p><strong>site:</strong> https://www.cn-fnst.top/</p>
                             <p><strong>site:</strong> https://blog.h-acker.cn/</p>

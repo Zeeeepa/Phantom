@@ -64,6 +64,31 @@ class ApiTester {
         return paths.map(path => this.normalizeBaseApiPath(path));
     }
     
+    /**
+     * 标准化多个自定义域名输入
+     * @param {string} domains - 多行域名字符串
+     * @returns {Array<string>} - 处理后的域名数组
+     */
+    normalizeMultipleDomains(domains) {
+        if (!domains || typeof domains !== 'string') {
+            return [];
+        }
+        
+        // 按换行符分割，去除空白字符，过滤空字符串
+        return domains
+            .split('\n')
+            .map(domain => domain.trim())
+            .filter(domain => domain.length > 0)
+            .map(domain => {
+                // 确保域名包含协议
+                if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
+                    domain = 'http://' + domain;
+                }
+                // 移除末尾的斜杠
+                return domain.replace(/\/$/, '');
+            });
+    }
+    
     // 批量请求测试
     async batchRequestTest() {
         const method = document.getElementById('requestMethod').value;
@@ -77,6 +102,11 @@ class ApiTester {
         const baseApiPathInput = document.getElementById('baseApiPath');
         const rawBaseApiPaths = baseApiPathInput ? baseApiPathInput.value.trim() : '';
         const customBaseApiPaths = this.normalizeMultipleBaseApiPaths(rawBaseApiPaths);
+        
+        // 获取自定义域名配置
+        const customDomainsInput = document.getElementById('customDomains');
+        const rawCustomDomains = customDomainsInput ? customDomainsInput.value.trim() : '';
+        const customDomains = this.normalizeMultipleDomains(rawCustomDomains);
         
         // 如果自动添加了"/"前缀，给出提示
         if (rawBaseApiPaths) {
@@ -136,7 +166,7 @@ class ApiTester {
         }
         
         if (this.isTestableCategory(selectedCategory)) {
-            await this.testSelectedCategory(selectedCategory, items, method, concurrency, timeout, customBaseApiPaths);
+            await this.testSelectedCategory(selectedCategory, items, method, concurrency, timeout, customBaseApiPaths, customDomains);
 
         } else {
             alert(`分类"${this.getCategoryTitle(selectedCategory)}"不支持请求测试`);
@@ -169,7 +199,7 @@ class ApiTester {
     }
     
     // 测试选中的分类
-    async testSelectedCategory(categoryKey, items, method, concurrency = 8, timeout = 5000, customBaseApiPaths = []) {
+    async testSelectedCategory(categoryKey, items, method, concurrency = 8, timeout = 5000, customBaseApiPaths = [], customDomains = []) {
 
         try {
             // 获取Cookie设置
@@ -178,7 +208,7 @@ class ApiTester {
             // 使用新的TestWindow类创建测试窗口
             const testWindow = new TestWindow();
 
-            await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, cookieSetting, customBaseApiPaths);
+            await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, cookieSetting, customBaseApiPaths, customDomains);
 
             
             // 显示成功提示

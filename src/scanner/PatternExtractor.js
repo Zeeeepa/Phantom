@@ -4,6 +4,22 @@
  */
 class PatternExtractor {
     constructor() {
+        // 静态文件扩展名列表 - 用于过滤绝对路径API
+        this.staticFileExtensions = [
+            // 图片文件
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff', '.tif',
+            // 样式文件
+            '.css', '.scss', '.sass', '.less',
+            // 脚本文件
+            '.js', '.jsx', '.ts', '.tsx', '.vue', '.coffee',
+            // 字体文件
+            '.woff', '.woff2', '.ttf', '.otf', '.eot',
+            // 音频文件
+            '.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac',
+            // 视频文件
+            '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'
+        ];
+        
         // 引入身份证验证过滤器
         this.idCardFilter = null;
         this.loadIdCardFilter();
@@ -61,6 +77,39 @@ class PatternExtractor {
             document.head.appendChild(script);
         } catch (error) {
             console.error('❌ 加载身份证过滤器时出错:', error);
+        }
+    }
+    
+    /**
+     * 检测URL是否为静态文件
+     * @param {string} url - 要检测的URL
+     * @returns {boolean} 是否为静态文件
+     */
+    isStaticFile(url) {
+        if (!url || typeof url !== 'string') {
+            return false;
+        }
+        
+        // 移除查询参数和锚点
+        const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
+        
+        // 检查是否以静态文件扩展名结尾
+        return this.staticFileExtensions.some(ext => cleanUrl.endsWith(ext));
+    }
+
+    // 处理相对路径API，去除开头的"."符号但保留"/"
+    processRelativeApi(api) {
+        try {
+            // 去除开头的"."符号，但保留"/"
+            if (api.startsWith('./')) {
+                return api.substring(1); // 去除开头的"."，保留"/"
+            } else if (api.startsWith('.') && !api.startsWith('/')) {
+                return api.substring(1); // 去除开头的"."
+            }
+            return api; // 其他情况保持不变
+        } catch (error) {
+            console.warn('⚠️ 处理相对路径API时出错:', error);
+            return api;
         }
     }
     
@@ -455,6 +504,13 @@ class PatternExtractor {
                     continue;
                 }
                 
+                // 🔥 新增特殊处理：过滤绝对路径API中的静态文件
+                if (patternKey === 'absoluteApi' && this.isStaticFile(trimmedText)) {
+                    console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedText}"`);
+                    matchCount++;
+                    continue;
+                }
+                
                 results[resultKey].add(trimmedText);
                 matchCount++;
                 console.log(`✅ [PatternExtractor] ${patternKey} 匹配到 ${matchCount}: "${trimmedText}"`);
@@ -533,6 +589,10 @@ class PatternExtractor {
                     // 🔥 添加校验：过滤掉包含http://或https://的绝对路径API
                     if (trimmedApi.includes('http://') || trimmedApi.includes('https://')) {
                         console.log(`🚫 [PatternExtractor] 绝对路径API包含协议，已过滤: "${trimmedApi}"`);
+                    }
+                    // 🔥 新增校验：过滤掉静态文件（如.jpg, .png, .css等）
+                    else if (this.isStaticFile(trimmedApi)) {
+                        console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedApi}"`);
                     } else {
                         results.absoluteApis.add(trimmedApi);
                         absoluteApiCount++;
@@ -580,10 +640,12 @@ class PatternExtractor {
                 const api = match[1] || match[0];
                 console.log(`🎯 [PatternExtractor] 相对路径API匹配到: "${api}"`);
                 if (api && api.trim()) {
-                    results.relativeApis.add(api.trim());
+                    // 🔥 新增：处理相对路径API，去除开头的"."符号但保留"/"
+                    const processedApi = this.processRelativeApi(api.trim());
+                    results.relativeApis.add(processedApi);
                     relativeApiCount++;
                     matchCount++;
-                    console.log(`✅ [PatternExtractor] 相对路径API添加: "${api.trim()}"`);
+                    console.log(`✅ [PatternExtractor] 相对路径API处理后添加: "${processedApi}" (原始: "${api.trim()}")`);
                 }
                 
                 // 防止无限循环
@@ -956,6 +1018,12 @@ class PatternExtractor {
                                     // 🔥 特殊处理：过滤绝对路径API中包含协议的内容
                                     if (patternKey === 'absoluteApi' && (trimmedText.includes('http://') || trimmedText.includes('https://'))) {
                                         console.log(`🚫 [PatternExtractor] 绝对路径API包含协议，已过滤: "${trimmedText}"`);
+                                        return;
+                                    }
+                                    
+                                    // 🔥 新增特殊处理：过滤绝对路径API中的静态文件
+                                    if (patternKey === 'absoluteApi' && this.isStaticFile(trimmedText)) {
+                                        console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedText}"`);
                                         return;
                                     }
                                     

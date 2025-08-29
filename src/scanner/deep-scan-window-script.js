@@ -18,11 +18,25 @@ let activeRequests     = 0;
 let maxConcurrency     = 8;
 let requestTimeout     = 5000;
 
+// 日志相关变量
+let logEntries         = [];
+let maxLogEntries      = 1000;
+
 // 筛选器实例
 let apiFilter          = null;
 let domainPhoneFilter  = null;
 let filtersLoaded      = false;
 let patternExtractor   = null;
+
+// 性能优化相关变量
+let updateQueue        = [];
+let isUpdating         = false;
+let lastUpdateTime     = 0;
+const UPDATE_THROTTLE  = 200; // 200ms节流
+let pendingResults     = {};
+let batchSize          = 10; // 批量处理大小
+let updateTimer        = null;
+let displayUpdateCount = 0;
 
 // -------------------- 工具函数 --------------------
 async function generateFileName(extension) {
@@ -142,6 +156,92 @@ function convertRelativeApisToAbsolute(results) {
     
     // 如果需要转换功能，应该在PatternExtractor中通过正则表达式来实现
     // 而不是在这里进行强制转换
+}
+
+// -------------------- 性能优化函数 --------------------
+// 节流更新显示
+function throttledUpdateDisplay() {
+    const now = Date.now();
+    if (now - lastUpdateTime < UPDATE_THROTTLE) {
+        // 如果距离上次更新时间太短，延迟更新
+        if (updateTimer) {
+            clearTimeout(updateTimer);
+        }
+        updateTimer = setTimeout(() => {
+            performDisplayUpdate();
+        }, UPDATE_THROTTLE);
+        return;
+    }
+    
+    performDisplayUpdate();
+}
+
+// 执行显示更新
+function performDisplayUpdate() {
+    if (isUpdating) return;
+    
+    isUpdating = true;
+    lastUpdateTime = Date.now();
+    displayUpdateCount++;
+    
+    try {
+        // 使用 requestAnimationFrame 确保在下一帧更新
+        requestAnimationFrame(() => {
+            updateResultsDisplay();
+            updateStatusDisplay();
+            isUpdating = false;
+        });
+    } catch (error) {
+        console.error('显示更新失败:', error);
+        isUpdating = false;
+    }
+}
+
+// 批量处理结果合并
+function batchMergeResults(newResults) {
+    let hasNewData = false;
+    
+    // 将新结果添加到待处理队列
+    Object.keys(newResults).forEach(key => {
+        if (!pendingResults[key]) {
+            pendingResults[key] = new Set();
+        }
+        
+        if (Array.isArray(newResults[key])) {
+            newResults[key].forEach(item => {
+                if (item && !pendingResults[key].has(item)) {
+                    pendingResults[key].add(item);
+                    hasNewData = true;
+                }
+            });
+        }
+    });
+    
+    // 如果有新数据，触发节流更新
+    if (hasNewData) {
+        throttledUpdateDisplay();
+    }
+    
+    return hasNewData;
+}
+
+// 将待处理结果合并到主结果中
+function flushPendingResults() {
+    Object.keys(pendingResults).forEach(key => {
+        if (!scanResults[key]) {
+            scanResults[key] = [];
+        }
+        
+        const existingSet = new Set(scanResults[key]);
+        pendingResults[key].forEach(item => {
+            if (!existingSet.has(item)) {
+                scanResults[key].push(item);
+            }
+        });
+        
+        // 清空待处理队列
+        pendingResults[key].clear();
+    });
 }
 
 // -------------------- 页面初始化 --------------------
@@ -516,13 +616,10 @@ async function scanUrlBatch(urls, depth) {
                                 addLogEntry(`ℹ️ 从 ${url} 未发现新数据`, 'info');
                             }
                             
-                            // 🔥 实时显示：如果有新数据且距离上次更新超过间隔时间，立即更新显示
-                            const now = Date.now();
-                            if (hasNewData && (now - lastDisplayUpdate) > displayUpdateInterval) {
-                                lastDisplayUpdate = now;
-                                updateResultsDisplay();
-                                updateStatusDisplay();
-                                console.log(`🔄 实时更新显示 - 扫描到新数据来源: ${url}`);
+                            // 🔥 优化：使用节流更新替代频繁的实时更新
+                            if (hasNewData) {
+                                throttledUpdateDisplay();
+                                console.log(`🔄 节流更新显示 - 扫描到新数据来源: ${url}`);
                             }
                             
                             // 收集新URL
@@ -714,24 +811,8 @@ async function collectUrlsFromContent(content, baseUrl) {
 
 // -------------------- 结果合并 --------------------
 function mergeResults(newResults) {
-    let hasNewData = false;
-    
-    Object.keys(newResults).forEach(key => {
-        if (!scanResults[key]) {
-            scanResults[key] = [];
-        }
-        
-        if (Array.isArray(newResults[key])) {
-            newResults[key].forEach(item => {
-                if (item && !scanResults[key].includes(item)) {
-                    scanResults[key].push(item);
-                    hasNewData = true;
-                }
-            });
-        }
-    });
-    
-    return hasNewData;
+    // 使用批量合并，避免频繁的DOM更新
+    return batchMergeResults(newResults);
 }
 
 // -------------------- 结果保存 --------------------
@@ -805,23 +886,24 @@ async function saveResultsToStorage() {
 // -------------------- 扫描完成 --------------------
 async function completeScan() {
     console.log('🎉 深度扫描完成！');
-    addLogEntry('🎉 深度扫描完成！', 'success');
+    
+    // 🔥 优化：确保所有待处理结果都被合并
+    flushPendingResults();
     
     const totalResults = Object.values(scanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0);
     const totalScanned = scannedUrls.size;
     
+    addLogEntry('🎉 深度扫描完成！', 'success');
     addLogEntry(`📊 扫描统计: 扫描了 ${totalScanned} 个文件，提取了 ${totalResults} 个项目`, 'success');
     
-    // 🔥 添加详细的结果统计日志
-    const resultStats = [];
-    Object.entries(scanResults).forEach(([key, items]) => {
-        if (items && items.length > 0) {
-            resultStats.push(`${key}: ${items.length}个`);
-        }
-    });
-    
-    if (resultStats.length > 0) {
-        addLogEntry(`📈 详细统计: ${resultStats.join(', ')}`, 'success');
+    // 🔥 优化：减少详细统计日志，避免卡顿
+    const nonEmptyCategories = Object.entries(scanResults).filter(([key, items]) => items && items.length > 0);
+    if (nonEmptyCategories.length > 0) {
+        const topCategories = nonEmptyCategories
+            .sort(([,a], [,b]) => b.length - a.length)
+            .slice(0, 5) // 只显示前5个最多的类别
+            .map(([key, items]) => `${key}: ${items.length}个`);
+        addLogEntry(`📈 主要发现: ${topCategories.join(', ')}`, 'success');
     }
     
     // 🔥 记录扫描耗时
@@ -855,9 +937,8 @@ async function completeScan() {
         console.log('发送完成通知失败:', error);
     }
     
-    // 更新UI
-    updateResultsDisplay();
-    updateStatusDisplay();
+    // 🔥 优化：最终更新UI
+    performDisplayUpdate();
     
     // 更新进度显示
     const progressText = document.getElementById('progressText');
@@ -873,6 +954,43 @@ async function completeScan() {
     
     // 更新按钮状态
     updateButtonStates();
+    
+    // 🔥 优化：清理内存和缓存
+    setTimeout(() => {
+        cleanupMemory();
+    }, 5000); // 5秒后清理内存
+}
+
+// 内存清理函数
+function cleanupMemory() {
+    console.log('🧹 开始清理内存...');
+    
+    // 清理URL内容缓存，只保留最近的100个
+    if (urlContentCache.size > 100) {
+        const entries = Array.from(urlContentCache.entries());
+        const toKeep = entries.slice(-100);
+        urlContentCache.clear();
+        toKeep.forEach(([key, value]) => urlContentCache.set(key, value));
+        console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
+    }
+    
+    // 清理待处理结果
+    Object.keys(pendingResults).forEach(key => {
+        if (pendingResults[key]) {
+            pendingResults[key].clear();
+        }
+    });
+    
+    // 清理更新队列
+    updateQueue.length = 0;
+    
+    // 清理定时器
+    if (updateTimer) {
+        clearTimeout(updateTimer);
+        updateTimer = null;
+    }
+    
+    console.log('✅ 内存清理完成');
 }
 
 // -------------------- UI更新函数 --------------------
@@ -917,17 +1035,22 @@ function updateProgressDisplay(current, total, stage) {
 }
 
 function updateResultsDisplay() {
-    console.log('🔍 [DEBUG] 开始更新深度扫描结果显示...');
+    // 先合并所有待处理的结果
+    flushPendingResults();
     
-    // 🔥 修复API显示问题：确保API数据正确显示
-    console.log('🔍 [DEBUG] API数据检查:');
-    console.log('  - absoluteApis:', scanResults.absoluteApis?.length || 0, '个');
-    console.log('  - relativeApis:', scanResults.relativeApis?.length || 0, '个');
-    if (scanResults.absoluteApis?.length > 0) {
-        console.log('  - absoluteApis 示例:', scanResults.absoluteApis.slice(0, 3));
-    }
-    if (scanResults.relativeApis?.length > 0) {
-        console.log('  - relativeApis 示例:', scanResults.relativeApis.slice(0, 3));
+    console.log(`🔍 [DEBUG] 开始更新深度扫描结果显示... (第${displayUpdateCount}次更新)`);
+    
+    // 🔥 减少调试日志输出，避免控制台卡顿
+    if (displayUpdateCount % 10 === 0) { // 每10次更新才输出详细日志
+        console.log('🔍 [DEBUG] API数据检查:');
+        console.log('  - absoluteApis:', scanResults.absoluteApis?.length || 0, '个');
+        console.log('  - relativeApis:', scanResults.relativeApis?.length || 0, '个');
+        if (scanResults.absoluteApis?.length > 0) {
+            console.log('  - absoluteApis 示例:', scanResults.absoluteApis.slice(0, 3));
+        }
+        if (scanResults.relativeApis?.length > 0) {
+            console.log('  - relativeApis 示例:', scanResults.relativeApis.slice(0, 3));
+        }
     }
     
     // 🔥 修复API显示问题：正确的元素ID映射
@@ -972,45 +1095,42 @@ function updateResultsDisplay() {
         const items = scanResults[key] || [];
         const mapping = categoryMapping[key];
         
-        console.log(`🔍 [DEBUG] 处理类别 ${key}: ${items.length} 个项目`);
+        // 🔥 优化：减少调试日志，只在必要时输出
+        if (displayUpdateCount % 20 === 0) {
+            console.log(`🔍 [DEBUG] 处理类别 ${key}: ${items.length} 个项目`);
+        }
         
         if (items.length > 0) {
             // 显示容器
             const resultDiv = document.getElementById(mapping.containerId);
             if (resultDiv) {
                 resultDiv.style.display = 'block';
-                console.log(`✅ [DEBUG] 显示容器: ${mapping.containerId}`);
-            } else {
-                console.error(`❌ [DEBUG] 未找到容器元素: ${mapping.containerId}`);
             }
             
             // 更新计数
             const countElement = document.getElementById(mapping.countId);
-            if (countElement) {
+            if (countElement && countElement.textContent !== items.length.toString()) {
                 countElement.textContent = items.length;
-                console.log(`✅ [DEBUG] 更新计数 ${mapping.countId}: ${items.length}`);
-            } else {
-                console.error(`❌ [DEBUG] 未找到计数元素: ${mapping.countId}`);
             }
             
-            // 更新列表
+            // 🔥 优化：只在列表内容真正改变时才更新DOM
             const listElement = document.getElementById(mapping.listId);
             if (listElement) {
-                listElement.innerHTML = '';
-                items.forEach((item, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'result-item';
-                    li.textContent = item;
-                    listElement.appendChild(li);
-                });
-                console.log(`✅ [DEBUG] 更新列表 ${mapping.listId}: ${items.length} 个项目`);
-                
-                // 特别为API显示额外的调试信息
-                if (key === 'absoluteApis' || key === 'relativeApis') {
-                    console.log(`🔗 [DEBUG] ${key} 示例数据:`, items.slice(0, 3));
+                const currentItemCount = listElement.children.length;
+                if (currentItemCount !== items.length) {
+                    // 使用文档片段批量更新DOM
+                    const fragment = document.createDocumentFragment();
+                    items.forEach((item, index) => {
+                        const li = document.createElement('li');
+                        li.className = 'result-item';
+                        li.textContent = item;
+                        fragment.appendChild(li);
+                    });
+                    
+                    // 一次性更新DOM
+                    listElement.innerHTML = '';
+                    listElement.appendChild(fragment);
                 }
-            } else {
-                console.error(`❌ [DEBUG] 未找到列表元素: ${mapping.listId}`);
             }
         }
     });
@@ -1079,18 +1199,47 @@ function addLogEntry(message, type = 'info') {
     const logSection = document.getElementById('logSection');
     if (!logSection) return;
     
-    const logEntry = document.createElement('div');
-    logEntry.className = `log-entry ${type}`;
-    logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-    
-    logSection.appendChild(logEntry);
-    logSection.scrollTop = logSection.scrollHeight;
-    
-    // 限制日志条数
-    const entries = logSection.querySelectorAll('.log-entry');
-    if (entries.length > 100) {
-        entries[0].remove();
+    // 🔥 优化：限制日志频率，避免过多DOM操作
+    if (!logEntries) {
+        logEntries = []; // 确保数组已初始化
     }
+    
+    logEntries.push({ message, type, time: new Date().toLocaleTimeString() });
+    
+    // 限制内存中的日志条数
+    if (logEntries.length > maxLogEntries) {
+        logEntries.shift();
+    }
+    
+    // 节流日志显示更新
+    if (!updateTimer) {
+        updateTimer = setTimeout(() => {
+            updateLogDisplay();
+            updateTimer = null;
+        }, 100); // 100ms内的日志批量更新
+    }
+}
+
+// 批量更新日志显示
+function updateLogDisplay() {
+    const logSection = document.getElementById('logSection');
+    if (!logSection || !logEntries) return;
+    
+    // 只显示最近的50条日志，避免DOM过大
+    const recentLogs = logEntries.slice(-50);
+    
+    // 使用文档片段批量更新
+    const fragment = document.createDocumentFragment();
+    recentLogs.forEach(log => {
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry ${log.type}`;
+        logEntry.textContent = `[${log.time}] ${log.message}`;
+        fragment.appendChild(logEntry);
+    });
+    
+    logSection.innerHTML = '';
+    logSection.appendChild(fragment);
+    logSection.scrollTop = logSection.scrollHeight;
 }
 
 // -------------------- 工具函数 --------------------
