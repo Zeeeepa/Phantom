@@ -1318,7 +1318,7 @@ class ILoveYouTranslucent7 {
     }
 }
 
-const CURRENT_VERSION = 'v1.6.9'; // 请根据实际版本修改
+const CURRENT_VERSION = 'v1.7.0'; // 请根据实际版本修改
 
 function compareVersion(v1, v2) {
     const arr1 = v1.replace(/^v/, '').split('.').map(Number);

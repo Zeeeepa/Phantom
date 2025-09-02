@@ -39,21 +39,7 @@ let updateTimer        = null;
 let displayUpdateCount = 0;
 
 // -------------------- 工具函数 --------------------
-async function generateFileName(extension) {
-    try {
-        let domain = 'scan';
-        if (scanConfig?.baseUrl) {
-            try {
-                const hostname = new URL(scanConfig.baseUrl).hostname;
-                domain = hostname;
-            } catch { /* ignore */ }
-        }
-        const randomNum = Math.floor(Math.random() * 900000) + 100000;
-        return `${domain}__${randomNum}.${extension}`;
-    } catch {
-        return `scan__${Math.floor(Math.random() * 900000) + 100000}.${extension}`;
-    }
-}
+
 
 function convertRelativeToAbsolute(relativePath) {
     try {
@@ -1338,21 +1324,181 @@ async function exportAsExcel() {
     try {
         const filename = await generateFileName('xlsx');
         
-        // 创建工作簿数据
-        const workbookData = {};
-        Object.keys(scanResults).forEach(key => {
-            if (scanResults[key] && scanResults[key].length > 0) {
-                workbookData[key] = scanResults[key].map(item => ({ 值: item }));
+        // 检查是否有数据可导出
+        const hasData = Object.keys(scanResults).some(key => 
+            scanResults[key] && Array.isArray(scanResults[key]) && scanResults[key].length > 0
+        );
+        
+        if (!hasData) {
+            addLogEntry(`⚠️ 没有数据可导出`, 'warning');
+            return;
+        }
+        
+        // 生成Excel XML格式内容
+        let xlsContent = `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>幻影工具-深度扫描</Author>
+  <Created>${new Date().toISOString()}</Created>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="Header">
+   <Font ss:Bold="1"/>
+   <Interior ss:Color="#D4EDF9" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="Data">
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+ </Styles>`;
+
+        // 为每个分类创建工作表
+        const categories = Object.keys(scanResults);
+        let dataExported = false;
+
+        categories.forEach(category => {
+            const items = scanResults[category];
+            if (Array.isArray(items) && items.length > 0) {
+                dataExported = true;
+                const sheetName = sanitizeSheetName(category);
+                
+                xlsContent += `
+ <Worksheet ss:Name="${escapeXml(sheetName)}">
+  <Table>
+   <Column ss:Width="50"/>
+   <Column ss:Width="400"/>
+   <Column ss:Width="120"/>
+   <Row>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">序号</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">内容</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">分类</Data></Cell>
+   </Row>`;
+
+                items.forEach((item, index) => {
+                    xlsContent += `
+   <Row>
+    <Cell ss:StyleID="Data"><Data ss:Type="Number">${index + 1}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(String(item))}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(category)}</Data></Cell>
+   </Row>`;
+                });
+
+                xlsContent += `
+  </Table>
+ </Worksheet>`;
             }
         });
+
+        // 如果没有数据，创建一个空的工作表
+        if (!dataExported) {
+            xlsContent += `
+ <Worksheet ss:Name="无数据">
+  <Table>
+   <Column ss:Width="200"/>
+   <Row>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">提示</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">没有找到任何数据</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>`;
+        }
+
+        xlsContent += `
+</Workbook>`;
+
+        // 创建并下载文件
+        const blob = new Blob([xlsContent], { 
+            type: 'application/vnd.ms-excel;charset=utf-8' 
+        });
+        const url = URL.createObjectURL(blob);
         
-        // 这里需要实现Excel导出逻辑
-        // 由于浏览器环境限制，这里只是示例
-        addLogEntry(`⚠️ Excel导出功能需要额外的库支持`, 'warning');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.xls`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        
+        addLogEntry(`✅ Excel文件导出成功: ${filename}.xls`, 'success');
         
     } catch (error) {
         addLogEntry(`❌ Excel导出失败: ${error.message}`, 'error');
+        console.error('Excel导出错误:', error);
     }
+}
+
+// 清理工作表名称（Excel工作表名称有特殊字符限制）
+function sanitizeSheetName(name) {
+    // 移除或替换Excel不允许的字符
+    let sanitized = name.replace(/[\\\/\?\*\[\]:]/g, '_');
+    // 限制长度（Excel工作表名称最大31个字符）
+    if (sanitized.length > 31) {
+        sanitized = sanitized.substring(0, 28) + '...';
+    }
+    return sanitized || '未命名';
+}
+
+// XML转义函数
+function escapeXml(text) {
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
+// 生成文件名：域名__随机数
+async function generateFileName(extension = 'json') {
+    let domain = 'deep-scan';
+    
+    try {
+        // 优先从扫描配置中获取目标域名
+        if (scanConfig && scanConfig.baseUrl) {
+            const url = new URL(scanConfig.baseUrl);
+            domain = url.hostname;
+            console.log('从扫描配置获取到域名:', domain);
+        } else {
+            // 备选方案：从当前窗口URL参数中提取目标域名
+            if (window.location && window.location.href) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetUrl = urlParams.get('url');
+                if (targetUrl) {
+                    const url = new URL(targetUrl);
+                    domain = url.hostname;
+                    console.log('从URL参数获取到域名:', domain);
+                }
+            }
+        }
+    } catch (e) {
+        console.log('获取域名失败，使用默认名称:', e);
+        // 使用时间戳作为标识
+        domain = `deep-scan_${Date.now()}`;
+    }
+    
+    // 清理域名，移除特殊字符
+    domain = domain.replace(/[^a-zA-Z0-9.-]/g, '_');
+    
+    // 生成随机数（6位）
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    
+    return `${domain}__${randomNum}`;
 }
 
 console.log('✅ [DEBUG] 深度扫描窗口脚本（统一正则版本）加载完成');
