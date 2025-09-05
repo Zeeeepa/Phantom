@@ -338,7 +338,7 @@ class DeepScanner {
             this.srcMiner.scannedUrls.add(currentUrl);
             
             // 收集初始扫描URL列表
-            const initialUrls = this.collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles);
+            const initialUrls = await this.collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles);
             console.log('📋 初始URL列表 (' + initialUrls.length + ' 个):', initialUrls.slice(0, 5));
             
             if (initialUrls.length === 0) {
@@ -418,55 +418,55 @@ class DeepScanner {
         }
     }
     
-    // 收集初始扫描URL
-    collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles) {
+    // 收集初始扫描URL - 异步版本
+    async collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles) {
         const urls = new Set();
         
         console.log('🔍 收集初始URL，当前结果:', Object.keys(this.srcMiner.results));
         
         // 从JS文件中收集
         if (scanJsFiles && this.srcMiner.results.jsFiles) {
-            this.srcMiner.results.jsFiles.forEach(jsFile => {
+            for (const jsFile of this.srcMiner.results.jsFiles) {
                 const fullUrl = this.resolveUrl(jsFile, baseUrl);
-                if (fullUrl && this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
+                if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                     urls.add(fullUrl);
                 }
-            });
+            }
         }
         
         // 从HTML/页面URL中收集
         if (scanHtmlFiles && this.srcMiner.results.urls) {
-            this.srcMiner.results.urls.forEach(url => {
+            for (const url of this.srcMiner.results.urls) {
                 const fullUrl = this.resolveUrl(url, baseUrl);
-                if (fullUrl && this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
+                if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                     // 只收集可能是页面的URL
                     if (this.isPageUrl(fullUrl)) {
                         urls.add(fullUrl);
                     }
                 }
-            });
+            }
         }
         
         // 从API接口中收集
         if (scanApiFiles) {
             // 绝对路径API
             if (this.srcMiner.results.absoluteApis) {
-                this.srcMiner.results.absoluteApis.forEach(api => {
+                for (const api of this.srcMiner.results.absoluteApis) {
                     const fullUrl = this.resolveUrl(api, baseUrl);
-                    if (fullUrl && this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
+                    if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                         urls.add(fullUrl);
                     }
-                });
+                }
             }
             
             // 相对路径API
             if (this.srcMiner.results.relativeApis) {
-                this.srcMiner.results.relativeApis.forEach(api => {
+                for (const api of this.srcMiner.results.relativeApis) {
                     const fullUrl = this.resolveUrl(api, baseUrl);
-                    if (fullUrl && this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
+                    if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                         urls.add(fullUrl);
                     }
-                });
+                }
             }
         }
         
@@ -600,7 +600,7 @@ class DeepScanner {
                             }
                             
                             // 收集新URL
-                            const discoveredUrls = this.collectUrlsFromContent(content, baseUrl, options);
+                            const discoveredUrls = await this.collectUrlsFromContent(content, baseUrl, options);
                             discoveredUrls.forEach(newUrl => newUrls.add(newUrl));
                         }
                     } catch (error) {
@@ -779,8 +779,8 @@ class DeepScanner {
         }
     }
     
-    // 🔥 统一化版本：从内容中收集新的URL - 使用PatternExtractor提取的URL
-    collectUrlsFromContent(content, baseUrl, options) {
+    // 🔥 统一化版本：从内容中收集新的URL - 使用PatternExtractor提取的URL（异步版本）
+    async collectUrlsFromContent(content, baseUrl, options) {
         console.log('🔍 深度扫描统一化版本：从内容中收集URL...');
         
         const urls = new Set();
@@ -798,42 +798,42 @@ class DeepScanner {
                 
                 // 从提取结果中收集URL
                 if (scanJsFiles && extractedData.jsFiles) {
-                    extractedData.jsFiles.forEach(jsFile => {
+                    for (const jsFile of extractedData.jsFiles) {
                         const fullUrl = this.resolveUrl(jsFile, baseUrl);
-                        if (fullUrl && this.isSameDomain(fullUrl, baseUrl)) {
+                        if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
                             urls.add(fullUrl);
                         }
-                    });
+                    }
                 }
                 
                 if (scanHtmlFiles && extractedData.urls) {
-                    extractedData.urls.forEach(url => {
+                    for (const url of extractedData.urls) {
                         const fullUrl = this.resolveUrl(url, baseUrl);
-                        if (fullUrl && this.isSameDomain(fullUrl, baseUrl) && this.isValidPageUrl(url)) {
+                        if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && this.isValidPageUrl(url)) {
                             urls.add(fullUrl);
                         }
-                    });
+                    }
                 }
                 
                 if (scanApiFiles) {
                     // 收集绝对API
                     if (extractedData.absoluteApis) {
-                        extractedData.absoluteApis.forEach(api => {
+                        for (const api of extractedData.absoluteApis) {
                             const fullUrl = this.resolveUrl(api, baseUrl);
-                            if (fullUrl && this.isSameDomain(fullUrl, baseUrl)) {
+                            if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
                                 urls.add(fullUrl);
                             }
-                        });
+                        }
                     }
                     
                     // 收集相对API
                     if (extractedData.relativeApis) {
-                        extractedData.relativeApis.forEach(api => {
+                        for (const api of extractedData.relativeApis) {
                             const fullUrl = this.resolveUrl(api, baseUrl);
-                            if (fullUrl && this.isSameDomain(fullUrl, baseUrl)) {
+                            if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
                                 urls.add(fullUrl);
                             }
-                        });
+                        }
                     }
                 }
                 
@@ -965,14 +965,75 @@ class DeepScanner {
         }
     }
     
-    // 检查是否为同一域名
-    isSameDomain(url, baseUrl) {
+    // 检查是否为同一域名 - 支持子域名和全部域名设置
+    async isSameDomain(url, baseUrl) {
         try {
             const urlObj = new URL(url);
             const baseUrlObj = new URL(baseUrl);
-            return urlObj.hostname === baseUrlObj.hostname;
+            
+            // 获取域名扫描设置
+            const domainSettings = await this.getDomainScanSettings();
+            
+            // 如果允许扫描所有域名
+            if (domainSettings.allowAllDomains) {
+                console.log(`🌐 允许所有域名: ${urlObj.hostname}`);
+                return true;
+            }
+            
+            // 如果允许扫描子域名
+            if (domainSettings.allowSubdomains) {
+                const baseHostname = baseUrlObj.hostname;
+                const urlHostname = urlObj.hostname;
+                
+                // 检查是否为同一域名或子域名
+                const isSameOrSubdomain = urlHostname === baseHostname || 
+                                        urlHostname.endsWith('.' + baseHostname) ||
+                                        baseHostname.endsWith('.' + urlHostname);
+                
+                if (isSameOrSubdomain) {
+                    //console.log(`🔗 允许子域名: ${urlHostname} (基于 ${baseHostname})`);
+                    return true;
+                }
+            }
+            
+            // 默认：只允许完全相同的域名
+            const isSame = urlObj.hostname === baseUrlObj.hostname;
+            if (isSame) {
+                console.log(`✅ 同域名: ${urlObj.hostname}`);
+            } else {
+                console.log(`❌ 不同域名: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
+            }
+            return isSame;
+            
         } catch (error) {
+            console.error('域名检查失败:', error);
             return false;
+        }
+    }
+    
+    // 获取域名扫描设置
+    async getDomainScanSettings() {
+        try {
+            // 如果SettingsManager可用，使用它获取设置
+            if (typeof window.SettingsManager !== 'undefined' && window.SettingsManager.getDomainScanSettings) {
+                return await window.SettingsManager.getDomainScanSettings();
+            }
+            
+            // 备用方案：直接从chrome.storage获取
+            const result = await chrome.storage.local.get(['domainScanSettings']);
+            const domainSettings = result.domainScanSettings || {
+                allowSubdomains: false,
+                allowAllDomains: false
+            };
+            console.log('🔍 [深度扫描] 从storage获取的域名设置:', domainSettings);
+            return domainSettings;
+        } catch (error) {
+            console.error('获取域名扫描设置失败:', error);
+            // 默认设置：只允许同域名
+            return {
+                allowSubdomains: false,
+                allowAllDomains: false
+            };
         }
     }
     

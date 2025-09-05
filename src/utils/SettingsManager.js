@@ -196,6 +196,10 @@ class SettingsManager {
         
         // 数据管理按钮
         document.getElementById('clearAllDataBtn')?.addEventListener('click', () => this.clearAllData());
+        
+        // 域名扫描设置
+        document.getElementById('allowSubdomains')?.addEventListener('change', () => this.saveDomainScanSettings());
+        document.getElementById('allowAllDomains')?.addEventListener('change', () => this.saveDomainScanSettings());
     }
 
     /**
@@ -204,7 +208,7 @@ class SettingsManager {
     async loadSettings() {
         try {
             // 加载Cookie设置
-            const result = await chrome.storage.local.get(['phantomCookie', 'phantomRegexConfig', 'regexSettings']);
+            const result = await chrome.storage.local.get(['phantomCookie', 'phantomRegexConfig', 'regexSettings', 'domainScanSettings']);
             
             if (result.phantomCookie) {
                 document.getElementById('cookieInput').value = result.phantomCookie;
@@ -272,8 +276,67 @@ class SettingsManager {
             document.getElementById('webhookUrlsRegex').value = regexConfig.webhookUrls || this.defaultRegexPatterns.webhookUrls;
             document.getElementById('cryptoUsageRegex').value = regexConfig.cryptoUsage || this.defaultRegexPatterns.cryptoUsage;
             
+            // 加载域名扫描设置
+            const domainScanSettings = result.domainScanSettings || {
+                allowSubdomains: false,
+                allowAllDomains: false
+            };
+            
+            const allowSubdomainsEl = document.getElementById('allowSubdomains');
+            const allowAllDomainsEl = document.getElementById('allowAllDomains');
+            
+            if (allowSubdomainsEl) {
+                allowSubdomainsEl.checked = domainScanSettings.allowSubdomains;
+            }
+            if (allowAllDomainsEl) {
+                allowAllDomainsEl.checked = domainScanSettings.allowAllDomains;
+            }
+            
         } catch (error) {
             console.error('加载设置失败:', error);
+        }
+    }
+
+    /**
+     * 保存域名扫描设置
+     */
+    async saveDomainScanSettings() {
+        try {
+            const allowSubdomainsEl = document.getElementById('allowSubdomains');
+            const allowAllDomainsEl = document.getElementById('allowAllDomains');
+            
+            const domainScanSettings = {
+                allowSubdomains: allowSubdomainsEl ? allowSubdomainsEl.checked : false,
+                allowAllDomains: allowAllDomainsEl ? allowAllDomainsEl.checked : false
+            };
+            
+            // 互斥逻辑：如果选择了"所有域名"，则自动启用"子域名"
+            if (domainScanSettings.allowAllDomains && allowSubdomainsEl) {
+                allowSubdomainsEl.checked = true;
+                domainScanSettings.allowSubdomains = true;
+            }
+            
+            await chrome.storage.local.set({ domainScanSettings });
+            
+            let message = '域名扫描设置已保存！';
+            if (domainScanSettings.allowAllDomains) {
+                message += ' 已启用所有域名扫描（包含子域名）';
+            } else if (domainScanSettings.allowSubdomains) {
+                message += ' 已启用子域名扫描';
+            } else {
+                message += ' 已限制为同域名扫描';
+            }
+            
+            this.showMessage(message, 'success');
+            
+            // 触发事件通知其他模块
+            window.dispatchEvent(new CustomEvent('domainScanSettingsUpdated', { 
+                detail: domainScanSettings 
+            }));
+            
+        } catch (error) {
+            console.error('保存域名扫描设置失败:', error);
+            this.showMessage('保存设置失败: ' + error.message, 'error');
         }
     }
 
@@ -851,6 +914,25 @@ class SettingsManager {
                 }
             }, 300);
         }, 3000);
+    }
+
+    /**
+     * 获取域名扫描设置
+     */
+    async getDomainScanSettings() {
+        try {
+            const result = await chrome.storage.local.get(['domainScanSettings']);
+            return result.domainScanSettings || {
+                allowSubdomains: false,
+                allowAllDomains: false
+            };
+        } catch (error) {
+            console.error('获取域名扫描设置失败:', error);
+            return {
+                allowSubdomains: false,
+                allowAllDomains: false
+            };
+        }
     }
 }
 

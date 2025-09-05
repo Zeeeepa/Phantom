@@ -391,6 +391,12 @@
             accent-color: #3b82f6;
         }
         
+        /* 域名扫描设置样式 */
+        .config-option small {
+            color: #888;
+            font-size: 11px;
+        }
+        
         .config-controls {
             display: flex;
             gap: 15px;
@@ -1304,6 +1310,27 @@
                 
                 <!-- 设置页面 -->
                 <div class="page" id="settings-page">
+                    <!-- 域名扫描设置 -->
+                    <div class="api-test-section">
+                        <div class="config-title"> 域名扫描设置</div>
+                        <div class="config-options" style="flex-direction: column; gap: 12px; align-items: flex-start;">
+                            <label class="config-option" style="width: 100%; justify-content: space-between;">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <span> 允许扫描子域名</span>
+                                    <small>(如：api.example.com, cdn.example.com)</small>
+                                </span>
+                                <input type="checkbox" id="allowSubdomains" style="margin-left: auto;">
+                            </label>
+                            <label class="config-option" style="width: 100%; justify-content: space-between;">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <span> 允许扫描所有域名</span>
+                                    <small>(包括完全不同的域名)</small>
+                                </span>
+                                <input type="checkbox" id="allowAllDomains" style="margin-left: auto;">
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Cookie设置 -->
                     <div class="api-test-section">
                         <div class="config-title">Cookie设置</div>
@@ -1483,7 +1510,7 @@
                         <div class="config-title">工具信息</div>
                         <div style="color: #ccc; line-height: 1.6; font-size: 13px;">
                             <p><strong>工具名称:</strong> 幻影</p>
-                            <p><strong>版本:</strong> 1.7.0</p>
+                            <p><strong>版本:</strong> 1.7.1</p>
                             <p><strong>作者:</strong> Phantom&yihuo&Xuan8a1</p>
                             <p><strong>site:</strong> https://www.cn-fnst.top/</p>
                             <p><strong>site:</strong> https://blog.h-acker.cn/</p>

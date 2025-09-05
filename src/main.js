@@ -9,13 +9,15 @@ class ILoveYouTranslucent7 {
         this.maxDepth = 2;
         this.concurrency = 3;
         
-        // 初始化功能模块
+        // 初始化功能模块 - 先初始化SettingsManager
+        this.settingsManager = new SettingsManager();
+        window.SettingsManager = this.settingsManager; // 确保全局可访问
+        
         this.basicScanner = new BasicScanner(this);
         this.deepScanner = new DeepScanner(this);
         this.displayManager = new DisplayManager(this);
         this.apiTester = new ApiTester(this);
         this.exportManager = new ExportManager(this);
-        this.settingsManager = new SettingsManager();
         this.contentExtractor = new ContentExtractor();
         this.patternExtractor = new PatternExtractor();
         
@@ -723,9 +725,9 @@ class ILoveYouTranslucent7 {
             // 查找或创建自定义正则配置列表容器
             let listContainer = document.getElementById('customRegexList');
             if (!listContainer) {
-                // 如果容器不存在，创建它并插入到设置页面的正则配置区域后面
-                const regexSection = document.querySelector('#settings-page .api-test-section');
-                if (regexSection) {
+                // 如果容器不存在，创建它并插入到"添加自定义正则"按钮后面
+                const addRegexBtn = document.getElementById('addCustomRegexBtn');
+                if (addRegexBtn) {
                     listContainer = document.createElement('div');
                     listContainer.id = 'customRegexList';
                     listContainer.className = 'api-test-section';
@@ -733,7 +735,7 @@ class ILoveYouTranslucent7 {
                         <div class="config-title">已添加的自定义正则配置</div>
                         <div id="customRegexItems"></div>
                     `;
-                    regexSection.parentNode.insertBefore(listContainer, regexSection.nextSibling);
+                    addRegexBtn.parentNode.insertBefore(listContainer, addRegexBtn);
                 }
             }
             
@@ -1318,7 +1320,7 @@ class ILoveYouTranslucent7 {
     }
 }
 
-const CURRENT_VERSION = 'v1.7.0'; // 请根据实际版本修改
+const CURRENT_VERSION = 'v1.7.1'; // 请根据实际版本修改
 
 function compareVersion(v1, v2) {
     const arr1 = v1.replace(/^v/, '').split('.').map(Number);
