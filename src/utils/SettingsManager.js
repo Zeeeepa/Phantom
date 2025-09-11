@@ -185,10 +185,11 @@ class SettingsManager {
      * 绑定事件监听器
      */
     bindEvents() {
-        // Cookie相关按钮
+        // 请求头相关按钮
+        document.getElementById('addHeaderBtn')?.addEventListener('click', () => this.addHeaderInput());
         document.getElementById('getCookieBtn')?.addEventListener('click', () => this.getCurrentCookie());
-        document.getElementById('saveCookieBtn')?.addEventListener('click', () => this.saveCookie());
-        document.getElementById('clearCookieBtn')?.addEventListener('click', () => this.clearCookie());
+        document.getElementById('saveHeadersBtn')?.addEventListener('click', () => this.saveHeaders());
+        document.getElementById('clearHeadersBtn')?.addEventListener('click', () => this.clearHeaders());
         
         // 正则配置相关按钮
         document.getElementById('saveRegexBtn')?.addEventListener('click', () => this.saveRegexConfig());
@@ -207,12 +208,11 @@ class SettingsManager {
      */
     async loadSettings() {
         try {
-            // 加载Cookie设置
-            const result = await chrome.storage.local.get(['phantomCookie', 'phantomRegexConfig', 'regexSettings', 'domainScanSettings']);
+            // 加载请求头设置
+            const result = await chrome.storage.local.get(['phantomHeaders', 'phantomRegexConfig', 'regexSettings', 'domainScanSettings']);
             
-            if (result.phantomCookie) {
-                document.getElementById('cookieInput').value = result.phantomCookie;
-            }
+            // 加载请求头配置
+            this.loadHeaders(result.phantomHeaders || []);
             
             // 加载正则配置
             const regexConfig = result.phantomRegexConfig || this.defaultRegexPatterns;
@@ -341,7 +341,7 @@ class SettingsManager {
     }
 
     /**
-     * 获取当前网站的Cookie
+     * 获取当前网站的Cookie并添加为请求头
      */
     async getCurrentCookie() {
         try {
@@ -360,8 +360,10 @@ class SettingsManager {
             }
 
             const cookieString = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
-            document.getElementById('cookieInput').value = cookieString;
-            this.showMessage('Cookie获取成功', 'success');
+            
+            // 添加Cookie作为请求头
+            this.addHeaderInput('Cookie', cookieString);
+            this.showMessage('Cookie已添加为请求头', 'success');
             
         } catch (error) {
             console.error('获取Cookie失败:', error);
@@ -623,46 +625,132 @@ class SettingsManager {
     }
 
     /**
-     * 保存Cookie设置
+     * 添加请求头输入框
      */
-    async saveCookie() {
+    addHeaderInput(key = '', value = '') {
+        const container = document.getElementById('headersContainer');
+        if (!container) return;
+
+        const headerGroup = document.createElement('div');
+        headerGroup.className = 'header-input-group';
+        
+        headerGroup.innerHTML = `
+            <input type="text" class="header-key-input" placeholder="请求头名称 (如: Authorization)" value="${key}">
+            <input type="text" class="header-value-input" placeholder="请求头值 (如: Bearer token123)" value="${value}">
+            <button class="remove-header-btn">删除</button>
+        `;
+        
+        // 为删除按钮添加事件监听器
+        const removeBtn = headerGroup.querySelector('.remove-header-btn');
+        removeBtn.addEventListener('click', () => {
+            headerGroup.remove();
+            // 删除后自动保存
+            this.saveHeaders();
+        });
+        
+        container.appendChild(headerGroup);
+    }
+
+    /**
+     * 加载请求头配置
+     */
+    loadHeaders(headers) {
+        const container = document.getElementById('headersContainer');
+        if (!container) return;
+
+        // 清空现有内容
+        container.innerHTML = '';
+
+        // 如果没有保存的请求头，添加一个空的输入框
+        if (!headers || headers.length === 0) {
+            this.addHeaderInput();
+            return;
+        }
+
+        // 加载保存的请求头
+        headers.forEach(header => {
+            this.addHeaderInput(header.key, header.value);
+        });
+    }
+
+    /**
+     * 保存请求头设置
+     */
+    async saveHeaders() {
         try {
-            const cookieValue = document.getElementById('cookieInput').value.trim();
+            const headerInputs = document.querySelectorAll('.header-input-group');
+            const headers = [];
+
+            headerInputs.forEach(group => {
+                const keyInput = group.querySelector('.header-key-input');
+                const valueInput = group.querySelector('.header-value-input');
+                
+                const key = keyInput.value.trim();
+                const value = valueInput.value.trim();
+                
+                if (key && value) {
+                    headers.push({ key, value });
+                }
+            });
+
+            await chrome.storage.local.set({ phantomHeaders: headers });
+            this.showMessage(`已保存 ${headers.length} 个请求头`, 'success');
             
-            if (!cookieValue) {
-                this.showMessage('请输入Cookie内容', 'warning');
-                return;
+        } catch (error) {
+            console.error('保存请求头失败:', error);
+            this.showMessage('保存请求头失败: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * 清空请求头设置
+     */
+    async clearHeaders() {
+        try {
+            const container = document.getElementById('headersContainer');
+            if (container) {
+                container.innerHTML = '';
+                this.addHeaderInput(); // 添加一个空的输入框
             }
             
-            await chrome.storage.local.set({ phantomCookie: cookieValue });
-            this.showMessage('Cookie保存成功', 'success');
+            await chrome.storage.local.remove('phantomHeaders');
+            this.showMessage('请求头已清空', 'success');
             
         } catch (error) {
-            console.error('保存Cookie失败:', error);
-            this.showMessage('保存Cookie失败: ' + error.message, 'error');
+            console.error('清空请求头失败:', error);
+            this.showMessage('清空请求头失败: ' + error.message, 'error');
         }
     }
 
     /**
-     * 清空Cookie设置
+     * 获取当前请求头设置
      */
-    async clearCookie() {
+    async getHeadersSetting() {
         try {
-            document.getElementById('cookieInput').value = '';
-            await chrome.storage.local.remove('phantomCookie');
-            this.showMessage('Cookie已清空', 'success');
-            
+            const result = await chrome.storage.local.get('phantomHeaders');
+            return result.phantomHeaders || [];
         } catch (error) {
-            console.error('清空Cookie失败:', error);
-            this.showMessage('清空Cookie失败: ' + error.message, 'error');
+            console.error('获取请求头设置失败:', error);
+            return [];
         }
     }
 
     /**
-     * 获取当前Cookie设置
+     * 获取当前Cookie设置（兼容性方法）
      */
     async getCookieSetting() {
         try {
+            // 先尝试从新的请求头设置中获取Cookie
+            const headers = await this.getHeadersSetting();
+            const cookieHeader = headers.find(header => 
+                header.key.toLowerCase() === 'cookie'
+            );
+            
+            if (cookieHeader) {
+                return cookieHeader.value;
+            }
+
+            // 如果没有找到，尝试从旧的Cookie设置中获取（向后兼容）
             const result = await chrome.storage.local.get('phantomCookie');
             return result.phantomCookie || '';
         } catch (error) {

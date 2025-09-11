@@ -758,51 +758,72 @@
         }
 
         /* 设置页面样式 */
-        .cookie-controls {
+        .headers-controls {
             margin-bottom: 15px;
         }
 
-        .cookie-input-group {
+        .header-input-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 10px;
+            align-items: flex-start;
         }
 
-        .cookie-input-group textarea {
-            flex: 1;
+        .header-input-group input[type="text"] {
             padding: 8px;
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid #444;
             border-radius: 6px;
             color: #fff;
             font-size: 12px;
-            resize: vertical;
-            min-height: 60px;
         }
 
-        .get-cookie-btn {
+        .header-key-input {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .header-value-input {
+            flex: 2;
+            min-width: 200px;
+        }
+
+        .remove-header-btn {
             padding: 8px 12px;
-            background: linear-gradient(45deg, #00d4aa, #0ea5e9);
-            border: none;
+            background: rgba(231, 76, 60, 0.3);
+            border: 1px solid rgba(231, 76, 60, 0.5);
             border-radius: 6px;
             color: #fff;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.2s ease;
+            min-width: 60px;
         }
 
-        .get-cookie-btn:hover {
+        .remove-header-btn:hover {
+            background: rgba(231, 76, 60, 0.5);
+            border-color: rgba(231, 76, 60, 0.7);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
         }
 
-        .cookie-actions {
+        .headers-actions {
             display: flex;
             gap: 10px;
+            margin-bottom: 10px;
         }
 
-        .cookie-actions .action-button {
+        .headers-actions .action-button {
             flex: 1;
+        }
+
+        #headersContainer {
+            margin-bottom: 15px;
+        }
+
+        .header-input-group input[type="text"]:focus {
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 5px rgba(0, 212, 170, 0.3);
         }
 
         .regex-config {
@@ -1331,25 +1352,42 @@
                         </div>
                     </div>
 
-                    <!-- Cookie设置 -->
+                    <!-- 请求头设置 -->
                     <div class="api-test-section">
-                        <div class="config-title">Cookie设置</div>
-                        <div class="cookie-controls">
-                            <div class="cookie-input-group">
-                                <textarea id="cookieInput" placeholder="请输入Cookie或点击获取当前网站Cookie..." rows="3"></textarea>
-                                <button id="getCookieBtn" class="get-cookie-btn" title="获取当前网站Cookie">获取</button>
+                        <div class="config-title">请求头设置</div>
+                        <div class="headers-controls">
+                            <div id="headersContainer">
+                                <!-- 动态生成的请求头输入框将在这里显示 -->
                             </div>
-                            <div class="cookie-actions">
-                                <button id="saveCookieBtn" class="action-button">
-                                    <span class="text">保存Cookie</span>
+                            <div class="headers-actions">
+                                <button id="addHeaderBtn" class="action-button">
+                                    <span class="text">添加请求头</span>
                                     <span class="shine"></span>
                                     <span class="border-tl"></span>
                                     <span class="border-tr"></span>
                                     <span class="border-bl"></span>
                                     <span class="border-br"></span>
                                 </button>
-                                <button id="clearCookieBtn" class="action-button">
-                                    <span class="text">清空Cookie</span>
+                                <button id="getCookieBtn" class="action-button">
+                                    <span class="text">获取Cookie</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                            </div>
+                            <div class="headers-actions">
+                                <button id="saveHeadersBtn" class="action-button">
+                                    <span class="text">保存请求头</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                                <button id="clearHeadersBtn" class="action-button">
+                                    <span class="text">清空请求头</span>
                                     <span class="shine"></span>
                                     <span class="border-tl"></span>
                                     <span class="border-tr"></span>
@@ -1510,7 +1548,7 @@
                         <div class="config-title">工具信息</div>
                         <div style="color: #ccc; line-height: 1.6; font-size: 13px;">
                             <p><strong>工具名称:</strong> 幻影</p>
-                            <p><strong>版本:</strong> 1.7.1</p>
+                            <p><strong>版本:</strong> 1.7.2</p>
                             <p><strong>作者:</strong> Phantom&yihuo&Xuan8a1</p>
                             <p><strong>site:</strong> https://www.cn-fnst.top/</p>
                             <p><strong>site:</strong> https://blog.h-acker.cn/</p>

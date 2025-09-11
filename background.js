@@ -91,21 +91,23 @@ class BackgroundSRCMiner {
         }
     }
     
-    // 使用Cookie发送请求 - 通过declarativeNetRequest动态修改请求头
+    // 使用自定义请求头发送请求 - 通过declarativeNetRequest动态修改请求头
     async makeRequestWithCookie(url, options = {}) {
         try {
             console.log(`🌐 后台脚本准备发送请求: ${url}`);
             
-            // 获取保存的Cookie设置
-            const result = await chrome.storage.local.get('phantomCookie');
-            const cookieSetting = result.phantomCookie || '';
+            // 获取保存的自定义请求头设置
+            //console.log('🔍 [DEBUG] 开始获取自定义请求头...');
+            const result = await chrome.storage.local.get('phantomHeaders');
+            //console.log('🔍 [DEBUG] chrome.storage.local.get结果:', result);
+            const customHeaders = result.phantomHeaders || [];
             
-            console.log(`🍪 获取到Cookie设置: ${cookieSetting ? cookieSetting.substring(0, 50) + '...' : '无'}`);
+            //console.log(`📋 获取到自定义请求头:`, customHeaders);
+            //console.log(`📋 请求头数量: ${customHeaders.length}`);
+            //console.log(`📋 请求头详情:`, JSON.stringify(customHeaders, null, 2));
             
-            if (cookieSetting && cookieSetting.trim()) {
-                // 使用declarativeNetRequest动态添加Cookie请求头
-                await this.addCookieRule(url, cookieSetting.trim());
-            }
+            // 尝试添加自定义请求头规则（如果有的话）
+            await this.addCustomHeadersRule(url, customHeaders);
             
             // 确保离屏文档存在
             await this.ensureOffscreenDocument();
@@ -116,7 +118,7 @@ class BackgroundSRCMiner {
                     action: 'makeRequestWithCookie',
                     url: url,
                     options: options,
-                    cookieSetting: cookieSetting
+                    customHeaders: customHeaders
                 }, (response) => {
                     if (chrome.runtime.lastError) {
                         console.error('❌ 离屏文档通信失败:', chrome.runtime.lastError);
@@ -131,42 +133,57 @@ class BackgroundSRCMiner {
                 });
             });
             
-            // 清理规则
-            if (cookieSetting && cookieSetting.trim()) {
-                await this.removeCookieRule();
-            }
+            // 清理规则（无论是否有自定义请求头都要清理，避免残留规则）
+            await this.removeCustomHeadersRule();
             
             return response;
         } catch (error) {
             console.error(`❌ 后台脚本请求失败: ${error.message}`);
             // 确保清理规则
             try {
-                await this.removeCookieRule();
-            } catch (e) {}
+                await this.removeCustomHeadersRule();
+            } catch (e) {
+                console.warn('清理规则时出错:', e);
+            }
             throw error;
         }
     }
     
-    // 添加Cookie规则
-    async addCookieRule(url, cookieSetting) {
+    // 添加自定义请求头规则
+    async addCustomHeadersRule(url, customHeaders) {
         try {
+            // 如果没有自定义请求头，直接返回
+            if (!customHeaders || customHeaders.length === 0) {
+                console.log('🔧 没有自定义请求头，跳过规则添加');
+                return;
+            }
+            
             const urlObj = new URL(url);
             const ruleId = 1; // 使用固定ID，方便后续删除
             
-            console.log(`🔧 添加Cookie规则: ${urlObj.hostname}`);
+            console.log(`🔧 添加自定义请求头规则: ${urlObj.hostname}`, customHeaders);
+            
+            // 构建请求头数组，过滤无效的请求头
+            const requestHeaders = customHeaders
+                .filter(header => header && header.key && header.value)
+                .map(header => ({
+                    header: header.key,
+                    operation: 'set',
+                    value: header.value
+                }));
+            
+            // 如果过滤后没有有效的请求头，直接返回
+            if (requestHeaders.length === 0) {
+                console.log('🔧 没有有效的自定义请求头，跳过规则添加');
+                return;
+            }
             
             const rule = {
                 id: ruleId,
                 priority: 1,
                 action: {
                     type: 'modifyHeaders',
-                    requestHeaders: [
-                        {
-                            header: 'Cookie',
-                            operation: 'set',
-                            value: cookieSetting
-                        }
-                    ]
+                    requestHeaders: requestHeaders
                 },
                 condition: {
                     urlFilter: `*://${urlObj.hostname}/*`,
@@ -179,21 +196,23 @@ class BackgroundSRCMiner {
                 removeRuleIds: [ruleId] // 先删除可能存在的旧规则
             });
             
-            console.log(`✅ Cookie规则添加成功: ${cookieSetting.substring(0, 30)}...`);
+            console.log(`✅ 自定义请求头规则添加成功，共${requestHeaders.length}个请求头`);
         } catch (error) {
-            console.error('❌ 添加Cookie规则失败:', error);
+            console.error('❌ 添加自定义请求头规则失败:', error);
+            // 不要抛出错误，让请求继续进行
         }
     }
     
-    // 移除Cookie规则
-    async removeCookieRule() {
+    // 移除自定义请求头规则
+    async removeCustomHeadersRule() {
         try {
             await chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: [1]
             });
-            console.log('🔧 Cookie规则已清理');
+            console.log('🔧 自定义请求头规则已清理');
         } catch (error) {
-            console.warn('⚠️ 清理Cookie规则失败:', error);
+            // 规则可能不存在，这是正常的，不需要报错
+            console.log('🔧 清理自定义请求头规则（规则可能不存在）');
         }
     }
     
@@ -320,15 +339,16 @@ class BackgroundSRCMiner {
     async storeResults(data, url) {
         try {
             const timestamp = new Date().toISOString();
-            const key = `results_${Date.now()}`;
+            // 注释掉创建大量垃圾存储的功能
+            // const key = `results_${Date.now()}`;
             
-            await chrome.storage.local.set({
-                [key]: {
-                    url: url,
-                    timestamp: timestamp,
-                    data: data
-                }
-            });
+            // await chrome.storage.local.set({
+            //     [key]: {
+            //         url: url,
+            //         timestamp: timestamp,
+            //         data: data
+            //     }
+            // });
             
             // 更新最新结果
             await chrome.storage.local.set({

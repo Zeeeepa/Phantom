@@ -14,7 +14,7 @@ class TestWindow {
     }
 
     // 创建测试窗口
-    async createTestWindow(categoryKey, items, method, concurrency = 8, timeout = 5000, cookieSetting = '', customBaseApiPaths = [], customDomains = []) {
+    async createTestWindow(categoryKey, items, method, concurrency = 8, timeout = 5000, customHeaders = [], customBaseApiPaths = [], customDomains = []) {
 
         let baseUrl = '';
         try {
@@ -35,11 +35,9 @@ class TestWindow {
             concurrency: concurrency,
             timeout: timeout,
             baseUrl: baseUrl,
-
-            cookieSetting: cookieSetting,
+            customHeaders: customHeaders,
             customBaseApiPaths: customBaseApiPaths,
             customDomains: customDomains
-
         };
 
         // 将配置保存到chrome.storage，供测试窗口读取

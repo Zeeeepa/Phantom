@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('🔧 离屏文档收到消息:', request.action);
     
     if (request.action === 'makeRequestWithCookie') {
-        handleRequestWithCookie(request.url, request.options, request.cookieSetting)
+        handleRequestWithCustomHeaders(request.url, request.options, request.customHeaders)
             .then(response => {
                 console.log('🔧 离屏文档请求完成:', response.status);
                 sendResponse({ success: true, data: response });
@@ -20,11 +20,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-// 在离屏文档中处理带Cookie的请求
-async function handleRequestWithCookie(url, options = {}, cookieSetting = '') {
+// 在离屏文档中处理带自定义请求头的请求
+async function handleRequestWithCustomHeaders(url, options = {}, customHeaders = []) {
     try {
-        console.log(`🍪 离屏文档发送请求: ${url}`);
-        console.log(`🍪 使用Cookie: ${cookieSetting ? cookieSetting.substring(0, 50) + '...' : '无'}`);
+        console.log(`📋 离屏文档发送请求: ${url}`);
+        console.log(`📋 使用自定义请求头:`, customHeaders);
         
         const fetchOptions = {
             method: options.method || 'GET',
@@ -38,31 +38,36 @@ async function handleRequestWithCookie(url, options = {}, cookieSetting = '') {
             ...options
         };
         
-        // 在离屏文档中设置Cookie
-        if (cookieSetting && cookieSetting.trim()) {
-            // 方法1: 直接设置请求头
-            fetchOptions.headers['Cookie'] = cookieSetting.trim();
-            console.log(`🍪 已设置Cookie请求头: ${cookieSetting.trim().substring(0, 50)}...`);
-            
-            // 方法2: 尝试通过document.cookie设置（如果是同域请求）
-            try {
-                const urlObj = new URL(url);
-                if (urlObj.origin === window.location.origin) {
-                    // 解析Cookie字符串并设置到document.cookie
-                    const cookies = cookieSetting.split(';').map(c => c.trim());
-                    for (const cookie of cookies) {
-                        if (cookie) {
-                            document.cookie = cookie;
-                            console.log(`🍪 已设置document.cookie: ${cookie.substring(0, 30)}...`);
+        // 应用自定义请求头
+        if (customHeaders && customHeaders.length > 0) {
+            for (const header of customHeaders) {
+                if (header.key && header.value) {
+                    fetchOptions.headers[header.key] = header.value;
+                    console.log(`📋 已设置请求头: ${header.key} = ${header.value.substring(0, 50)}${header.value.length > 50 ? '...' : ''}`);
+                    
+                    // 如果是Cookie请求头，尝试通过document.cookie设置（如果是同域请求）
+                    if (header.key.toLowerCase() === 'cookie') {
+                        try {
+                            const urlObj = new URL(url);
+                            if (urlObj.origin === window.location.origin) {
+                                // 解析Cookie字符串并设置到document.cookie
+                                const cookies = header.value.split(';').map(c => c.trim());
+                                for (const cookie of cookies) {
+                                    if (cookie) {
+                                        document.cookie = cookie;
+                                        console.log(`🍪 已设置document.cookie: ${cookie.substring(0, 30)}...`);
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('🍪 无法设置document.cookie:', e.message);
                         }
                     }
                 }
-            } catch (e) {
-                console.warn('🍪 无法设置document.cookie:', e.message);
             }
         }
         
-        console.log(`🌐 离屏文档请求头:`, fetchOptions.headers);
+        console.log(`📋 离屏文档最终请求头:`, fetchOptions.headers);
         
         // 添加超时控制
         const timeout = options.timeout || 10000;

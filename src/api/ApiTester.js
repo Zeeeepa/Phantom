@@ -7,7 +7,22 @@ class ApiTester {
     }
     
     /**
-     * 获取Cookie设置
+     * 获取自定义请求头设置
+     */
+    async getCustomHeaders() {
+        try {
+            if (this.srcMiner.settingsManager) {
+                return await this.srcMiner.settingsManager.getHeadersSetting();
+            }
+            return [];
+        } catch (error) {
+            console.error('获取自定义请求头设置失败:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 获取Cookie设置（兼容性方法）
      */
     async getCookieSetting() {
         try {
@@ -202,13 +217,14 @@ class ApiTester {
     async testSelectedCategory(categoryKey, items, method, concurrency = 8, timeout = 5000, customBaseApiPaths = [], customDomains = []) {
 
         try {
-            // 获取Cookie设置
-            const cookieSetting = await this.getCookieSetting();
+            // 获取自定义请求头设置
+            const customHeaders = await this.getCustomHeaders();
+            console.log('📋 获取到自定义请求头:', customHeaders);
             
             // 使用新的TestWindow类创建测试窗口
             const testWindow = new TestWindow();
 
-            await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, cookieSetting, customBaseApiPaths, customDomains);
+            await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, customHeaders, customBaseApiPaths, customDomains);
 
             
             // 显示成功提示
