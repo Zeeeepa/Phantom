@@ -1,7 +1,7 @@
 class SRCMinerContent {
     constructor() {
         if (window !== window.top) {
-            console.log('SRCMiner: 跳过iframe环境');
+            //console.log('SRCMiner: 跳过iframe环境');
             return;
         }
         
@@ -12,27 +12,27 @@ class SRCMinerContent {
         this.config = this.getConfig();
         // 统一化版本：不缓存配置，每次扫描前直接从chrome.storage读取
         
-        console.log('🔍 幻影已加载 -', window.location.href);
+        //console.log('🔍 幻影已加载 -', window.location.href);
         this.init();
         this.loadCustomRegexConfig();
     }
     
     init() {
-        console.log('🔧 Content Script初始化消息监听器...');
+        //console.log('🔧 Content Script初始化消息监听器...');
         
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            console.log('📨 Content Script收到消息:', request.action);
+            //console.log('📨 Content Script收到消息:', request.action);
             
             if (window !== window.top) {
-                console.log('⚠️ Content Script在iframe中，跳过处理');
+                //console.log('⚠️ Content Script在iframe中，跳过处理');
                 return false;
             }
             
             switch (request.action) {
                 case 'extractInfo':
-                    console.log('🔍 Content Script开始处理extractInfo请求...');
+                    //console.log('🔍 Content Script开始处理extractInfo请求...');
                     this.performScan().then(results => {
-                        console.log('✅ Content Script扫描完成，发送响应');
+                        //console.log('✅ Content Script扫描完成，发送响应');
                         sendResponse(results);
                     }).catch(error => {
                         console.error('❌ Content Script扫描失败:', error);
@@ -57,6 +57,16 @@ class SRCMinerContent {
                     this.handleDeepScanMessage(request);
                     sendResponse({ success: true });
                     return true;
+                    
+                case 'injectScript':
+                    //console.log('🔧 Content Script收到脚本注入请求');
+                    this.injectUserScript(request.code).then(result => {
+                        sendResponse(result);
+                    }).catch(error => {
+                        console.error('❌ 脚本注入失败:', error);
+                        sendResponse({ success: false, error: error.message });
+                    });
+                    return true;
             }
         });
         
@@ -71,7 +81,7 @@ class SRCMinerContent {
      * 统一化版本：配置由PatternExtractor统一管理，每次扫描前直接读取
      */
     async loadCustomRegexConfig() {
-        console.log('📋 Content Script统一化版本：每次扫描前直接从存储读取配置');
+        //console.log('📋 Content Script统一化版本：每次扫描前直接从存储读取配置');
     }
     
     getConfig() {
@@ -157,7 +167,7 @@ class SRCMinerContent {
         this.lastScanTime = Date.now();
         
         if (!silent) {
-            console.log('🔍 开始扫描页面:', window.location.href);
+            //console.log('🔍 开始扫描页面:', window.location.href);
         }
         
         try {
@@ -185,36 +195,36 @@ class SRCMinerContent {
     }
     
     async extractAllInfo() {
-        console.log('🔍 Content Script统一化版本开始提取信息...');
+        //console.log('🔍 Content Script统一化版本开始提取信息...');
         
         // 统一化版本：只使用PatternExtractor + ContentExtractor系统
         if (typeof PatternExtractor !== 'undefined' && typeof ContentExtractor !== 'undefined') {
-            console.log('🔄 Content Script使用统一化提取系统');
+            //console.log('🔄 Content Script使用统一化提取系统');
             
             // 每次扫描前直接从chrome.storage读取最新配置，不使用缓存
-            console.log('📥 Content Script直接从存储读取最新配置...');
+            //console.log('📥 Content Script直接从存储读取最新配置...');
             let latestConfig = null;
             try {
                 const result = await chrome.storage.local.get(['regexSettings']);
                 if (result.regexSettings) {
                     latestConfig = result.regexSettings;
-                    console.log('✅ Content Script成功读取最新配置:', latestConfig);
+                    //console.log('✅ Content Script成功读取最新配置:', latestConfig);
                 } else {
-                    console.log('📋 Content Script未找到自定义配置，将使用默认配置');
+                    //console.log('📋 Content Script未找到自定义配置，将使用默认配置');
                 }
             } catch (error) {
                 console.error('❌ Content Script读取配置失败:', error);
             }
             
             // 每次都创建新的PatternExtractor实例，避免缓存
-            console.log('🔧 Content Script创建新的PatternExtractor实例...');
+            //console.log('🔧 Content Script创建新的PatternExtractor实例...');
             const patternExtractor = new PatternExtractor();
             
             // 如果有最新配置，直接应用到PatternExtractor
             if (latestConfig) {
-                console.log('🔧 Content Script直接应用最新配置到PatternExtractor...');
+                //console.log('🔧 Content Script直接应用最新配置到PatternExtractor...');
                 await patternExtractor.updatePatterns(latestConfig);
-                console.log('✅ Content Script配置应用完成');
+                //console.log('✅ Content Script配置应用完成');
             } else {
                 // 没有自定义配置时，确保默认配置已加载
                 await patternExtractor.ensureCustomPatternsLoaded();
@@ -223,25 +233,25 @@ class SRCMinerContent {
             // 临时设置到window，供ContentExtractor使用
             window.patternExtractor = patternExtractor;
             
-            console.log('🔧 Content Script当前PatternExtractor配置状态:', {
-                customRegexConfig: patternExtractor.customRegexConfig,
-                hasAbsoluteApis: !!(latestConfig && latestConfig.absoluteApis),
-                hasRelativeApis: !!(latestConfig && latestConfig.relativeApis),
-                hasCustomEmails: !!(latestConfig && latestConfig.emails),
-                hasCustomPhones: !!(latestConfig && latestConfig.phoneNumbers),
-                hasCustomDomains: !!(latestConfig && latestConfig.domains)
-            });
+            //console.log('🔧 Content Script当前PatternExtractor配置状态:', {
+            //    customRegexConfig: patternExtractor.customRegexConfig,
+            //    hasAbsoluteApis: !!(latestConfig && latestConfig.absoluteApis),
+            //    hasRelativeApis: !!(latestConfig && latestConfig.relativeApis),
+            //    hasCustomEmails: !!(latestConfig && latestConfig.emails),
+            //    hasCustomPhones: !!(latestConfig && latestConfig.phoneNumbers),
+            //    hasCustomDomains: !!(latestConfig && latestConfig.domains)
+            //});
             
             const contentExtractor = new ContentExtractor();
             const results = await contentExtractor.extractSensitiveInfo(window.location.href);
             
-            console.log('✅ Content Script统一化系统提取完成，结果统计:', {
-                absoluteApis: results.absoluteApis?.length || 0,
-                relativeApis: results.relativeApis?.length || 0,
-                domains: results.domains?.length || 0,
-                emails: results.emails?.length || 0,
-                phoneNumbers: results.phoneNumbers?.length || 0
-            });
+            //console.log('✅ Content Script统一化系统提取完成，结果统计:', {
+            //    absoluteApis: results.absoluteApis?.length || 0,
+            //    relativeApis: results.relativeApis?.length || 0,
+            //    domains: results.domains?.length || 0,
+            //    emails: results.emails?.length || 0,
+            //    phoneNumbers: results.phoneNumbers?.length || 0
+            //});
             
             return results;
         } else {
@@ -271,13 +281,13 @@ class SRCMinerContent {
             totalItems += count;
         });
         
-        console.log(`🔍 幻影: 扫描完成，发现 ${totalItems} 个项目`);
+        //console.log(`🔍 幻影: 扫描完成，发现 ${totalItems} 个项目`);
         
         if (totalItems > 0) {
-            console.log('📊 扫描结果摘要:');
+            //console.log('📊 扫描结果摘要:');
             Object.keys(summary).forEach(key => {
                 if (summary[key] > 0) {
-                    console.log(`  ${key}: ${summary[key]} 个`);
+                    //console.log(`  ${key}: ${summary[key]} 个`);
                 }
             });
             
@@ -285,20 +295,20 @@ class SRCMinerContent {
             if (summary.sensitiveKeywords > 0) {
                 const keywords = Array.isArray(results.sensitiveKeywords) ? 
                     results.sensitiveKeywords : Array.from(results.sensitiveKeywords);
-                console.warn(`⚠️ 发现敏感关键词:`, keywords.slice(0, 10));
+                //console.warn(`⚠️ 发现敏感关键词:`, keywords.slice(0, 10));
             }
             if (summary.emails > 0) {
                 const emails = Array.isArray(results.emails) ? 
                     results.emails : Array.from(results.emails);
-                console.info(`📧 发现邮箱地址:`, emails.slice(0, 5));
+                //console.info(`📧 发现邮箱地址:`, emails.slice(0, 5));
             }
             if (summary.absoluteApis > 0) {
                 const apis = Array.isArray(results.absoluteApis) ? 
                     results.absoluteApis : Array.from(results.absoluteApis);
-                console.info(`🔗 发现API接口:`, apis.slice(0, 10));
+                //console.info(`🔗 发现API接口:`, apis.slice(0, 10));
             }
         } else {
-            console.log('📊 未发现任何项目');
+            //console.log('📊 未发现任何项目');
         }
     }
     
@@ -348,7 +358,44 @@ class SRCMinerContent {
     
     handleDeepScanMessage(request) {
         // 处理深度扫描相关消息
-        console.log('处理深度扫描消息:', request.action);
+        //console.log('处理深度扫描消息:', request.action);
+    }
+    
+    /**
+     * 注入用户脚本 - 类似油猴脚本的加载方式
+     * 使用Blob URL + 动态脚本标签，绕过CSP限制
+     */
+    async injectUserScript(code) {
+        try {
+            //console.log('🔧 开始注入用户脚本...');
+            
+            // 获取injector.js的URL
+            const injectorUrl = chrome.runtime.getURL('src/core/injector.js');
+            
+            // 创建一个脚本标签加载injector.js
+            const injectorScript = document.createElement('script');
+            injectorScript.src = injectorUrl;
+            
+            // 等待injector.js加载完成
+            await new Promise((resolve, reject) => {
+                injectorScript.onload = resolve;
+                injectorScript.onerror = reject;
+                document.head.appendChild(injectorScript);
+            });
+            
+            // 使用injector执行用户代码
+            if (window.PhantomInjector) {
+                const result = await window.PhantomInjector.executeScript(code);
+                //console.log('✅ 脚本注入成功');
+                return { success: true, result: result };
+            } else {
+                throw new Error('PhantomInjector未加载');
+            }
+            
+        } catch (error) {
+            console.error('❌ 脚本注入失败:', error);
+            return { success: false, error: error.message };
+        }
     }
 }
 

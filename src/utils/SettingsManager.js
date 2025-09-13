@@ -246,7 +246,7 @@ class SettingsManager {
                     cryptoUsage: regexConfig.cryptoUsage || this.defaultRegexPatterns.cryptoUsage
                 };
                 await chrome.storage.local.set({ regexSettings });
-                console.log('✅ 已构建并保存默认 regexSettings（首次初始化）');
+                //console.log('✅ 已构建并保存默认 regexSettings（首次初始化）');
                 // 通知其他模块配置已更新
                 this.notifyConfigUpdate(regexSettings);
             }
@@ -389,12 +389,12 @@ class SettingsManager {
             // 保存到Chrome存储
             await chrome.storage.local.set({ regexSettings });
             
-            console.log('正则表达式设置已保存:', regexSettings);
+            //console.log('正则表达式设置已保存:', regexSettings);
             
             // 通知PatternExtractor重新加载配置
             if (window.patternExtractor) {
                 await window.patternExtractor.loadCustomPatterns();
-                console.log('✅ PatternExtractor已重新加载配置');
+                //console.log('✅ PatternExtractor已重新加载配置');
             }
             
             this.showMessage('正则表达式设置保存成功！配置已生效', 'success');
@@ -483,7 +483,7 @@ class SettingsManager {
                 regexSettings: regexSettings
             });
             
-            console.log('✅ 正则配置已保存:', { regexConfig, regexSettings });
+            //console.log('✅ 正则配置已保存:', { regexConfig, regexSettings });
             
             this.showMessage('正则配置保存成功', 'success');
             
@@ -578,7 +578,7 @@ class SettingsManager {
                 regexSettings: regexSettings
             });
             
-            console.log('✅ 正则配置已重置为默认值:', { regexSettings });
+            //console.log('✅ 正则配置已重置为默认值:', { regexSettings });
             
             this.showMessage('正则配置已重置为默认值', 'success');
             
@@ -595,11 +595,11 @@ class SettingsManager {
      * 通知其他模块配置已更新 - 统一化版本
      */
     notifyConfigUpdate(regexSettings) {
-        console.log('🔄 [SettingsManager] 开始通知其他模块配置已更新:', regexSettings);
+        //console.log('🔄 [SettingsManager] 开始通知其他模块配置已更新:', regexSettings);
         
         // 强制重新加载PatternExtractor配置
         if (window.patternExtractor) {
-            console.log('🔄 [SettingsManager] 强制重新加载PatternExtractor配置...');
+            //console.log('🔄 [SettingsManager] 强制重新加载PatternExtractor配置...');
             
             // 清除现有配置
             window.patternExtractor.patterns = {};
@@ -608,7 +608,7 @@ class SettingsManager {
             // 更新配置
             if (typeof window.patternExtractor.updatePatterns === 'function') {
                 window.patternExtractor.updatePatterns(regexSettings);
-                console.log('✅ [SettingsManager] PatternExtractor配置已强制更新');
+                //console.log('✅ [SettingsManager] PatternExtractor配置已强制更新');
             } else {
                 console.warn('⚠️ [SettingsManager] PatternExtractor.updatePatterns方法不存在');
             }
@@ -621,7 +621,7 @@ class SettingsManager {
             detail: regexSettings 
         }));
         
-        console.log('✅ [SettingsManager] 配置更新通知完成');
+        //console.log('✅ [SettingsManager] 配置更新通知完成');
     }
 
     /**
@@ -787,25 +787,25 @@ class SettingsManager {
         }
         
         try {
-            console.log('🗑️ 开始清空全部数据...');
+            //console.log('🗑️ 开始清空全部数据...');
             
             // 第一步：暂时禁用自动保存机制，防止数据被重新写入
             let originalSaveResults = null;
             if (window.srcMiner && typeof window.srcMiner.saveResults === 'function') {
-                console.log('🚫 暂时禁用自动保存机制...');
+                //console.log('🚫 暂时禁用自动保存机制...');
                 originalSaveResults = window.srcMiner.saveResults;
                 window.srcMiner.saveResults = () => {
-                    console.log('🚫 自动保存已被暂时禁用');
+                    //console.log('🚫 自动保存已被暂时禁用');
                 };
             }
             
             // 第二步：彻底清空 SRCMiner 实例的内存数据
             if (window.srcMiner) {
-                console.log('🧹 清空SRCMiner实例内存数据...');
+                //console.log('🧹 清空SRCMiner实例内存数据...');
                 
                 // 检查是否有深度扫描正在运行
                 const isDeepScanRunning = window.srcMiner.deepScanRunning;
-                console.log('深度扫描运行状态:', isDeepScanRunning);
+                //console.log('深度扫描运行状态:', isDeepScanRunning);
                 
                 // 清空所有内存中的数据
                 window.srcMiner.results = {};
@@ -817,15 +817,15 @@ class SettingsManager {
                 if (!isDeepScanRunning) {
                     window.srcMiner.deepScanRunning = false;
                     window.srcMiner.currentDepth = 0;
-                    console.log('✅ 已重置扫描状态');
+                    //console.log('✅ 已重置扫描状态');
                 } else {
-                    console.log('⚠️ 检测到深度扫描正在运行，保持扫描状态');
+                    //console.log('⚠️ 检测到深度扫描正在运行，保持扫描状态');
                 }
             }
             
             // 第三步：获取所有存储的键并识别扫描相关数据
             const allData = await chrome.storage.local.get(null);
-            console.log('📋 当前存储的所有数据键:', Object.keys(allData));
+            //console.log('📋 当前存储的所有数据键:', Object.keys(allData));
             
             const keysToRemove = [];
             
@@ -865,12 +865,12 @@ class SettingsManager {
                 }
             }
             
-            console.log(`🔍 找到 ${keysToRemove.length} 个数据键需要清空:`, keysToRemove);
+            //console.log(`🔍 找到 ${keysToRemove.length} 个数据键需要清空:`, keysToRemove);
             
             // 第四步：删除所有相关键
             if (keysToRemove.length > 0) {
                 await chrome.storage.local.remove(keysToRemove);
-                console.log(`✅ 已删除 ${keysToRemove.length} 个数据键`);
+                //console.log(`✅ 已删除 ${keysToRemove.length} 个数据键`);
             }
             
             // 第五步：验证删除结果并处理残留数据
@@ -883,7 +883,7 @@ class SettingsManager {
                 for (const key of remainingKeys) {
                     try {
                         await chrome.storage.local.remove([key]);
-                        console.log(`✅ 强制删除成功: ${key}`);
+                        //console.log(`✅ 强制删除成功: ${key}`);
                     } catch (error) {
                         console.error(`❌ 强制删除失败: ${key}`, error);
                     }
@@ -895,11 +895,11 @@ class SettingsManager {
             const statsDiv = document.getElementById('stats');
             if (resultsDiv) {
                 resultsDiv.innerHTML = '';
-                console.log('✅ 已清空结果显示区域');
+                //console.log('✅ 已清空结果显示区域');
             }
             if (statsDiv) {
                 statsDiv.textContent = '';
-                console.log('✅ 已清空统计显示区域');
+                //console.log('✅ 已清空统计显示区域');
             }
             
             // 第七步：重置UI状态
@@ -909,20 +909,20 @@ class SettingsManager {
                     // 重置深度扫描UI状态
                     if (typeof window.srcMiner.resetDeepScanUI === 'function') {
                         window.srcMiner.resetDeepScanUI();
-                        console.log('✅ 已重置深度扫描UI状态');
+                        //console.log('✅ 已重置深度扫描UI状态');
                     }
                 }
                 
                 // 更新分类选择器
                 if (typeof window.srcMiner.updateCategorySelect === 'function') {
                     window.srcMiner.updateCategorySelect();
-                    console.log('✅ 已更新分类选择器');
+                    //console.log('✅ 已更新分类选择器');
                 }
                 
                 // 强制刷新显示
                 if (typeof window.srcMiner.displayResults === 'function') {
                     window.srcMiner.displayResults();
-                    console.log('✅ 已刷新结果显示');
+                    //console.log('✅ 已刷新结果显示');
                 }
             }
             
@@ -951,7 +951,7 @@ class SettingsManager {
             if (originalSaveResults && window.srcMiner) {
                 setTimeout(() => {
                     window.srcMiner.saveResults = originalSaveResults;
-                    console.log('✅ 自动保存机制已恢复');
+                    //console.log('✅ 自动保存机制已恢复');
                 }, 1000); // 1秒后恢复，确保清空操作完全完成
             }
             
@@ -960,7 +960,7 @@ class SettingsManager {
                 console.warn('⚠️ 最终检查发现残留数据键:', remainingDataKeys);
                 this.showMessage(`清空完成，但发现 ${remainingDataKeys.length} 个残留数据键，可能需要手动处理`, 'warning');
             } else {
-                console.log('✅ 数据清空验证通过，无残留数据');
+                //console.log('✅ 数据清空验证通过，无残留数据');
                 this.showMessage(`已成功清空 ${keysToRemove.length} 个数据项，所有扫描数据已彻底清除`, 'success');
             }
             

@@ -3,7 +3,7 @@
 // 所有正则统一通过 SettingsManager 获取，无任何硬编码
 // ==========================================================
 
-console.log('🚀 [DEBUG] 深度扫描窗口脚本（统一正则版本）开始加载...');
+//console.log('🚀 [DEBUG] 深度扫描窗口脚本（统一正则版本）开始加载...');
 
 // -------------------- 全局变量 --------------------
 let scanConfig         = null;
@@ -49,7 +49,7 @@ const MEMORY_CLEANUP_INTERVAL = 30000; // 30秒清理一次内存
 
 // 🚀 内存清理函数
 function performMemoryCleanup() {
-    console.log('🧹 执行内存清理...');
+    //console.log('🧹 执行内存清理...');
     
     // 清理URL内容缓存，只保留最近的50个
     if (urlContentCache.size > 50) {
@@ -57,7 +57,7 @@ function performMemoryCleanup() {
         const toKeep = entries.slice(-50);
         urlContentCache.clear();
         toKeep.forEach(([key, value]) => urlContentCache.set(key, value));
-        console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
+        //console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
     }
     
     // 清理日志缓冲区
@@ -109,7 +109,7 @@ function loadScript(src) {
 
 // -------------------- 统一筛选器加载 --------------------
 async function loadFilters() {
-    console.log('🔍 [DEBUG] 开始加载统一筛选器...');
+    //console.log('🔍 [DEBUG] 开始加载统一筛选器...');
 
     try {
         // 加载 SettingsManager（必须）
@@ -138,7 +138,7 @@ async function loadFilters() {
 
         // 监听设置页正则更新
         window.addEventListener('regexConfigUpdated', (e) => {
-            console.log('🔄 [DEBUG] 收到正则配置更新事件');
+            //console.log('🔄 [DEBUG] 收到正则配置更新事件');
             if (patternExtractor?.updatePatterns) {
                 patternExtractor.updatePatterns(e.detail);
             } else if (patternExtractor?.loadCustomPatterns) {
@@ -147,7 +147,7 @@ async function loadFilters() {
         });
 
         filtersLoaded = true;
-        console.log('✅ [DEBUG] 统一筛选器加载完毕');
+        //console.log('✅ [DEBUG] 统一筛选器加载完毕');
     } catch (err) {
         console.error('❌ [DEBUG] 筛选器加载失败:', err);
         filtersLoaded = false;
@@ -156,7 +156,7 @@ async function loadFilters() {
 
 // -------------------- 统一内容提取 --------------------
 async function extractFromContent(content, sourceUrl = 'unknown') {
-    console.log('🔍 [DEBUG] 开始统一内容提取...');
+    //console.log('🔍 [DEBUG] 开始统一内容提取...');
 
     if (!patternExtractor || typeof patternExtractor.extractPatterns !== 'function') {
         throw new Error('PatternExtractor.extractPatterns 不可用');
@@ -182,9 +182,9 @@ function convertRelativeApisToAbsolute(results) {
     // 不再将相对路径API自动转换并添加到绝对路径API中
     // 这样可以避免意外添加不符合绝对路径API正则要求的数据
     
-    console.log('🔍 [DEBUG] API转换完成（已禁用自动转换）:');
-    console.log('  - 保留的相对路径API:', results.relativeApis?.length || 0, '个');
-    console.log('  - 保留的绝对路径API:', results.absoluteApis?.length || 0, '个');
+    //console.log('🔍 [DEBUG] API转换完成（已禁用自动转换）:');
+    //console.log('  - 保留的相对路径API:', results.relativeApis?.length || 0, '个');
+    //console.log('  - 保留的绝对路径API:', results.absoluteApis?.length || 0, '个');
     
     // 如果需要转换功能，应该在PatternExtractor中通过正则表达式来实现
     // 而不是在这里进行强制转换
@@ -278,7 +278,7 @@ function flushPendingResults() {
 
 // -------------------- 页面初始化 --------------------
 async function initializePage() {
-    console.log('🔍 [DEBUG] 页面初始化中...');
+    //console.log('🔍 [DEBUG] 页面初始化中...');
 
     if (typeof chrome === 'undefined' || !chrome.storage) {
         console.error('❌ Chrome扩展API不可用');
@@ -397,7 +397,7 @@ function initializeScanResults() {
 async function startScan() {
     if (isScanRunning) return;
     
-    console.log('🚀 [DEBUG] 开始深度扫描...');
+    //console.log('🚀 [DEBUG] 开始深度扫描...');
     isScanRunning = true;
     isPaused = false;
     currentDepth = 0;
@@ -415,7 +415,7 @@ async function startScan() {
     try {
         // 收集初始URL
         const initialUrls = await collectInitialUrls();
-        console.log(`📋 [DEBUG] 收集到 ${initialUrls.length} 个初始URL`);
+        //console.log(`📋 [DEBUG] 收集到 ${initialUrls.length} 个初始URL`);
         addLogEntry(`📋 收集到 ${initialUrls.length} 个初始扫描URL`, 'info');
         
         if (initialUrls.length === 0) {
@@ -471,7 +471,7 @@ function stopScan() {
 
 // -------------------- 初始URL收集 --------------------
 async function collectInitialUrls() {
-    console.log('📋 [DEBUG] 开始收集初始URL - 从普通扫描结果中获取');
+    //console.log('📋 [DEBUG] 开始收集初始URL - 从普通扫描结果中获取');
     
     const urls = new Set();
     
@@ -484,7 +484,7 @@ async function collectInitialUrls() {
         }
         
         const initialResults = scanConfig.initialResults;
-        console.log('📊 [DEBUG] 找到普通扫描结果:', Object.keys(initialResults));
+        //console.log('📊 [DEBUG] 找到普通扫描结果:', Object.keys(initialResults));
         console.log('📊 [DEBUG] 普通扫描结果统计:', {
             absoluteApis: initialResults.absoluteApis?.length || 0,
             jsFiles: initialResults.jsFiles?.length || 0,
@@ -502,24 +502,24 @@ async function collectInitialUrls() {
         
         // 从普通扫描结果中收集JS文件进行深度扫描
         if (scanConfig.scanJsFiles && initialResults.jsFiles) {
-            console.log(`📁 [DEBUG] 从普通扫描结果收集JS文件: ${initialResults.jsFiles.length} 个`);
+            //console.log(`📁 [DEBUG] 从普通扫描结果收集JS文件: ${initialResults.jsFiles.length} 个`);
             for (const jsFile of initialResults.jsFiles) {
                 const fullUrl = resolveUrl(jsFile, scanConfig.baseUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                     urls.add(fullUrl);
-                    console.log(`✅ [DEBUG] 添加JS文件: ${fullUrl}`);
+                    //console.log(`✅ [DEBUG] 添加JS文件: ${fullUrl}`);
                 }
             }
         }
         
         // 从普通扫描结果中收集HTML页面进行深度扫描
         if (scanConfig.scanHtmlFiles && initialResults.urls) {
-            console.log(`🌐 [DEBUG] 从普通扫描结果收集URL: ${initialResults.urls.length} 个`);
+            //console.log(`🌐 [DEBUG] 从普通扫描结果收集URL: ${initialResults.urls.length} 个`);
             for (const url of initialResults.urls) {
                 const fullUrl = resolveUrl(url, scanConfig.baseUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl) && isValidPageUrl(fullUrl)) {
                     urls.add(fullUrl);
-                    console.log(`✅ [DEBUG] 添加页面URL: ${fullUrl}`);
+                    //console.log(`✅ [DEBUG] 添加页面URL: ${fullUrl}`);
                 }
             }
         }
@@ -528,24 +528,24 @@ async function collectInitialUrls() {
         if (scanConfig.scanApiFiles) {
             // 绝对路径API
             if (initialResults.absoluteApis) {
-                console.log(`🔗 [DEBUG] 从普通扫描结果收集绝对API: ${initialResults.absoluteApis.length} 个`);
+                //console.log(`🔗 [DEBUG] 从普通扫描结果收集绝对API: ${initialResults.absoluteApis.length} 个`);
                 for (const api of initialResults.absoluteApis) {
                     const fullUrl = resolveUrl(api, scanConfig.baseUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
-                        console.log(`✅ [DEBUG] 添加绝对API: ${fullUrl}`);
+                        //console.log(`✅ [DEBUG] 添加绝对API: ${fullUrl}`);
                     }
                 }
             }
             
             // 相对路径API
             if (initialResults.relativeApis) {
-                console.log(`🔗 [DEBUG] 从普通扫描结果收集相对API: ${initialResults.relativeApis.length} 个`);
+                //console.log(`🔗 [DEBUG] 从普通扫描结果收集相对API: ${initialResults.relativeApis.length} 个`);
                 for (const api of initialResults.relativeApis) {
                     const fullUrl = resolveUrl(api, scanConfig.baseUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
-                        console.log(`✅ [DEBUG] 添加相对API: ${fullUrl}`);
+                        //console.log(`✅ [DEBUG] 添加相对API: ${fullUrl}`);
                     }
                 }
             }
@@ -557,8 +557,8 @@ async function collectInitialUrls() {
             urls.add(scanConfig.baseUrl);
         }
         
-        console.log(`📊 [DEBUG] 初始URL收集完成，共收集到 ${urls.size} 个URL`);
-        console.log(`📊 [DEBUG] 初始结果数量: ${Object.values(scanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0)}`);
+        //console.log(`📊 [DEBUG] 初始URL收集完成，共收集到 ${urls.size} 个URL`);
+        //console.log(`📊 [DEBUG] 初始结果数量: ${Object.values(scanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0)}`);
         return Array.from(urls);
         
     } catch (error) {
@@ -577,11 +577,11 @@ async function performLayeredScan(initialUrls) {
         currentDepth = depth;
         
         if (currentUrls.length === 0) {
-            console.log(`第 ${depth} 层没有URL需要扫描`);
+            //console.log(`第 ${depth} 层没有URL需要扫描`);
             break;
         }
         
-        console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
+        //console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
         addLogEntry(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`, 'info');
         
         // 🔥 记录当前层要扫描的URL列表（前几个）
@@ -596,7 +596,7 @@ async function performLayeredScan(initialUrls) {
         // 准备下一层URL
         currentUrls = newUrls.filter(url => !scannedUrls.has(url));
         
-        console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
+        //console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
         addLogEntry(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`, 'success');
         
         // 🔥 记录下一层将要扫描的URL数量
@@ -724,7 +724,7 @@ async function scanUrlBatch(urls, depth) {
 // -------------------- URL内容获取 --------------------
 async function fetchUrlContent(url) {
     try {
-        console.log(`🔥 深度扫描 - 准备通过后台脚本请求: ${url}`);
+        //console.log(`🔥 深度扫描 - 准备通过后台脚本请求: ${url}`);
         
         const requestOptions = {
             method: 'GET',
@@ -888,7 +888,7 @@ async function saveResultsToStorage() {
             }
         }
         
-        console.log('📝 [DEBUG] 使用存储键:', domainKey);
+        //console.log('📝 [DEBUG] 使用存储键:', domainKey);
         
         // 获取当前存储中的普通扫描结果
         const storageData = await chrome.storage.local.get([domainKey]);
@@ -928,8 +928,8 @@ async function saveResultsToStorage() {
         
         await chrome.storage.local.set(saveData);
         
-        console.log('✅ 深度扫描结果已合并到主扫描结果中');
-        console.log('📊 存储键:', domainKey);
+        //console.log('✅ 深度扫描结果已合并到主扫描结果中');
+        //console.log('📊 存储键:', domainKey);
         console.log('📊 合并后结果统计:', {
             总数: Object.values(mergedResults).reduce((sum, arr) => {
                 return sum + (Array.isArray(arr) ? arr.length : 0);
@@ -944,7 +944,7 @@ async function saveResultsToStorage() {
 
 // -------------------- 扫描完成 --------------------
 async function completeScan() {
-    console.log('🎉 深度扫描完成！');
+    //console.log('🎉 深度扫描完成！');
     
     // 🔥 优化：确保所有待处理结果都被合并
     flushPendingResults();
@@ -987,13 +987,13 @@ async function completeScan() {
             }
         }, (response) => {
             if (chrome.runtime.lastError) {
-                console.log('主页面可能已关闭，无法发送完成通知');
+                //console.log('主页面可能已关闭，无法发送完成通知');
             } else {
-                console.log('✅ 已通知主页面深度扫描完成');
+                //console.log('✅ 已通知主页面深度扫描完成');
             }
         });
     } catch (error) {
-        console.log('发送完成通知失败:', error);
+        //console.log('发送完成通知失败:', error);
     }
     
     // 🔥 优化：最终更新UI
@@ -1022,7 +1022,7 @@ async function completeScan() {
 
 // 内存清理函数
 function cleanupMemory() {
-    console.log('🧹 开始清理内存...');
+    //console.log('🧹 开始清理内存...');
     
     // 清理URL内容缓存，只保留最近的100个
     if (urlContentCache.size > 100) {
@@ -1030,7 +1030,7 @@ function cleanupMemory() {
         const toKeep = entries.slice(-100);
         urlContentCache.clear();
         toKeep.forEach(([key, value]) => urlContentCache.set(key, value));
-        console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
+        //console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
     }
     
     // 清理待处理结果
@@ -1049,7 +1049,7 @@ function cleanupMemory() {
         updateTimer = null;
     }
     
-    console.log('✅ 内存清理完成');
+    //console.log('✅ 内存清理完成');
 }
 
 // -------------------- UI更新函数 --------------------
@@ -1106,18 +1106,18 @@ function updateResultsDisplay() {
     // 先合并所有待处理的结果
     flushPendingResults();
     
-    console.log(`🔍 [DEBUG] 开始更新深度扫描结果显示... (第${displayUpdateCount}次更新)`);
+    //console.log(`🔍 [DEBUG] 开始更新深度扫描结果显示... (第${displayUpdateCount}次更新)`);
     
     // 🔥 减少调试日志输出，避免控制台卡顿
     if (displayUpdateCount % 10 === 0) { // 每10次更新才输出详细日志
-        console.log('🔍 [DEBUG] API数据检查:');
-        console.log('  - absoluteApis:', scanResults.absoluteApis?.length || 0, '个');
-        console.log('  - relativeApis:', scanResults.relativeApis?.length || 0, '个');
+        //console.log('🔍 [DEBUG] API数据检查:');
+        //console.log('  - absoluteApis:', scanResults.absoluteApis?.length || 0, '个');
+        //console.log('  - relativeApis:', scanResults.relativeApis?.length || 0, '个');
         if (scanResults.absoluteApis?.length > 0) {
-            console.log('  - absoluteApis 示例:', scanResults.absoluteApis.slice(0, 3));
+            //console.log('  - absoluteApis 示例:', scanResults.absoluteApis.slice(0, 3));
         }
         if (scanResults.relativeApis?.length > 0) {
-            console.log('  - relativeApis 示例:', scanResults.relativeApis.slice(0, 3));
+            //console.log('  - relativeApis 示例:', scanResults.relativeApis.slice(0, 3));
         }
     }
     
@@ -1165,7 +1165,7 @@ function updateResultsDisplay() {
         
         // 🔥 优化：减少调试日志，只在必要时输出
         if (displayUpdateCount % 20 === 0) {
-            console.log(`🔍 [DEBUG] 处理类别 ${key}: ${items.length} 个项目`);
+            //console.log(`🔍 [DEBUG] 处理类别 ${key}: ${items.length} 个项目`);
         }
         
         if (items.length > 0) {
@@ -1204,10 +1204,10 @@ function updateResultsDisplay() {
     });
     
     // 🔥 处理自定义正则结果 - 恢复被删除的功能
-    console.log('🔍 [DEBUG] 开始处理自定义正则结果...');
+    //console.log('🔍 [DEBUG] 开始处理自定义正则结果...');
     Object.keys(scanResults).forEach(key => {
         if (key.startsWith('custom_') && scanResults[key]?.length > 0) {
-            console.log(`🎯 [DEBUG] 发现自定义正则结果: ${key}, 数量: ${scanResults[key].length}`);
+            //console.log(`🎯 [DEBUG] 发现自定义正则结果: ${key}, 数量: ${scanResults[key].length}`);
             createCustomResultCategory(key, scanResults[key]);
         }
     });
@@ -1216,7 +1216,7 @@ function updateResultsDisplay() {
     Object.keys(scanResults).forEach(key => {
         // 跳过已处理的预定义类别和自定义正则
         if (!categoryMapping[key] && !key.startsWith('custom_') && scanResults[key]?.length > 0) {
-            console.log(`🆕 [DEBUG] 发现新的结果类别: ${key}, 数量: ${scanResults[key].length}`);
+            //console.log(`🆕 [DEBUG] 发现新的结果类别: ${key}, 数量: ${scanResults[key].length}`);
             createCustomResultCategory(key, scanResults[key]);
         }
     });
@@ -1383,12 +1383,12 @@ async function isSameDomain(url, baseUrl) {
         
         // 获取域名扫描设置
         const domainSettings = await getDomainScanSettings();
-        console.log('🔍 [深度扫描] 当前域名设置:', domainSettings);
-        console.log('🔍 [深度扫描] 检查URL:', url, '基准URL:', baseUrl);
+        //console.log('🔍 [深度扫描] 当前域名设置:', domainSettings);
+        //console.log('🔍 [深度扫描] 检查URL:', url, '基准URL:', baseUrl);
         
         // 如果允许扫描所有域名
         if (domainSettings.allowAllDomains) {
-            console.log(`🌐 [深度扫描] 允许所有域名: ${urlObj.hostname}`);
+            //console.log(`🌐 [深度扫描] 允许所有域名: ${urlObj.hostname}`);
             addLogEntry(`🌐 允许所有域名: ${urlObj.hostname}`, 'info');
             return true;
         }
@@ -1404,7 +1404,7 @@ async function isSameDomain(url, baseUrl) {
                                     baseHostname.endsWith('.' + urlHostname);
             
             if (isSameOrSubdomain) {
-                console.log(`🔗 [深度扫描] 允许子域名: ${urlHostname} (基于 ${baseHostname})`);
+                //console.log(`🔗 [深度扫描] 允许子域名: ${urlHostname} (基于 ${baseHostname})`);
                 //addLogEntry(`🔗 允许子域名: ${urlHostname}`, 'info');
                 return true;
             }
@@ -1413,9 +1413,9 @@ async function isSameDomain(url, baseUrl) {
         // 默认：只允许完全相同的域名
         const isSame = urlObj.hostname === baseUrlObj.hostname;
         if (isSame) {
-            console.log(`✅ [深度扫描] 同域名: ${urlObj.hostname}`);
+            //console.log(`✅ [深度扫描] 同域名: ${urlObj.hostname}`);
         } else {
-            console.log(`❌ [深度扫描] 不同域名: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
+            //console.log(`❌ [深度扫描] 不同域名: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
         }
         return isSame;
         
@@ -1439,7 +1439,7 @@ async function getDomainScanSettings() {
             allowSubdomains: false,
             allowAllDomains: false
         };
-        console.log('🔍 [深度扫描] 从storage获取的域名设置:', domainSettings);
+        //console.log('🔍 [深度扫描] 从storage获取的域名设置:', domainSettings);
         return domainSettings;
     } catch (error) {
         console.error('[深度扫描] 获取域名扫描设置失败:', error);
@@ -1667,7 +1667,7 @@ async function generateFileName(extension = 'json') {
         if (scanConfig && scanConfig.baseUrl) {
             const url = new URL(scanConfig.baseUrl);
             domain = url.hostname;
-            console.log('从扫描配置获取到域名:', domain);
+            //console.log('从扫描配置获取到域名:', domain);
         } else {
             // 备选方案：从当前窗口URL参数中提取目标域名
             if (window.location && window.location.href) {
@@ -1676,12 +1676,12 @@ async function generateFileName(extension = 'json') {
                 if (targetUrl) {
                     const url = new URL(targetUrl);
                     domain = url.hostname;
-                    console.log('从URL参数获取到域名:', domain);
+                    //console.log('从URL参数获取到域名:', domain);
                 }
             }
         }
     } catch (e) {
-        console.log('获取域名失败，使用默认名称:', e);
+        //console.log('获取域名失败，使用默认名称:', e);
         // 使用时间戳作为标识
         domain = `deep-scan_${Date.now()}`;
     }
@@ -1695,4 +1695,4 @@ async function generateFileName(extension = 'json') {
     return `${domain}__${randomNum}`;
 }
 
-console.log('✅ [DEBUG] 深度扫描窗口脚本（统一正则版本）加载完成');
+//console.log('✅ [DEBUG] 深度扫描窗口脚本（统一正则版本）加载完成');

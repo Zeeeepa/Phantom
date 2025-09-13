@@ -10,7 +10,7 @@ let requestTimeout = 5000;
 
 // 页面加载完成后的初始化
 async function initializePage() {
-    console.log('页面加载完成，准备开始测试');
+    //console.log('页面加载完成，准备开始测试');
     
     try {
         // 从chrome.storage读取测试配置
@@ -26,7 +26,7 @@ async function initializePage() {
         maxConcurrency = testData.concurrency || 8;
         requestTimeout = testData.timeout || 5000;
         
-        console.log('测试配置加载成功:', testData);
+        //console.log('测试配置加载成功:', testData);
         
         // 更新页面信息
         document.getElementById('testInfo').textContent = 
@@ -94,7 +94,7 @@ async function initializePage() {
     tableHeaders.forEach(header => {
         header.addEventListener('click', function() {
             const columnIndex = parseInt(this.getAttribute('data-column'));
-            console.log('点击表头，列索引:', columnIndex);
+            //console.log('点击表头，列索引:', columnIndex);
             sortTable(columnIndex);
         });
     });
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', initializePage);
 
 // 开始测试
 async function startTest() {
-    console.log('startTest 被调用');
+    //console.log('startTest 被调用');
     
     if (!testData || isTestRunning) return;
     
@@ -246,13 +246,13 @@ async function startTest() {
         return;
     }
     
-    console.log('开始测试，项目数:', testData.items.length);
+    //console.log('开始测试，项目数:', testData.items.length);
     
     // 扩展测试项目以支持多个baseapi路径
     const expandedItems = expandItemsForMultipleBasePaths(testData.items, testData.categoryKey, testData.baseUrl);
     testData.items = expandedItems;
     
-    console.log(`🔧 原始测试项目数: ${testData.items.length}, 扩展后项目数: ${expandedItems.length}`);
+    //console.log(`🔧 原始测试项目数: ${testData.items.length}, 扩展后项目数: ${expandedItems.length}`);
     
     isTestRunning = true;
     isPaused = false;
@@ -300,18 +300,18 @@ function pauseTest() {
 
 // 处理下一批请求
 function processNextBatch() {
-    console.log('processNextBatch 被调用');
-    console.log('isPaused:', isPaused, 'isTestRunning:', isTestRunning);
-    console.log('activeRequests:', activeRequests, 'maxConcurrency:', maxConcurrency);
-    console.log('currentIndex:', currentIndex, 'items.length:', testData.items.length);
+    //console.log('processNextBatch 被调用');
+    //console.log('isPaused:', isPaused, 'isTestRunning:', isTestRunning);
+    //console.log('activeRequests:', activeRequests, 'maxConcurrency:', maxConcurrency);
+    //console.log('currentIndex:', currentIndex, 'items.length:', testData.items.length);
     
     if (isPaused || !isTestRunning) {
-        console.log('测试被暂停或未运行，退出');
+        //console.log('测试被暂停或未运行，退出');
         return;
     }
     
     if (currentIndex >= testData.items.length) {
-        console.log('所有项目已处理完成');
+        //console.log('所有项目已处理完成');
         return;
     }
     
@@ -323,11 +323,11 @@ function processNextBatch() {
         activeRequests++;
         batchStarted = true;
         
-        console.log('开始处理项目:', itemIndex, item);
+        //console.log('开始处理项目:', itemIndex, item);
         
         processSingleRequest(item, itemIndex)
             .then(result => {
-                console.log('请求完成:', itemIndex, result);
+                //console.log('请求完成:', itemIndex, result);
                 activeRequests--;
                 testResults.push(result);
                 addResultToTable(result);
@@ -336,7 +336,7 @@ function processNextBatch() {
                 if (currentIndex < testData.items.length && !isPaused) {
                     processNextBatch();
                 } else if (activeRequests === 0 && currentIndex >= testData.items.length) {
-                    console.log('所有请求完成，调用 completeTest');
+                    //console.log('所有请求完成，调用 completeTest');
                     completeTest();
                 }
             })
@@ -366,16 +366,16 @@ function processNextBatch() {
                 if (currentIndex < testData.items.length && !isPaused) {
                     processNextBatch();
                 } else if (activeRequests === 0 && currentIndex >= testData.items.length) {
-                    console.log('所有请求完成（含错误），调用 completeTest');
+                    //console.log('所有请求完成（含错误），调用 completeTest');
                     completeTest();
                 }
             });
     }
     
     if (batchStarted) {
-        console.log('批次已启动，当前活跃请求数:', activeRequests);
+        //console.log('批次已启动，当前活跃请求数:', activeRequests);
     } else {
-        console.log('没有启动新的批次');
+        //console.log('没有启动新的批次');
     }
 }
 
@@ -810,7 +810,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
 
 // 发送请求 - 通过后台脚本
 async function makeRequest(url, method, timeout = 5000) {
-    console.log(`🌐 测试窗口通过后台脚本请求: ${url}`);
+    //console.log(`🌐 测试窗口通过后台脚本请求: ${url}`);
     
     const requestOptions = {
         method: method,

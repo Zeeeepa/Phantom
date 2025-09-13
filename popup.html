@@ -826,6 +826,67 @@
             box-shadow: 0 0 5px rgba(0, 212, 170, 0.3);
         }
 
+        /* 脚本项布局调整 */
+        .script-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .script-name {
+            flex: 1;
+            color: #fff;
+            font-size: 12px;
+            margin-right: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 120px; /* 限制脚本名称宽度 */
+        }
+
+        /* 按钮容器 */
+        .script-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0; /* 防止按钮被压缩 */
+        }
+
+        /* 统一的按钮样式 */
+        .inject-btn, .modify-btn, .delete-btn {
+            padding: 4px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.2s ease;
+            min-width: 36px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        /* 悬停效果 */
+        .inject-btn:hover, .modify-btn:hover, .delete-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* 激活状态 */
+        .inject-btn:active, .modify-btn:active, .delete-btn:active {
+            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
         .regex-config {
             margin-bottom: 15px;
         }
@@ -1129,6 +1190,69 @@
           transform: scale(.98);
           filter: brightness(.9);
         }
+        /* JS注入页面样式 */
+        .script-info {
+            font-size: 11px;
+            color: #888;
+            margin-left: 10px;
+        }
+
+
+
+        .header-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            gap: 8px;
+        }
+
+        .header-input-group input {
+            flex: 1;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 3px;
+        }
+
+        .header-input-group input[readonly] {
+            background: #444;
+            cursor: default;
+        }
+
+        /* JS注入脚本列表样式 */
+        .header-input-group span {
+            flex: 0 1 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        /* 统一按钮样式 */
+        .inject-btn, .modify-btn, .delete-btn {
+            padding: 6px 12px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            min-width: 50px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #4a4a4a;
+        }
+
+        .inject-btn:hover, .modify-btn:hover, .delete-btn:hover {
+            background: #5a5a5a;
+        }
     </style>
 </head>
 <body>
@@ -1153,6 +1277,7 @@
                 <div class="nav-tab active" data-page="scan">扫描</div>
                 <div class="nav-tab" data-page="deep">深度扫描</div>
                 <div class="nav-tab" data-page="test">API测试</div>
+                <div class="nav-tab" data-page="js-injection">JS注入</div>
                 <div class="nav-tab" data-page="settings">设置</div>
                 <div class="nav-tab" data-page="about">关于</div>
             </div>
@@ -1269,6 +1394,47 @@
                                 <div id="progressBar" class="progress-bar"></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- JS注入页面 -->
+                <div class="page" id="js-injection-page">
+                    <!-- 脚本管理 -->
+                    <div class="api-test-section">
+                        <div class="config-title">脚本管理</div>
+
+                        
+                        <!-- 脚本列表 - 完全模仿设置页面的请求头样式 -->
+                        <div class="headers-controls">
+                            <div id="scriptsContainer">
+                                <!-- 示例脚本项 - 完全按照header-input-group样式 -->
+                                <div class="header-input-group" style="display: none;" id="scriptTemplate">
+                                    <span style="flex: 0 1 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font-size: 14px;">脚本名称</span>
+                                    <button class="inject-btn" title="注入">注入</button>
+                                    <button class="modify-btn" title="修改">修改</button>
+                                    <button class="delete-btn" title="删除">删除</button>
+                                </div>
+                                
+                                <!-- 空状态提示 -->
+                                <div id="noScriptsMessage" style="padding: 20px; text-align: center; color: #888; font-size: 12px;">
+                                    暂无保存的脚本，点击下方"添加脚本"按钮开始创建
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="test-controls" style="margin-top: 15px;">
+                            <button id="addScriptBtn" class="action-button" style="flex: 1;">
+                                <span class="text">添加脚本</span>
+                                <span class="shine"></span>
+                                <span class="border-tl"></span>
+                                <span class="border-tr"></span>
+                                <span class="border-bl"></span>
+                                <span class="border-br"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- 隐藏的文件输入 -->
+                        <input type="file" id="importScriptsFile" accept=".json" style="display: none;">
                     </div>
                 </div>
                 
@@ -1548,7 +1714,7 @@
                         <div class="config-title">工具信息</div>
                         <div style="color: #ccc; line-height: 1.6; font-size: 13px;">
                             <p><strong>工具名称:</strong> 幻影</p>
-                            <p><strong>版本:</strong> 1.7.2</p>
+                            <p><strong>版本:</strong> 1.7.3</p>
                             <p><strong>作者:</strong> Phantom&yihuo&Xuan8a1</p>
                             <p><strong>site:</strong> https://www.cn-fnst.top/</p>
                             <p><strong>site:</strong> https://blog.h-acker.cn/</p>
@@ -1662,6 +1828,93 @@
         </div>
     </div>
     
+    <!-- 添加脚本弹窗 -->
+    <div id="addScriptModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加新脚本</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="scriptNameInput">脚本名称:</label>
+                    <input type="text" id="scriptNameInput" placeholder="请输入脚本名称..." style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.7); color: #fff; border: 1px solid #444; font-size: 12px;">
+                </div>
+                <div class="form-group">
+                    <label for="scriptDescInput">脚本描述 (可选):</label>
+                    <textarea id="scriptDescInput" placeholder="请输入脚本描述..." style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.7); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 32px; max-height: 150px; resize: vertical; transition: min-height 0.3s ease;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="scriptCodeInput">JavaScript代码:</label>
+                    <textarea id="scriptCodeInput" placeholder="请输入JavaScript代码...&#10;&#10;示例：&#10;console.log('Hello from script!');&#10;document.title = 'Modified by Phantom';" style="width: 100%; padding: 12px; border-radius: 6px; background: rgba(0, 0, 0, 0.7); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 200px; max-height: 300px; resize: vertical; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; line-height: 1.4; tab-size: 2;"></textarea>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="saveScriptBtn" class="action-button" style="flex: 1;">
+                    <span class="text">保存脚本</span>
+                    <span class="shine"></span>
+                    <span class="border-tl"></span>
+                    <span class="border-tr"></span>
+                    <span class="border-bl"></span>
+                    <span class="border-br"></span>
+                </button>
+                <button id="cancelAddScriptBtn" class="action-button" style="flex: 1; background: rgba(231, 76, 60, 0.3); border-color: rgba(231, 76, 60, 0.5);">
+                    <span class="text">取消</span>
+                    <span class="shine"></span>
+                    <span class="border-tl"></span>
+                    <span class="border-tr"></span>
+                    <span class="border-bl"></span>
+                    <span class="border-br"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详细简介查看窗口 -->
+    <div id="scriptDetailModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="scriptDetailTitle">脚本详情</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>脚本名称:</label>
+                    <div id="scriptDetailName" style="padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; color: #fff; font-size: 14px; margin-top: 5px;"></div>
+                </div>
+                <div class="form-group">
+                    <label>脚本描述:</label>
+                    <div id="scriptDetailDesc" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; color: #fff; font-size: 12px; margin-top: 5px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; line-height: 1.4; user-select: text; cursor: text;"></div>
+                </div>
+                <!--<div class="form-group">
+                    <label>创建时间:</label>
+                    <div id="scriptDetailCreated" style="padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; color: #aaa; font-size: 12px; margin-top: 5px;"></div>
+                </div>
+                <div class="form-group" id="scriptDetailUpdatedGroup" style="display: none;">
+                    <label>更新时间:</label>
+                    <div id="scriptDetailUpdated" style="padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; color: #aaa; font-size: 12px; margin-top: 5px;"></div>
+                </div>-->
+            </div>
+            <div class="modal-footer">
+                <button id="copyDescBtn" class="action-button" style="flex: 1;">
+                    <span class="text">复制描述</span>
+                    <span class="shine"></span>
+                    <span class="border-tl"></span>
+                    <span class="border-tr"></span>
+                    <span class="border-bl"></span>
+                    <span class="border-br"></span>
+                </button>
+                <button id="closeDetailBtn" class="action-button" style="flex: 1; background: rgba(108, 117, 125, 0.3); border-color: rgba(108, 117, 125, 0.5);">
+                    <span class="text">关闭</span>
+                    <span class="shine"></span>
+                    <span class="border-tl"></span>
+                    <span class="border-tr"></span>
+                    <span class="border-bl"></span>
+                    <span class="border-br"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- 按顺序引入所有模块 -->
     <script src="src/scanner/PatternExtractor.js"></script>
     <script src="src/scanner/ContentExtractor.js"></script>
@@ -1672,6 +1925,8 @@
     <script src="src/api/ApiTester.js"></script>
     <script src="src/utils/ExportManager.js"></script>
     <script src="src/utils/SettingsManager.js"></script>
+    <script src="src/core/jshook-presets.js"></script>
+    <script src="src/core/JSInjector.js"></script>
     <script src="src/main.js"></script>
 </body>
 </html>

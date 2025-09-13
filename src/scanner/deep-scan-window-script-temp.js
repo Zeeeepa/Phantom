@@ -1,6 +1,6 @@
 // 完成扫描函数的修改版本
 async function completeScan() {
-    console.log('🔍 [DEBUG] completeScan函数被调用');
+    //console.log('🔍 [DEBUG] completeScan函数被调用');
     
     isScanRunning = false;
     isPaused = false;
@@ -57,6 +57,6 @@ async function completeScan() {
             }
         });
     } catch (error) {
-        console.log('通知主扩展失败（可能已关闭），但结果已保存到storage:', error);
+        //console.log('通知主扩展失败（可能已关闭），但结果已保存到storage:', error);
     }
 }

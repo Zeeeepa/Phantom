@@ -18,15 +18,15 @@ class DeepScanWindow {
 
     // 创建深度扫描窗口
     async createDeepScanWindow(config) {
-        console.log('🔍 [DEBUG] 开始创建深度扫描窗口，配置:', config);
+        //console.log('🔍 [DEBUG] 开始创建深度扫描窗口，配置:', config);
         
         let baseUrl = '';
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            console.log('🔍 [DEBUG] 当前标签页:', tab);
+            //console.log('🔍 [DEBUG] 当前标签页:', tab);
             if (tab && tab.url) {
                 baseUrl = new URL(tab.url).origin;
-                console.log('🔍 [DEBUG] 解析得到baseUrl:', baseUrl);
+                //console.log('🔍 [DEBUG] 解析得到baseUrl:', baseUrl);
             }
         } catch (error) {
             console.error('❌ [DEBUG] 获取当前页面URL失败:', error);
@@ -45,7 +45,7 @@ class DeepScanWindow {
             timestamp: Date.now()
         };
 
-        console.log('🔍 [DEBUG] 准备保存的扫描配置:', scanConfig);
+        //console.log('🔍 [DEBUG] 准备保存的扫描配置:', scanConfig);
         console.log('🔍 [DEBUG] 初始结果数量统计:', {
             absoluteApis: scanConfig.initialResults.absoluteApis?.length || 0,
             domains: scanConfig.initialResults.domains?.length || 0,
@@ -55,13 +55,13 @@ class DeepScanWindow {
 
         // 将配置保存到chrome.storage，供扫描窗口读取
         try {
-            console.log('🔍 [DEBUG] 开始保存配置到chrome.storage...');
+            //console.log('🔍 [DEBUG] 开始保存配置到chrome.storage...');
             await chrome.storage.local.set({ 'deepScanConfig': scanConfig });
-            console.log('✅ [DEBUG] 深度扫描配置已保存到storage');
+            //console.log('✅ [DEBUG] 深度扫描配置已保存到storage');
             
             // 验证保存是否成功
             const verification = await chrome.storage.local.get(['deepScanConfig']);
-            console.log('🔍 [DEBUG] 验证保存结果:', verification.deepScanConfig ? '成功' : '失败');
+            //console.log('🔍 [DEBUG] 验证保存结果:', verification.deepScanConfig ? '成功' : '失败');
             
         } catch (error) {
             console.error('❌ [DEBUG] 保存深度扫描配置失败:', error);
@@ -81,7 +81,7 @@ class DeepScanWindow {
                 focused: true
             });
 
-            console.log('深度扫描窗口已创建:', newWindow.id);
+            //console.log('深度扫描窗口已创建:', newWindow.id);
             return newWindow;
         } catch (error) {
             console.error('创建深度扫描窗口失败:', error);
@@ -92,11 +92,11 @@ class DeepScanWindow {
     // 开始深度扫描（从扩展页面调用）
     async startDeepScan() {
         if (this.srcMiner.deepScanRunning) {
-            console.log('深度扫描已在运行中');
+            //console.log('深度扫描已在运行中');
             return;
         }
 
-        console.log('启动深度扫描窗口...');
+        //console.log('启动深度扫描窗口...');
 
         // 获取配置参数
         const maxDepthInput = document.getElementById('maxDepth');
@@ -258,7 +258,7 @@ class DeepScanWindow {
 
     // 处理扫描完成
     handleScanComplete(finalResults) {
-        console.log('🎉 深度扫描完成！');
+        //console.log('🎉 深度扫描完成！');
         
         // 更新最终结果
         if (finalResults) {

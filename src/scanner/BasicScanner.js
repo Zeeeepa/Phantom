@@ -40,7 +40,7 @@ class BasicScanner {
                     results = response;
                 }
             } catch (contentError) {
-                console.log('Content script未响应，尝试注入脚本');
+                //console.log('Content script未响应，尝试注入脚本');
             }
             
             // 方法2: 如果content script没有响应，注入必要的脚本文件
@@ -143,47 +143,47 @@ class BasicScanner {
     // 注入到页面中执行的提取函数
     async extractSensitiveInfo(targetUrl) {
         try {
-            console.log('🚀🚀🚀 BasicScanner.extractSensitiveInfo 方法被调用！时间戳:', Date.now());
-            console.log('🚀🚀🚀 BasicScanner 目标URL:', targetUrl);
-            console.log('🚀🚀🚀 BasicScanner 当前URL:', window.location.href);
+            //console.log('🚀🚀🚀 BasicScanner.extractSensitiveInfo 方法被调用！时间戳:', Date.now());
+            //console.log('🚀🚀🚀 BasicScanner 目标URL:', targetUrl);
+            //console.log('🚀🚀🚀 BasicScanner 当前URL:', window.location.href);
             
             // 确保在顶层窗口执行
             if (window !== window.top) {
-                console.log('跳过iframe扫描，只扫描顶层页面');
+                //console.log('跳过iframe扫描，只扫描顶层页面');
                 return this.getEmptyResults();
             }
             
             // 验证当前页面URL是否匹配目标URL
             if (targetUrl && window.location.href !== targetUrl) {
-                console.log('页面URL不匹配，跳过扫描');
+                //console.log('页面URL不匹配，跳过扫描');
                 return this.getEmptyResults();
             }
             
-            console.log('🔍 BasicScanner开始扫描页面:', window.location.href);
+            //console.log('🔍 BasicScanner开始扫描页面:', window.location.href);
             
             // 检查是否有新的模块化系统可用
             if (typeof PatternExtractor !== 'undefined' && typeof ContentExtractor !== 'undefined') {
-                console.log('🔄 BasicScanner使用统一化正则提取系统');
+                //console.log('🔄 BasicScanner使用统一化正则提取系统');
                 try {
                     // 确保PatternExtractor已经初始化并加载了最新配置
-                    console.log('🔧 BasicScanner检查PatternExtractor状态...');
+                    //console.log('🔧 BasicScanner检查PatternExtractor状态...');
                     
                     if (!window.patternExtractor) {
-                        console.log('🔧 BasicScanner初始化新的PatternExtractor...');
+                        //console.log('🔧 BasicScanner初始化新的PatternExtractor...');
                         window.patternExtractor = new PatternExtractor();
                     }
                     
                     // 每次扫描都强制重新加载最新配置，确保使用最新设置
-                    console.log('🔄 BasicScanner强制重新加载最新配置...');
+                    //console.log('🔄 BasicScanner强制重新加载最新配置...');
                     await window.patternExtractor.loadCustomPatterns();
                     
-                    console.log('✅ BasicScanner配置检查完成');
-                    console.log('📊 BasicScanner最终可用的正则模式:', Object.keys(window.patternExtractor.patterns));
+                    //console.log('✅ BasicScanner配置检查完成');
+                    //console.log('📊 BasicScanner最终可用的正则模式:', Object.keys(window.patternExtractor.patterns));
                     
                     // 验证自定义正则是否存在
                     const customKeys = Object.keys(window.patternExtractor.patterns).filter(key => key.startsWith('custom_'));
                     if (customKeys.length > 0) {
-                        console.log(`✅ BasicScanner发现 ${customKeys.length} 个自定义正则:`, customKeys);
+                        //console.log(`✅ BasicScanner发现 ${customKeys.length} 个自定义正则:`, customKeys);
                     } else {
                         console.warn('⚠️ BasicScanner未发现任何自定义正则');
                     }
@@ -191,19 +191,19 @@ class BasicScanner {
                     // 创建ContentExtractor并执行提取
                     const contentExtractor = new ContentExtractor();
                     const results = await contentExtractor.extractSensitiveInfo(window.location.href);
-                    console.log('✅ BasicScanner统一化系统提取完成，结果:', results);
-                    console.log('🌐 [DEBUG] BasicScanner扫描完成 - URL:', window.location.href);
+                    //console.log('✅ BasicScanner统一化系统提取完成，结果:', results);
+                    //console.log('🌐 [DEBUG] BasicScanner扫描完成 - URL:', window.location.href);
                     return results;
                 } catch (error) {
                     console.error('❌ BasicScanner统一化系统提取失败:', error);
                     // 统一化版本：不使用降级方案，直接返回空结果
-                    console.log('⚠️ BasicScanner统一化版本：不使用降级方案，返回空结果');
+                    //console.log('⚠️ BasicScanner统一化版本：不使用降级方案，返回空结果');
                     return this.getEmptyResults();
                 }
             }
             
             // 统一化版本：如果没有模块化系统，直接返回空结果
-            console.log('⚠️ BasicScanner统一化版本：未找到统一化提取系统，返回空结果');
+            //console.log('⚠️ BasicScanner统一化版本：未找到统一化提取系统，返回空结果');
             return this.getEmptyResults();
             
         } catch (error) {
@@ -258,7 +258,7 @@ class BasicScanner {
         
         // 注意：这里不能异步获取自定义正则配置，因为这是同步函数
         // 自定义正则的空结果会在PatternExtractor中处理
-        console.log('📦 BasicScanner返回基础空结果结构');
+        //console.log('📦 BasicScanner返回基础空结果结构');
         
         return baseResults;
     }

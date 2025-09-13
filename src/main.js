@@ -20,6 +20,7 @@ class ILoveYouTranslucent7 {
         this.exportManager = new ExportManager(this);
         this.contentExtractor = new ContentExtractor();
         this.patternExtractor = new PatternExtractor();
+        this.jsInjector = new JSInjector();
         
         this.init();
     }
@@ -63,7 +64,7 @@ class ILoveYouTranslucent7 {
     initDataSync() {
         // 监听窗口焦点事件
         window.addEventListener('focus', () => {
-            console.log('🔄 窗口获得焦点，重新加载数据...');
+            //console.log('🔄 窗口获得焦点，重新加载数据...');
             this.loadResults().then(() => {
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
@@ -74,7 +75,7 @@ class ILoveYouTranslucent7 {
         // 监听页面可见性变化
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                console.log('🔄 页面变为可见，重新加载数据...');
+                //console.log('🔄 页面变为可见，重新加载数据...');
                 this.loadResults().then(() => {
                     if (Object.keys(this.results).length > 0) {
                         this.displayResults();
@@ -110,7 +111,7 @@ class ILoveYouTranslucent7 {
             // 如果存储中有当前页面的数据但内存中没有，重新加载
             if ((data[`${pageKey}__results`] || data[`${pageKey}__deepResults`] || data[`${pageKey}__deepBackup`]) && 
                 Object.keys(this.results || {}).length === 0) {
-                console.log(`🔧 检测到页面 ${pageKey} 数据丢失，正在恢复...`);
+                //console.log(`🔧 检测到页面 ${pageKey} 数据丢失，正在恢复...`);
                 await this.loadResults();
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
@@ -261,6 +262,10 @@ class ILoveYouTranslucent7 {
                 this.initCustomRegexModal();
                 // 加载并显示自定义正则配置列表
                 this.loadCustomRegexList();
+                break;
+            case 'js-injection':
+                // 切换到JS注入页面时，初始化JS注入功能
+                this.initJSInjectPage();
                 break;
             case 'about':
                 // 关于页面
@@ -420,7 +425,7 @@ class ILoveYouTranslucent7 {
         // 重新加载正则表达式配置
         if (this.patternExtractor) {
             await this.patternExtractor.loadCustomPatterns();
-            console.log('🔄 已重新加载正则表达式配置');
+            //console.log('🔄 已重新加载正则表达式配置');
         }
         return await this.basicScanner.startScan(silent);
     }
@@ -488,7 +493,7 @@ class ILoveYouTranslucent7 {
         // 清空输入框
         customApiPathsInput.value = '';
         
-        console.log(`✅ 添加了 ${addedCount} 个自定义API路径到扫描结果:`, paths);
+        //console.log(`✅ 添加了 ${addedCount} 个自定义API路径到扫描结果:`, paths);
     }
     
     exportResults() {
@@ -700,7 +705,7 @@ class ILoveYouTranslucent7 {
             // 保存到存储
             await chrome.storage.local.set({ customRegexConfigs: customConfigs });
 
-            console.log('✅ 自定义正则配置已保存:', { name, key, pattern });
+            //console.log('✅ 自定义正则配置已保存:', { name, key, pattern });
 
             // 通知PatternExtractor重新加载配置
             if (this.patternExtractor) {
@@ -957,7 +962,7 @@ class ILoveYouTranslucent7 {
                         // 保存到存储
                         await chrome.storage.local.set({ customRegexConfigs: customConfigs });
                         
-                        console.log(`✅ 已更新自定义正则配置: ${newName} (${key})`);
+                        //console.log(`✅ 已更新自定义正则配置: ${newName} (${key})`);
                         this.showNotification(`自定义正则配置 "${newName}" 已更新`, 'success');
                         
                         // 通知PatternExtractor重新加载配置
@@ -1057,7 +1062,7 @@ class ILoveYouTranslucent7 {
             // 保存更新后的配置
             await chrome.storage.local.set({ customRegexConfigs: customConfigs });
             
-            console.log(`✅ 已删除自定义正则配置: ${name} (${key})`);
+            //console.log(`✅ 已删除自定义正则配置: ${name} (${key})`);
             this.showNotification(`自定义正则配置 "${name}" 已删除`, 'success');
             
             // 通知PatternExtractor重新加载配置
@@ -1081,7 +1086,7 @@ class ILoveYouTranslucent7 {
             
             // 检查是否是有效的网页URL
             if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-                console.log('跳过系统页面的自动扫描');
+                //console.log('跳过系统页面的自动扫描');
                 return;
             }
             
@@ -1175,7 +1180,7 @@ class ILoveYouTranslucent7 {
             // 显示清空成功提示
             this.showNotification(`页面 ${tab.url} 的扫描数据已清空`, 'success');
             
-            console.log(`✅ 页面 ${pageKey} 的扫描数据已清空`);
+            //console.log(`✅ 页面 ${pageKey} 的扫描数据已清空`);
             
         } catch (error) {
             console.error('❌ 清空数据失败:', error);
@@ -1233,7 +1238,7 @@ class ILoveYouTranslucent7 {
             
             // 执行保存
             await chrome.storage.local.set(saveData);
-            console.log(`✅ 页面数据保存成功: ${pageKey}`);
+            //console.log(`✅ 页面数据保存成功: ${pageKey}`);
             
         } catch (error) {
             console.error('❌ 数据保存失败:', error);
@@ -1293,10 +1298,10 @@ class ILoveYouTranslucent7 {
             if (bestResults) {
                 this.results = bestResults;
                 this.deepScanResults = bestResults;
-                console.log(`✅ 从 ${bestSource} 加载了页面数据，共 ${Object.values(bestResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0)} 条记录`);
+                //console.log(`✅ 从 ${bestSource} 加载了页面数据，共 ${Object.values(bestResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0)} 条记录`);
                 this.displayResults();
             } else {
-                console.log(`⚠️ 页面 ${pageKey} 未找到有效的扫描数据`);
+                //console.log(`⚠️ 页面 ${pageKey} 未找到有效的扫描数据`);
             }
             
             // 恢复深度扫描状态
@@ -1318,9 +1323,21 @@ class ILoveYouTranslucent7 {
             console.error('❌ 加载结果失败:', error);
         }
     }
+
+    // 初始化JS注入页面
+    initJSInjectPage() {
+        if (this.jsInjector) {
+            // 设置全局引用，供HTML中的onclick使用
+            window.jsInjector = this.jsInjector;
+            // 延迟初始化，确保DOM元素已加载
+            setTimeout(() => {
+                this.jsInjector.init();
+            }, 100);
+        }
+    }
 }
 
-const CURRENT_VERSION = 'v1.7.2'; // 请根据实际版本修改
+const CURRENT_VERSION = 'v1.7.3'; // 请根据实际版本修改
 
 function compareVersion(v1, v2) {
     const arr1 = v1.replace(/^v/, '').split('.').map(Number);

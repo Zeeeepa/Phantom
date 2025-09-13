@@ -55,7 +55,7 @@ class SRCMiner {
         // 初始化API测试器
         this.apiTester = new ApiTester(this);
         
-        console.log('✅ 所有组件初始化完成');
+        //console.log('✅ 所有组件初始化完成');
     }
     
     init() {
@@ -77,7 +77,7 @@ class SRCMiner {
     initWindowEvents() {
         // 监听窗口焦点事件
         window.addEventListener('focus', () => {
-            console.log('🔄 窗口获得焦点，重新加载数据...');
+            //console.log('🔄 窗口获得焦点，重新加载数据...');
             this.loadResults().then(() => {
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
@@ -88,7 +88,7 @@ class SRCMiner {
         // 监听页面可见性变化
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                console.log('🔄 页面变为可见，重新加载数据...');
+                //console.log('🔄 页面变为可见，重新加载数据...');
                 this.loadResults().then(() => {
                     if (Object.keys(this.results).length > 0) {
                         this.displayResults();
@@ -111,7 +111,7 @@ class SRCMiner {
             // 如果存储中有数据但内存中没有，重新加载
             if ((data.srcMinerResults || data.deepScanResults) && 
                 Object.keys(this.results || {}).length === 0) {
-                console.log('🔧 检测到数据丢失，正在恢复...');
+                //console.log('🔧 检测到数据丢失，正在恢复...');
                 await this.loadResults();
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
@@ -332,7 +332,7 @@ class SRCMiner {
     // 开始扫描
     async startScan(silent = false) {
         if (!silent) {
-            console.log('🔍 开始扫描页面...');
+            //console.log('🔍 开始扫描页面...');
         }
         
         try {
@@ -354,26 +354,26 @@ class SRCMiner {
             const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractInfo' });
             
             if (response) {
-                console.log('🔍 [SCAN LOG] 收到原始扫描结果');
-                console.log('🔍 [SCAN LOG] 原始结果统计:', this.getResultsStats(response));
+                //console.log('🔍 [SCAN LOG] 收到原始扫描结果');
+                //console.log('🔍 [SCAN LOG] 原始结果统计:', this.getResultsStats(response));
                 
                 // 在扫描阶段就应用筛选器
-                console.log('🔍 [SCAN LOG] 开始应用筛选器到扫描结果...');
+                //console.log('🔍 [SCAN LOG] 开始应用筛选器到扫描结果...');
                 this.results = await this.applyFiltersToScanResults(response);
-                console.log('🔍 [SCAN LOG] 筛选后结果统计:', this.getResultsStats(this.results));
-                console.log('✅ [SCAN LOG] 筛选器应用完成');
+                //console.log('🔍 [SCAN LOG] 筛选后结果统计:', this.getResultsStats(this.results));
+                //console.log('✅ [SCAN LOG] 筛选器应用完成');
                 
                 // 清空深度扫描结果，避免旧数据干扰
                 this.deepScanResults = {};
-                console.log('🔍 [SCAN LOG] 已清空深度扫描结果缓存');
+                //console.log('🔍 [SCAN LOG] 已清空深度扫描结果缓存');
                 
                 await this.displayResults();
                 
                 // 确保保存操作被执行
-                console.log('🔍 [SCAN LOG] 准备调用 saveResults()...');
+                //console.log('🔍 [SCAN LOG] 准备调用 saveResults()...');
                 try {
                     await this.saveResults();
-                    console.log('✅ [SCAN LOG] saveResults() 调用完成');
+                    //console.log('✅ [SCAN LOG] saveResults() 调用完成');
                 } catch (saveError) {
                     console.error('❌ [SCAN LOG] saveResults() 调用失败:', saveError);
                 }
@@ -382,7 +382,7 @@ class SRCMiner {
                 this.updateCategorySelect();
                 
                 if (!silent) {
-                    console.log('✅ [SCAN LOG] 扫描完成');
+                    //console.log('✅ [SCAN LOG] 扫描完成');
                 }
             } else {
                 throw new Error('未收到扫描结果');
@@ -398,8 +398,8 @@ class SRCMiner {
     // 在扫描阶段应用筛选器
     async applyFiltersToScanResults(rawResults) {
         try {
-            console.log('🔍 [FILTER LOG] 开始应用筛选器...');
-            console.log('🔍 [FILTER LOG] 原始结果统计:', this.getResultsStats(rawResults));
+            //console.log('🔍 [FILTER LOG] 开始应用筛选器...');
+            //console.log('🔍 [FILTER LOG] 原始结果统计:', this.getResultsStats(rawResults));
             
             // 确保筛选器已加载
             await this.loadFiltersIfNeeded();
@@ -420,14 +420,14 @@ class SRCMiner {
             
             // 使用API筛选器处理路径类型数据
             if (window.apiFilter) {
-                console.log('🔍 [FILTER LOG] 使用API筛选器处理路径数据...');
+                //console.log('🔍 [FILTER LOG] 使用API筛选器处理路径数据...');
                 const resultsSet = window.apiFilter.createEmptyResultSet();
                 
                 // 处理各种路径类型
                 const pathCategories = ['absoluteApis', 'relativeApis', 'jsFiles', 'cssFiles', 'images', 'urls', 'paths'];
                 pathCategories.forEach(category => {
                     if (rawResults[category] && Array.isArray(rawResults[category])) {
-                        console.log(`🔍 [FILTER LOG] 处理 ${category}: ${rawResults[category].length} 个项目`);
+                        //console.log(`🔍 [FILTER LOG] 处理 ${category}: ${rawResults[category].length} 个项目`);
                         rawResults[category].forEach(item => {
                             if (item && typeof item === 'string') {
                                 window.apiFilter.filterAPI(item, resultsSet);
@@ -440,15 +440,15 @@ class SRCMiner {
                 Object.keys(resultsSet).forEach(key => {
                     if (resultsSet[key] instanceof Set) {
                         filteredResults[key] = Array.from(resultsSet[key]);
-                        console.log(`🔍 [FILTER LOG] API筛选器处理 ${key}: ${filteredResults[key].length} 个项目`);
+                        //console.log(`🔍 [FILTER LOG] API筛选器处理 ${key}: ${filteredResults[key].length} 个项目`);
                     } else if (Array.isArray(resultsSet[key])) {
                         filteredResults[key] = resultsSet[key];
-                        console.log(`🔍 [FILTER LOG] API筛选器处理 ${key}: ${filteredResults[key].length} 个项目`);
+                        //console.log(`🔍 [FILTER LOG] API筛选器处理 ${key}: ${filteredResults[key].length} 个项目`);
                     }
                 });
             } else {
                 // 如果没有API筛选器，直接复制路径类型数据
-                console.log('⚠️ [FILTER LOG] API筛选器不可用，直接复制路径数据');
+                //console.log('⚠️ [FILTER LOG] API筛选器不可用，直接复制路径数据');
                 const pathCategories = ['absoluteApis', 'relativeApis', 'jsFiles', 'cssFiles', 'images', 'urls', 'paths'];
                 pathCategories.forEach(category => {
                     if (rawResults[category] && Array.isArray(rawResults[category])) {
@@ -459,38 +459,38 @@ class SRCMiner {
             
             // 使用域名和手机号筛选器处理敏感信息
             if (window.domainPhoneFilter) {
-                console.log('🔍 [FILTER LOG] 使用域名手机号筛选器处理敏感信息...');
+                //console.log('🔍 [FILTER LOG] 使用域名手机号筛选器处理敏感信息...');
                 
                 // 筛选域名
                 if (rawResults.domains && Array.isArray(rawResults.domains)) {
-                    console.log(`🔍 [FILTER LOG] 筛选域名: ${rawResults.domains.length} -> `, rawResults.domains.slice(0, 5));
+                    //console.log(`🔍 [FILTER LOG] 筛选域名: ${rawResults.domains.length} -> `, rawResults.domains.slice(0, 5));
                     filteredResults.domains = window.domainPhoneFilter.filterDomains(rawResults.domains);
-                    console.log(`🔍 [FILTER LOG] 域名筛选结果: ${filteredResults.domains.length} 个有效域名`);
+                    //console.log(`🔍 [FILTER LOG] 域名筛选结果: ${filteredResults.domains.length} 个有效域名`);
                 }
                 
                 // 筛选子域名
                 if (rawResults.subdomains && Array.isArray(rawResults.subdomains)) {
-                    console.log(`🔍 [FILTER LOG] 筛选子域名: ${rawResults.subdomains.length} 个`);
+                    //console.log(`🔍 [FILTER LOG] 筛选子域名: ${rawResults.subdomains.length} 个`);
                     filteredResults.subdomains = window.domainPhoneFilter.filterDomains(rawResults.subdomains);
-                    console.log(`🔍 [FILTER LOG] 子域名筛选结果: ${filteredResults.subdomains.length} 个有效子域名`);
+                    //console.log(`🔍 [FILTER LOG] 子域名筛选结果: ${filteredResults.subdomains.length} 个有效子域名`);
                 }
                 
                 // 筛选邮箱
                 if (rawResults.emails && Array.isArray(rawResults.emails)) {
-                    console.log(`🔍 [FILTER LOG] 筛选邮箱: ${rawResults.emails.length} 个`);
+                    //console.log(`🔍 [FILTER LOG] 筛选邮箱: ${rawResults.emails.length} 个`);
                     filteredResults.emails = window.domainPhoneFilter.filterEmails(rawResults.emails);
-                    console.log(`🔍 [FILTER LOG] 邮箱筛选结果: ${filteredResults.emails.length} 个有效邮箱`);
+                    //console.log(`🔍 [FILTER LOG] 邮箱筛选结果: ${filteredResults.emails.length} 个有效邮箱`);
                 }
                 
                 // 筛选手机号
                 if (rawResults.phoneNumbers && Array.isArray(rawResults.phoneNumbers)) {
-                    console.log(`🔍 [FILTER LOG] 筛选手机号: ${rawResults.phoneNumbers.length} 个`);
+                    //console.log(`🔍 [FILTER LOG] 筛选手机号: ${rawResults.phoneNumbers.length} 个`);
                     filteredResults.phoneNumbers = window.domainPhoneFilter.filterPhones(rawResults.phoneNumbers, true);
-                    console.log(`🔍 [FILTER LOG] 手机号筛选结果: ${filteredResults.phoneNumbers.length} 个有效手机号`);
+                    //console.log(`🔍 [FILTER LOG] 手机号筛选结果: ${filteredResults.phoneNumbers.length} 个有效手机号`);
                 }
             } else {
                 // 如果没有域名手机号筛选器，直接复制敏感信息
-                console.log('⚠️ [FILTER LOG] 域名手机号筛选器不可用，直接复制敏感信息');
+                //console.log('⚠️ [FILTER LOG] 域名手机号筛选器不可用，直接复制敏感信息');
                 const sensitiveCategories = ['domains', 'subdomains', 'emails', 'phoneNumbers'];
                 sensitiveCategories.forEach(category => {
                     if (rawResults[category] && Array.isArray(rawResults[category])) {
@@ -512,7 +512,7 @@ class SRCMiner {
                 }
             });
             
-            console.log('✅ [FILTER LOG] 筛选完成，最终结果统计:', this.getResultsStats(filteredResults));
+            //console.log('✅ [FILTER LOG] 筛选完成，最终结果统计:', this.getResultsStats(filteredResults));
             
             // 标记结果已筛选
             filteredResults._filtered = true;
@@ -534,7 +534,7 @@ class SRCMiner {
                 return;
             }
             
-            console.log('🔄 开始加载扫描筛选器...');
+            //console.log('🔄 开始加载扫描筛选器...');
             
             // 加载域名和手机号筛选器
             if (!window.domainPhoneFilter) {
@@ -542,7 +542,7 @@ class SRCMiner {
                 
                 if (typeof DomainPhoneFilter !== 'undefined') {
                     window.domainPhoneFilter = new DomainPhoneFilter();
-                    console.log('✅ 域名手机号筛选器初始化成功');
+                    //console.log('✅ 域名手机号筛选器初始化成功');
                 }
             }
             
@@ -552,7 +552,7 @@ class SRCMiner {
                 
                 if (typeof APIFilter !== 'undefined') {
                     window.apiFilter = new APIFilter();
-                    console.log('✅ API筛选器初始化成功');
+                    //console.log('✅ API筛选器初始化成功');
                 }
             }
             
@@ -569,7 +569,7 @@ class SRCMiner {
                 script.src = chrome.runtime.getURL(scriptPath);
                 
                 script.onload = () => {
-                    console.log(`📦 筛选器脚本加载成功: ${scriptPath}`);
+                    //console.log(`📦 筛选器脚本加载成功: ${scriptPath}`);
                     resolve();
                 };
                 
@@ -612,7 +612,7 @@ class SRCMiner {
             
             // 检查是否是有效的网页URL
             if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-                console.log('跳过系统页面的自动扫描');
+                //console.log('跳过系统页面的自动扫描');
                 return;
             }
             
@@ -709,7 +709,7 @@ class SRCMiner {
             // 显示清空成功提示
             this.showNotification(`页面 ${tab.url} 的扫描数据已清空`, 'success');
             
-            console.log(`✅ 页面 ${pageKey} 的扫描数据已清空`);
+            //console.log(`✅ 页面 ${pageKey} 的扫描数据已清空`);
             
         } catch (error) {
             console.error('❌ 清空数据失败:', error);
@@ -817,30 +817,30 @@ class SRCMiner {
             
             const saveData = {};
             
-            console.log('💾 [SAVE LOG] 开始保存结果...');
-            console.log('💾 [SAVE LOG] 当前 this.results 统计:', this.getResultsStats(this.results));
-            console.log('💾 [SAVE LOG] 当前 this.deepScanResults 统计:', this.getResultsStats(this.deepScanResults));
+            //console.log('💾 [SAVE LOG] 开始保存结果...');
+            //console.log('💾 [SAVE LOG] 当前 this.results 统计:', this.getResultsStats(this.results));
+            //console.log('💾 [SAVE LOG] 当前 this.deepScanResults 统计:', this.getResultsStats(this.deepScanResults));
             
             // 确定要保存的最终结果
             let finalResults = {};
             
             // 如果有普通扫描结果，直接使用（已经筛选过）
             if (this.results && Object.keys(this.results).length > 0) {
-                console.log('💾 [SAVE LOG] 使用普通扫描结果作为基础');
+                //console.log('💾 [SAVE LOG] 使用普通扫描结果作为基础');
                 finalResults = { ...this.results };
             }
             
             // 如果有深度扫描结果，需要先筛选再合并
             if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
-                console.log('💾 [SAVE LOG] 处理深度扫描结果...');
+                //console.log('💾 [SAVE LOG] 处理深度扫描结果...');
                 
                 // 先对深度扫描结果应用筛选器
                 const filteredDeepResults = await this.applyFiltersToScanResults(this.deepScanResults);
-                console.log('💾 [SAVE LOG] 深度扫描结果筛选后统计:', this.getResultsStats(filteredDeepResults));
+                //console.log('💾 [SAVE LOG] 深度扫描结果筛选后统计:', this.getResultsStats(filteredDeepResults));
                 
                 // 合并筛选后的结果
                 finalResults = this.mergeResults(finalResults, filteredDeepResults);
-                console.log('💾 [SAVE LOG] 合并后最终结果统计:', this.getResultsStats(finalResults));
+                //console.log('💾 [SAVE LOG] 合并后最终结果统计:', this.getResultsStats(finalResults));
             }
             
             // 保存最终的筛选后结果
@@ -849,13 +849,13 @@ class SRCMiner {
                 saveData[lastSaveKey] = Date.now();
                 
                 const itemCount = Object.values(finalResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-                console.log(`💾 [SAVE LOG] 最终保存到 ${resultsKey}，共 ${itemCount} 条筛选后的记录`);
+                //console.log(`💾 [SAVE LOG] 最终保存到 ${resultsKey}，共 ${itemCount} 条筛选后的记录`);
                 
                 // 验证保存的数据
                 const domainCount = finalResults.domains ? finalResults.domains.length : 0;
-                console.log(`💾 [SAVE LOG] 验证：保存的域名数量 = ${domainCount}`);
+                //console.log(`💾 [SAVE LOG] 验证：保存的域名数量 = ${domainCount}`);
             } else {
-                console.log('💾 [SAVE LOG] 没有有效结果需要保存');
+                //console.log('💾 [SAVE LOG] 没有有效结果需要保存');
             }
             
             // 保存深度扫描状态
@@ -868,29 +868,29 @@ class SRCMiner {
             };
             
             // 执行保存前的最终检查
-            console.log(`💾 [SAVE LOG] 准备保存的数据键值:`, Object.keys(saveData));
+            //console.log(`💾 [SAVE LOG] 准备保存的数据键值:`, Object.keys(saveData));
             if (saveData[resultsKey]) {
-                console.log(`💾 [SAVE LOG] 准备保存到 ${resultsKey} 的数据统计:`, this.getResultsStats(saveData[resultsKey]));
-                console.log(`💾 [SAVE LOG] 准备保存的域名示例:`, saveData[resultsKey].domains ? saveData[resultsKey].domains.slice(0, 10) : []);
+                //console.log(`💾 [SAVE LOG] 准备保存到 ${resultsKey} 的数据统计:`, this.getResultsStats(saveData[resultsKey]));
+                //console.log(`💾 [SAVE LOG] 准备保存的域名示例:`, saveData[resultsKey].domains ? saveData[resultsKey].domains.slice(0, 10) : []);
             }
             
             // 执行保存
-            console.log(`💾 [SAVE LOG] 开始执行 chrome.storage.local.set...`);
+            //console.log(`💾 [SAVE LOG] 开始执行 chrome.storage.local.set...`);
             await chrome.storage.local.set(saveData);
-            console.log(`✅ [SAVE LOG] chrome.storage.local.set 执行完成: ${hostname}`);
+            //console.log(`✅ [SAVE LOG] chrome.storage.local.set 执行完成: ${hostname}`);
             
             // 验证保存后的数据
-            console.log(`💾 [SAVE LOG] 开始验证保存结果...`);
+            //console.log(`💾 [SAVE LOG] 开始验证保存结果...`);
             const verifyData = await chrome.storage.local.get(resultsKey);
             if (verifyData[resultsKey]) {
                 const verifyCount = Object.values(verifyData[resultsKey]).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
                 const verifyDomainCount = verifyData[resultsKey].domains ? verifyData[resultsKey].domains.length : 0;
-                console.log(`💾 [SAVE LOG] 保存验证成功：存储中共 ${verifyCount} 条记录，域名 ${verifyDomainCount} 个`);
-                console.log(`💾 [SAVE LOG] 存储中的域名示例:`, verifyData[resultsKey].domains ? verifyData[resultsKey].domains.slice(0, 10) : []);
+                //console.log(`💾 [SAVE LOG] 保存验证成功：存储中共 ${verifyCount} 条记录，域名 ${verifyDomainCount} 个`);
+                //console.log(`💾 [SAVE LOG] 存储中的域名示例:`, verifyData[resultsKey].domains ? verifyData[resultsKey].domains.slice(0, 10) : []);
                 
                 // 检查是否有筛选标记
                 if (verifyData[resultsKey]._filtered) {
-                    console.log(`✅ [SAVE LOG] 存储的数据已标记为筛选后数据`);
+                    //console.log(`✅ [SAVE LOG] 存储的数据已标记为筛选后数据`);
                 } else {
                     console.warn(`⚠️ [SAVE LOG] 存储的数据未标记为筛选后数据`);
                 }
@@ -905,19 +905,19 @@ class SRCMiner {
     
     // 合并筛选后的扫描结果（确保合并的数据也是筛选过的）
     async mergeFilteredResults(existingResults, newResults) {
-        console.log('🔍 [MERGE LOG] 开始合并筛选后的结果...');
-        console.log('🔍 [MERGE LOG] 现有结果统计:', this.getResultsStats(existingResults));
-        console.log('🔍 [MERGE LOG] 新结果统计:', this.getResultsStats(newResults));
+        //console.log('🔍 [MERGE LOG] 开始合并筛选后的结果...');
+        //console.log('🔍 [MERGE LOG] 现有结果统计:', this.getResultsStats(existingResults));
+        //console.log('🔍 [MERGE LOG] 新结果统计:', this.getResultsStats(newResults));
         
         // 如果新结果还没有经过筛选，先筛选
         let filteredNewResults = newResults;
         if (newResults && !newResults._filtered) {
-            console.log('⚠️ [MERGE LOG] 新结果未筛选，正在应用筛选器...');
+            //console.log('⚠️ [MERGE LOG] 新结果未筛选，正在应用筛选器...');
             filteredNewResults = await this.applyFiltersToScanResults(newResults);
             filteredNewResults._filtered = true; // 标记已筛选
-            console.log('✅ [MERGE LOG] 新结果筛选完成:', this.getResultsStats(filteredNewResults));
+            //console.log('✅ [MERGE LOG] 新结果筛选完成:', this.getResultsStats(filteredNewResults));
         } else {
-            console.log('✅ [MERGE LOG] 新结果已筛选，直接合并');
+            //console.log('✅ [MERGE LOG] 新结果已筛选，直接合并');
         }
         
         const mergedResults = {};
@@ -939,22 +939,22 @@ class SRCMiner {
             mergedResults[category] = Array.from(combinedSet);
             
             if (existingItems.length > 0 || newItems.length > 0) {
-                console.log(`🔍 [MERGE LOG] ${category}: ${existingItems.length} + ${newItems.length} = ${mergedResults[category].length}`);
+                //console.log(`🔍 [MERGE LOG] ${category}: ${existingItems.length} + ${newItems.length} = ${mergedResults[category].length}`);
             }
         });
         
         // 标记合并后的结果已筛选
         mergedResults._filtered = true;
         
-        console.log('✅ [MERGE LOG] 筛选后结果合并完成，最终统计:', this.getResultsStats(mergedResults));
+        //console.log('✅ [MERGE LOG] 筛选后结果合并完成，最终统计:', this.getResultsStats(mergedResults));
         return mergedResults;
     }
     
     // 合并扫描结果的辅助方法
     mergeResults(existingResults, newResults) {
-        console.log('🔍 [MERGE-SIMPLE LOG] 开始简单合并结果...');
-        console.log('🔍 [MERGE-SIMPLE LOG] 现有结果统计:', this.getResultsStats(existingResults));
-        console.log('🔍 [MERGE-SIMPLE LOG] 新结果统计:', this.getResultsStats(newResults));
+        //console.log('🔍 [MERGE-SIMPLE LOG] 开始简单合并结果...');
+        //console.log('🔍 [MERGE-SIMPLE LOG] 现有结果统计:', this.getResultsStats(existingResults));
+        //console.log('🔍 [MERGE-SIMPLE LOG] 新结果统计:', this.getResultsStats(newResults));
         
         const mergedResults = {};
         const categories = [
@@ -974,11 +974,11 @@ class SRCMiner {
             mergedResults[category] = Array.from(combinedSet);
             
             if (existingItems.length > 0 || newItems.length > 0) {
-                console.log(`🔍 [MERGE-SIMPLE LOG] ${category}: ${existingItems.length} + ${newItems.length} = ${mergedResults[category].length}`);
+                //console.log(`🔍 [MERGE-SIMPLE LOG] ${category}: ${existingItems.length} + ${newItems.length} = ${mergedResults[category].length}`);
             }
         });
         
-        console.log('✅ [MERGE-SIMPLE LOG] 简单合并完成，最终统计:', this.getResultsStats(mergedResults));
+        //console.log('✅ [MERGE-SIMPLE LOG] 简单合并完成，最终统计:', this.getResultsStats(mergedResults));
         console.warn('⚠️ [MERGE-SIMPLE LOG] 注意：此方法未应用筛选器，可能包含未筛选数据');
         
         return mergedResults;
@@ -1017,29 +1017,29 @@ class SRCMiner {
                 const itemCount = Object.values(loadedData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
                 const domainCount = loadedData.domains ? loadedData.domains.length : 0;
                 
-                console.log(`🔄 [LOAD LOG] 从存储加载数据统计:`, this.getResultsStats(loadedData));
-                console.log(`🔄 [LOAD LOG] 存储中域名数量: ${domainCount}`);
+                //console.log(`🔄 [LOAD LOG] 从存储加载数据统计:`, this.getResultsStats(loadedData));
+                //console.log(`🔄 [LOAD LOG] 存储中域名数量: ${domainCount}`);
                 
                 // 检查数据是否已经筛选过
                 if (loadedData._filtered) {
-                    console.log(`✅ [LOAD LOG] 数据已筛选，直接使用`);
+                    //console.log(`✅ [LOAD LOG] 数据已筛选，直接使用`);
                     this.results = loadedData;
                     this.deepScanResults = loadedData;
                 } else {
-                    console.log(`⚠️ [LOAD LOG] 数据未筛选，重新应用筛选器...`);
+                    //console.log(`⚠️ [LOAD LOG] 数据未筛选，重新应用筛选器...`);
                     // 对加载的数据重新应用筛选器
                     this.results = await this.applyFiltersToScanResults(loadedData);
                     this.deepScanResults = this.results;
                     
                     // 重新保存筛选后的数据
                     await this.saveResults();
-                    console.log(`✅ [LOAD LOG] 已重新筛选并保存数据`);
+                    //console.log(`✅ [LOAD LOG] 已重新筛选并保存数据`);
                 }
                 
-                console.log(`✅ [LOAD LOG] 最终加载数据统计:`, this.getResultsStats(this.results));
+                //console.log(`✅ [LOAD LOG] 最终加载数据统计:`, this.getResultsStats(this.results));
                 this.displayResults();
             } else {
-                console.log(`⚠️ [LOAD LOG] 页面 ${hostname} 未找到有效的扫描数据`);
+                //console.log(`⚠️ [LOAD LOG] 页面 ${hostname} 未找到有效的扫描数据`);
             }
             
             // 恢复深度扫描状态
@@ -1147,7 +1147,7 @@ class SRCMiner {
         // 清空输入框
         customApiPathsInput.value = '';
         
-        console.log(`✅ 添加了 ${addedCount} 个自定义API路径到扫描结果:`, paths);
+        //console.log(`✅ 添加了 ${addedCount} 个自定义API路径到扫描结果:`, paths);
     }
     
     // 切换深度扫描 - 使用DeepScanner

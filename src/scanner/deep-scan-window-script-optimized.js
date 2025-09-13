@@ -3,7 +3,7 @@
 // 减少日志记录、优化DOM操作、控制并发数
 // ==========================================================
 
-console.log('🚀 [DEBUG] 深度扫描窗口脚本（性能优化版本）开始加载...');
+//console.log('🚀 [DEBUG] 深度扫描窗口脚本（性能优化版本）开始加载...');
 
 // -------------------- 全局变量 --------------------
 let scanConfig         = null;
@@ -49,7 +49,7 @@ const MEMORY_CLEANUP_INTERVAL = 30000; // 30秒清理一次内存
 
 // 🚀 内存清理函数
 function performMemoryCleanup() {
-    console.log('🧹 执行内存清理...');
+    //console.log('🧹 执行内存清理...');
     
     // 清理URL内容缓存，只保留最近的30个
     if (urlContentCache.size > 30) {
@@ -57,7 +57,7 @@ function performMemoryCleanup() {
         const toKeep = entries.slice(-30);
         urlContentCache.clear();
         toKeep.forEach(([key, value]) => urlContentCache.set(key, value));
-        console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
+        //console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
     }
     
     // 清理日志缓冲区
@@ -216,7 +216,7 @@ function resolveUrl(url, baseUrl) {
 // 🚀 优化的扫描函数
 async function startScan() {
     if (isScanRunning) {
-        console.log('扫描已在运行中');
+        //console.log('扫描已在运行中');
         return;
     }
 
@@ -224,7 +224,7 @@ async function startScan() {
     isPaused = false;
     
     try {
-        console.log('🚀 开始深度扫描...');
+        //console.log('🚀 开始深度扫描...');
         addLogEntry('🚀 开始深度扫描', 'success');
         
         // 🚀 启动内存清理
@@ -251,14 +251,14 @@ async function startScan() {
         
         for (let depth = 1; depth <= scanConfig.maxDepth && isScanRunning; depth++) {
             currentDepth = depth;
-            console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
+            //console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
             addLogEntry(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`, 'success');
             
             // 🚀 优化的批量扫描
             const newUrls = await scanUrlBatchOptimized(currentUrls, depth);
             currentUrls = newUrls;
             
-            console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
+            //console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
             addLogEntry(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`, 'success');
             
             // 🚀 每层扫描后强制更新显示
@@ -359,4 +359,4 @@ async function scanUrlBatchOptimized(urls, depth) {
 // 其他必要的函数（简化版本）...
 // 这里需要包含其他必要的函数，但都经过性能优化
 
-console.log('✅ 深度扫描窗口脚本（性能优化版本）加载完成');
+//console.log('✅ 深度扫描窗口脚本（性能优化版本）加载完成');

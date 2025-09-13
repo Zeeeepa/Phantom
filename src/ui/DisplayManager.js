@@ -14,10 +14,10 @@ class DisplayManager {
         
         // 如果当前没有结果，尝试从存储中恢复
         if (!this.srcMiner.results || Object.keys(this.srcMiner.results).length === 0) {
-            console.log('🔄 当前无结果，尝试从存储中恢复数据...');
+            //console.log('🔄 当前无结果，尝试从存储中恢复数据...');
             await this.srcMiner.loadResults();
             if (!this.srcMiner.results || Object.keys(this.srcMiner.results).length === 0) {
-                console.log('⚠️ 存储中也没有数据');
+                //console.log('⚠️ 存储中也没有数据');
             }
         }
         
@@ -69,7 +69,7 @@ class DisplayManager {
         try {
             const result = await chrome.storage.local.get(['customRegexConfigs']);
             if (result.customRegexConfigs) {
-                console.log('🔄 DisplayManager统一化版本加载动态自定义正则配置用于显示:', result.customRegexConfigs);
+                //console.log('🔄 DisplayManager统一化版本加载动态自定义正则配置用于显示:', result.customRegexConfigs);
                 
                 let configsToProcess = [];
                 
@@ -77,7 +77,7 @@ class DisplayManager {
                 if (Array.isArray(result.customRegexConfigs)) {
                     // 数组格式
                     configsToProcess = result.customRegexConfigs;
-                    console.log('📋 DisplayManager检测到数组格式的自定义正则配置');
+                    //console.log('📋 DisplayManager检测到数组格式的自定义正则配置');
                 } else if (typeof result.customRegexConfigs === 'object') {
                     // 对象格式，转换为数组
                     configsToProcess = Object.entries(result.customRegexConfigs).map(([key, config]) => ({
@@ -86,7 +86,7 @@ class DisplayManager {
                         pattern: config.pattern,
                         createdAt: config.createdAt
                     }));
-                    console.log('📋 DisplayManager检测到对象格式的自定义正则配置，已转换为数组格式');
+                    //console.log('📋 DisplayManager检测到对象格式的自定义正则配置，已转换为数组格式');
                 }
                 
                 if (configsToProcess.length > 0) {
@@ -97,24 +97,24 @@ class DisplayManager {
                                 title: config.name,
                                 icon: '🎯' // 自定义正则使用统一图标
                             });
-                            console.log(`✅ DisplayManager统一化版本添加自定义正则显示类别: ${config.name} (${config.key})`);
+                            //console.log(`✅ DisplayManager统一化版本添加自定义正则显示类别: ${config.name} (${config.key})`);
                         }
                     });
                     
-                    console.log(`✅ DisplayManager统一化版本动态自定义正则显示类别加载完成，共添加 ${configsToProcess.length} 个类别`);
+                    //console.log(`✅ DisplayManager统一化版本动态自定义正则显示类别加载完成，共添加 ${configsToProcess.length} 个类别`);
                 } else {
-                    console.log('⚠️ DisplayManager统一化版本动态自定义正则配置为空');
+                    //console.log('⚠️ DisplayManager统一化版本动态自定义正则配置为空');
                 }
             } else {
-                console.log('ℹ️ DisplayManager统一化版本未找到动态自定义正则配置');
+                //console.log('ℹ️ DisplayManager统一化版本未找到动态自定义正则配置');
             }
         } catch (error) {
             console.error('❌ DisplayManager统一化版本加载动态自定义正则配置失败:', error);
         }
         
-        console.log('🔍 DisplayManager统一化版本开始显示结果，当前结果数据:', this.srcMiner.results);
-        console.log('🔍 DisplayManager统一化版本开始显示结果，当前结果数据:', this.srcMiner.results);
-        console.log('📊 DisplayManager统一化版本结果统计:', Object.keys(this.srcMiner.results || {}).map(key => `${key}: ${(this.srcMiner.results[key] || []).length}`).join(', '));
+        //console.log('🔍 DisplayManager统一化版本开始显示结果，当前结果数据:', this.srcMiner.results);
+        //console.log('🔍 DisplayManager统一化版本开始显示结果，当前结果数据:', this.srcMiner.results);
+        //console.log('📊 DisplayManager统一化版本结果统计:', Object.keys(this.srcMiner.results || {}).map(key => `${key}: ${(this.srcMiner.results[key] || []).length}`).join(', '));
         
         // 尝试加载过滤器
         await this.loadFiltersIfNeeded();
@@ -130,7 +130,7 @@ class DisplayManager {
             );
             
             if (dynamicCustomKeys.length > 0) {
-                console.log(`🔍 DisplayManager发现 ${dynamicCustomKeys.length} 个动态自定义正则结果:`, dynamicCustomKeys);
+                //console.log(`🔍 DisplayManager发现 ${dynamicCustomKeys.length} 个动态自定义正则结果:`, dynamicCustomKeys);
                 
                 // 尝试从存储中获取配置名称以提供更好的显示名称
                 try {
@@ -162,7 +162,7 @@ class DisplayManager {
                             title: displayName,
                             icon: '🎯'
                         });
-                        console.log(`✅ DisplayManager添加动态自定义正则显示类别: ${displayName} (${key})`);
+                        //console.log(`✅ DisplayManager添加动态自定义正则显示类别: ${displayName} (${key})`);
                     });
                 } catch (error) {
                     console.error('❌ 获取自定义正则配置名称失败:', error);
@@ -174,7 +174,7 @@ class DisplayManager {
                             title: displayName,
                             icon: '🎯'
                         });
-                        console.log(`✅ DisplayManager添加动态自定义正则显示类别(降级): ${displayName} (${key})`);
+                        //console.log(`✅ DisplayManager添加动态自定义正则显示类别(降级): ${displayName} (${key})`);
                     });
                 }
             }
@@ -193,8 +193,8 @@ class DisplayManager {
                 
                 // 如果是自定义正则结果，显示详细日志
                 if (category.key.startsWith('custom_')) {
-                    console.log(`✅ DisplayManager显示自定义正则类别: ${category.title} (${category.key}) - ${items.length} 个结果`);
-                    console.log(`🎯 DisplayManager自定义正则 ${category.key} 结果预览:`, items.slice(0, 3));
+                    //console.log(`✅ DisplayManager显示自定义正则类别: ${category.title} (${category.key}) - ${items.length} 个结果`);
+                    //console.log(`🎯 DisplayManager自定义正则 ${category.key} 结果预览:`, items.slice(0, 3));
                 }
             }
         });
@@ -533,12 +533,12 @@ class DisplayManager {
                     originalPaths.forEach((originalPath, index) => {
                         const normalizedPath = normalizedPaths[index];
                         if (originalPath && originalPath !== normalizedPath) {
-                            console.log(`🔧 自动为baseapi路径添加"/"前缀: "${originalPath}" -> "${normalizedPath}"`);
+                            //console.log(`🔧 自动为baseapi路径添加"/"前缀: "${originalPath}" -> "${normalizedPath}"`);
                         }
                     });
                     
                     if (customBaseApiPaths.length > 1) {
-                        console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi路径: ${customBaseApiPaths.join(', ')}`);
+                        //console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi路径: ${customBaseApiPaths.join(', ')}`);
                     }
                 }
                 
@@ -550,7 +550,7 @@ class DisplayManager {
                 if (customApiPaths) {
                     const customPaths = this.srcMiner.apiTester.parseCustomApiPaths(customApiPaths);
                     items = this.srcMiner.apiTester.mergeAndDeduplicateItems(items, customPaths);
-                    console.log(`📝 添加了 ${customPaths.length} 个自定义API路径，去重后总计 ${items.length} 个测试项目`);
+                    //console.log(`📝 添加了 ${customPaths.length} 个自定义API路径，去重后总计 ${items.length} 个测试项目`);
                 }
                 
                 this.srcMiner.apiTester.testSelectedCategory(categoryKey, items, method, concurrency, timeout, customBaseApiPaths);
@@ -869,11 +869,11 @@ class DisplayManager {
         try {
             // 检查是否已经加载过滤器
             if (window.domainPhoneFilter && window.apiFilter) {
-                console.log('✅ 过滤器已加载，无需重新加载');
+                //console.log('✅ 过滤器已加载，无需重新加载');
                 return;
             }
             
-            console.log('🔄 开始加载显示过滤器...');
+            //console.log('🔄 开始加载显示过滤器...');
             
             // 检查是否在扩展环境中
             if (typeof chrome !== 'undefined' && chrome.runtime) {
@@ -884,17 +884,17 @@ class DisplayManager {
                     // 初始化过滤器
                     if (typeof DomainPhoneFilter !== 'undefined') {
                         window.domainPhoneFilter = new DomainPhoneFilter();
-                        console.log('✅ 域名手机号过滤器初始化成功');
+                        //console.log('✅ 域名手机号过滤器初始化成功');
                     }
                 }
                 
                 // 加载API过滤器
                 if (!window.apiFilter) {
                     await this.loadFilterScript('filters/api-filter.js');
-                    console.log('✅ API过滤器加载成功');
+                    //console.log('✅ API过滤器加载成功');
                 }
                 
-                console.log('🎉 所有过滤器加载完成');
+                //console.log('🎉 所有过滤器加载完成');
             } else {
                 console.warn('⚠️ 非扩展环境，无法加载过滤器');
             }
@@ -911,7 +911,7 @@ class DisplayManager {
                 script.src = chrome.runtime.getURL(scriptPath);
                 
                 script.onload = () => {
-                    console.log(`📦 脚本加载成功: ${scriptPath}`);
+                    //console.log(`📦 脚本加载成功: ${scriptPath}`);
                     resolve();
                 };
                 
@@ -941,40 +941,40 @@ class DisplayManager {
         try {
             // 检查过滤器是否可用
             if (!window.domainPhoneFilter && !window.apiFilter) {
-                console.log('⚠️ 过滤器未加载，跳过过滤步骤');
+                //console.log('⚠️ 过滤器未加载，跳过过滤步骤');
                 return filteredResults;
             }
             
-            console.log('🔍 开始应用过滤器优化结果...');
+            //console.log('🔍 开始应用过滤器优化结果...');
             
             // 应用域名和手机号过滤器
             if (window.domainPhoneFilter) {
                 // 过滤域名
                 if (filteredResults.domains && filteredResults.domains.length > 0) {
-                    console.log(`🔍 过滤前域名数量: ${filteredResults.domains.length}`);
+                    //console.log(`🔍 过滤前域名数量: ${filteredResults.domains.length}`);
                     filteredResults.domains = window.domainPhoneFilter.filterDomains(filteredResults.domains);
-                    console.log(`✅ 过滤后域名数量: ${filteredResults.domains.length}`);
+                    //console.log(`✅ 过滤后域名数量: ${filteredResults.domains.length}`);
                 }
                 
                 // 过滤子域名
                 if (filteredResults.subdomains && filteredResults.subdomains.length > 0) {
-                    console.log(`🔍 过滤前子域名数量: ${filteredResults.subdomains.length}`);
+                    //console.log(`🔍 过滤前子域名数量: ${filteredResults.subdomains.length}`);
                     filteredResults.subdomains = window.domainPhoneFilter.filterDomains(filteredResults.subdomains);
-                    console.log(`✅ 过滤后子域名数量: ${filteredResults.subdomains.length}`);
+                    //console.log(`✅ 过滤后子域名数量: ${filteredResults.subdomains.length}`);
                 }
                 
                 // 过滤邮箱
                 if (filteredResults.emails && filteredResults.emails.length > 0) {
-                    console.log(`🔍 过滤前邮箱数量: ${filteredResults.emails.length}`);
+                    //console.log(`🔍 过滤前邮箱数量: ${filteredResults.emails.length}`);
                     filteredResults.emails = window.domainPhoneFilter.filterEmails(filteredResults.emails);
-                    console.log(`✅ 过滤后邮箱数量: ${filteredResults.emails.length}`);
+                    //console.log(`✅ 过滤后邮箱数量: ${filteredResults.emails.length}`);
                 }
                 
                 // 过滤手机号
                 if (filteredResults.phoneNumbers && filteredResults.phoneNumbers.length > 0) {
-                    console.log(`🔍 过滤前手机号数量: ${filteredResults.phoneNumbers.length}`);
+                    //console.log(`🔍 过滤前手机号数量: ${filteredResults.phoneNumbers.length}`);
                     filteredResults.phoneNumbers = window.domainPhoneFilter.filterPhones(filteredResults.phoneNumbers, true);
-                    console.log(`✅ 过滤后手机号数量: ${filteredResults.phoneNumbers.length}`);
+                    //console.log(`✅ 过滤后手机号数量: ${filteredResults.phoneNumbers.length}`);
                 }
             }
             
@@ -982,20 +982,20 @@ class DisplayManager {
             if (window.apiFilter && typeof window.apiFilter.filterAPIs === 'function') {
                 // 过滤绝对路径API
                 if (filteredResults.absoluteApis && filteredResults.absoluteApis.length > 0) {
-                    console.log(`🔍 过滤前绝对路径API数量: ${filteredResults.absoluteApis.length}`);
+                    //console.log(`🔍 过滤前绝对路径API数量: ${filteredResults.absoluteApis.length}`);
                     filteredResults.absoluteApis = window.apiFilter.filterAPIs(filteredResults.absoluteApis, true);
-                    console.log(`✅ 过滤后绝对路径API数量: ${filteredResults.absoluteApis.length}`);
+                    //console.log(`✅ 过滤后绝对路径API数量: ${filteredResults.absoluteApis.length}`);
                 }
                 
                 // 过滤相对路径API
                 if (filteredResults.relativeApis && filteredResults.relativeApis.length > 0) {
-                    console.log(`🔍 过滤前相对路径API数量: ${filteredResults.relativeApis.length}`);
+                    //console.log(`🔍 过滤前相对路径API数量: ${filteredResults.relativeApis.length}`);
                     filteredResults.relativeApis = window.apiFilter.filterAPIs(filteredResults.relativeApis, false);
-                    console.log(`✅ 过滤后相对路径API数量: ${filteredResults.relativeApis.length}`);
+                    //console.log(`✅ 过滤后相对路径API数量: ${filteredResults.relativeApis.length}`);
                 }
             }
             
-            console.log('🎉 结果过滤完成');
+            //console.log('🎉 结果过滤完成');
             
         } catch (error) {
             console.error('❌ 应用过滤器时出错:', error);

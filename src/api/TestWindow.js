@@ -43,7 +43,7 @@ class TestWindow {
         // 将配置保存到chrome.storage，供测试窗口读取
         try {
             await chrome.storage.local.set({ 'testConfig': testConfig });
-            console.log('测试配置已保存到storage:', testConfig);
+            //console.log('测试配置已保存到storage:', testConfig);
         } catch (error) {
             console.error('保存测试配置失败:', error);
             throw new Error('保存测试配置失败: ' + error.message);
@@ -62,7 +62,7 @@ class TestWindow {
                 focused: true
             });
 
-            console.log('测试窗口已创建:', newWindow.id);
+            //console.log('测试窗口已创建:', newWindow.id);
             return newWindow;
         } catch (error) {
             console.error('创建测试窗口失败:', error);
@@ -100,7 +100,7 @@ let requestTimeout = 5000;
 
 // 页面加载完成后的初始化
 function initializePage() {
-    console.log('页面加载完成，准备开始测试');
+    //console.log('页面加载完成，准备开始测试');
     
     // 从data属性中读取测试配置
     const configElement = document.getElementById('testConfigData');
@@ -122,7 +122,7 @@ function initializePage() {
         maxConcurrency = testData.concurrency || 8;
         requestTimeout = testData.timeout || 5000;
         
-        console.log('测试配置加载成功:', testData);
+        //console.log('测试配置加载成功:', testData);
         
     } catch (error) {
         console.error('解析配置数据失败:', error);
@@ -151,7 +151,7 @@ function initializePage() {
 async function startTest() {
     if (!testData || isTestRunning) return;
     
-    console.log('开始测试，项目数:', testData.items.length);
+    //console.log('开始测试，项目数:', testData.items.length);
     
     isTestRunning = true;
     isPaused = false;

@@ -132,12 +132,12 @@ class ApiTester {
             originalPaths.forEach((originalPath, index) => {
                 const normalizedPath = normalizedPaths[index];
                 if (originalPath && originalPath !== normalizedPath) {
-                    console.log(`🔧 自动为baseapi路径添加"/"前缀: "${originalPath}" -> "${normalizedPath}"`);
+                    //console.log(`🔧 自动为baseapi路径添加"/"前缀: "${originalPath}" -> "${normalizedPath}"`);
                 }
             });
             
             if (customBaseApiPaths.length > 1) {
-                console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi路径: ${customBaseApiPaths.join(', ')}`);
+                //console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi路径: ${customBaseApiPaths.join(', ')}`);
             }
         }
         
@@ -148,7 +148,7 @@ class ApiTester {
         const concurrency = concurrencyInput ? parseInt(concurrencyInput.value) : 8;
         const timeout = timeoutInput ? parseInt(timeoutInput.value) * 1000 : 5000; // 转换为毫秒
         
-        console.log(`🔧 API测试配置: 并发数=${concurrency}, 超时=${timeout/1000}秒, Base API路径=${customBaseApiPaths.length > 0 ? customBaseApiPaths.join(', ') : '无'}, 自定义API路径=${customApiPaths || '无'}`);
+        //console.log(`🔧 API测试配置: 并发数=${concurrency}, 超时=${timeout/1000}秒, Base API路径=${customBaseApiPaths.length > 0 ? customBaseApiPaths.join(', ') : '无'}, 自定义API路径=${customApiPaths || '无'}`);
 
         
         if (!selectedCategory) {
@@ -162,7 +162,7 @@ class ApiTester {
         if (customApiPaths) {
             const customPaths = this.parseCustomApiPaths(customApiPaths);
             items = this.mergeAndDeduplicateItems(items, customPaths);
-            console.log(`📝 添加了 ${customPaths.length} 个自定义API路径，去重后总计 ${items.length} 个测试项目`);
+            //console.log(`📝 添加了 ${customPaths.length} 个自定义API路径，去重后总计 ${items.length} 个测试项目`);
         }
         
         // 如果选择了自定义API路径分类，直接使用扫描结果中的自定义API路径
@@ -172,7 +172,7 @@ class ApiTester {
                 alert('自定义API路径分类中没有数据，请先添加自定义API路径');
                 return;
             }
-            console.log(`🔧 使用扫描结果中的自定义API路径进行测试，共 ${items.length} 个`);
+            //console.log(`🔧 使用扫描结果中的自定义API路径进行测试，共 ${items.length} 个`);
         }
         
         if (items.length === 0) {
@@ -219,7 +219,7 @@ class ApiTester {
         try {
             // 获取自定义请求头设置
             const customHeaders = await this.getCustomHeaders();
-            console.log('📋 获取到自定义请求头:', customHeaders);
+            //console.log('📋 获取到自定义请求头:', customHeaders);
             
             // 使用新的TestWindow类创建测试窗口
             const testWindow = new TestWindow();
@@ -471,7 +471,7 @@ class ApiTester {
     // 发送请求
     // 发送请求 - 通过后台脚本
     async makeRequest(url, method, timeout = 5000, customCookie = null) {
-        console.log(`🌐 API测试通过后台脚本请求: ${url}`);
+        //console.log(`🌐 API测试通过后台脚本请求: ${url}`);
         
         const requestOptions = {
             method: method,
@@ -543,7 +543,7 @@ class ApiTester {
             return [];
         }
         
-        console.log(`🔍 开始批量测试 ${items.length} 个API，方法: ${method}`);
+        //console.log(`🔍 开始批量测试 ${items.length} 个API，方法: ${method}`);
         
         const results = [];
         const concurrencyLimit = 5; // 并发限制
@@ -623,7 +623,7 @@ class ApiTester {
             results.push(...chunkResults);
         }
         
-        console.log(`✅ API测试完成，成功: ${results.filter(r => r.success).length}/${results.length}`);
+        //console.log(`✅ API测试完成，成功: ${results.filter(r => r.success).length}/${results.length}`);
         return results;
     }
     

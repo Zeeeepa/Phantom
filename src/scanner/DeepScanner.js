@@ -17,11 +17,11 @@ class DeepScanner {
     // 加载增强过滤器
     async loadEnhancedFilters() {
         if (this.filtersLoaded) {
-            console.log('🔍 增强过滤器已加载');
+            //console.log('🔍 增强过滤器已加载');
             return;
         }
         
-        console.log('🔄 开始加载深度扫描增强过滤器...');
+        //console.log('🔄 开始加载深度扫描增强过滤器...');
         
         try {
             // 检查是否在扩展环境中
@@ -33,18 +33,18 @@ class DeepScanner {
                     // 初始化过滤器
                     if (typeof DomainPhoneFilter !== 'undefined') {
                         window.domainPhoneFilter = new DomainPhoneFilter();
-                        console.log('✅ 域名手机号过滤器初始化成功');
+                        //console.log('✅ 域名手机号过滤器初始化成功');
                     }
                 }
                 
                 // 加载API过滤器
                 if (!window.apiFilter) {
                     await this.loadFilterScript('filters/api-filter.js');
-                    console.log('✅ API过滤器加载成功');
+                    //console.log('✅ API过滤器加载成功');
                 }
                 
                 this.filtersLoaded = true;
-                console.log('🎉 所有过滤器加载完成');
+                //console.log('🎉 所有过滤器加载完成');
             } else {
                 console.warn('⚠️ 非扩展环境，无法加载过滤器');
             }
@@ -61,7 +61,7 @@ class DeepScanner {
                 script.src = chrome.runtime.getURL(scriptPath);
                 
                 script.onload = () => {
-                    console.log(`📦 脚本加载成功: ${scriptPath}`);
+                    //console.log(`📦 脚本加载成功: ${scriptPath}`);
                     resolve();
                 };
                 
@@ -104,7 +104,7 @@ class DeepScanner {
     
     // 开始深度扫描窗口
     async startDeepScanWindow() {
-        console.log('🚀 启动深度扫描窗口...');
+        //console.log('🚀 启动深度扫描窗口...');
         
         try {
             // 获取配置参数
@@ -170,7 +170,7 @@ class DeepScanner {
                 script.src = chrome.runtime.getURL('src/scanner/DeepScanWindow.js');
                 
                 script.onload = () => {
-                    console.log('📦 DeepScanWindow类加载成功');
+                    //console.log('📦 DeepScanWindow类加载成功');
                     resolve();
                 };
                 
@@ -207,14 +207,14 @@ class DeepScanner {
     
     // 兼容性方法 - 保持原有的深度扫描功能作为备用
     async startDeepScan() {
-        console.log('🔄 使用传统深度扫描方法作为备用');
+        //console.log('🔄 使用传统深度扫描方法作为备用');
         
         if (this.srcMiner.deepScanRunning) {
-            console.log('深度扫描已在运行中');
+            //console.log('深度扫描已在运行中');
             return;
         }
         
-        console.log('🚀 启动传统深度扫描...');
+        //console.log('🚀 启动传统深度扫描...');
         // 确保过滤器已加载
         await this.loadEnhancedFilters();
         
@@ -243,7 +243,7 @@ class DeepScanner {
             this.timeout = 5000; // 默认5秒
         }
         
-        console.log(`设置超时时间: ${this.timeout/1000}秒`);
+        //console.log(`设置超时时间: ${this.timeout/1000}秒`);
         const scanJsFiles = scanJsFilesInput ? scanJsFilesInput.checked : true;
         const scanHtmlFiles = scanHtmlFilesInput ? scanHtmlFilesInput.checked : true;
         const scanApiFiles = scanApiFilesInput ? scanApiFilesInput.checked : true;
@@ -300,7 +300,7 @@ class DeepScanner {
         try {
         // 🔥 统一化版本：强制重新加载正则表达式配置
         if (this.srcMiner.patternExtractor) {
-            console.log('🔄 深度扫描统一化版本开始强制重新加载正则表达式配置...');
+            //console.log('🔄 深度扫描统一化版本开始强制重新加载正则表达式配置...');
             
             // 清除现有配置
             this.srcMiner.patternExtractor.patterns = {};
@@ -312,9 +312,9 @@ class DeepScanner {
                 await this.srcMiner.patternExtractor.ensureCustomPatternsLoaded();
             }
             
-            console.log('✅ 深度扫描统一化版本已强制重新加载正则表达式配置');
-            console.log('📊 深度扫描统一化版本当前可用的正则模式:', Object.keys(this.srcMiner.patternExtractor.patterns));
-            console.log('🔍 深度扫描统一化版本自定义正则配置状态:', this.srcMiner.patternExtractor.customPatternsLoaded);
+            //console.log('✅ 深度扫描统一化版本已强制重新加载正则表达式配置');
+            //console.log('📊 深度扫描统一化版本当前可用的正则模式:', Object.keys(this.srcMiner.patternExtractor.patterns));
+            //console.log('🔍 深度扫描统一化版本自定义正则配置状态:', this.srcMiner.patternExtractor.customPatternsLoaded);
         } else {
             console.error('❌ 深度扫描统一化版本：未找到PatternExtractor实例，无法进行统一化提取');
         }
@@ -339,10 +339,10 @@ class DeepScanner {
             
             // 收集初始扫描URL列表
             const initialUrls = await this.collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles);
-            console.log('📋 初始URL列表 (' + initialUrls.length + ' 个):', initialUrls.slice(0, 5));
+            //console.log('📋 初始URL列表 (' + initialUrls.length + ' 个):', initialUrls.slice(0, 5));
             
             if (initialUrls.length === 0) {
-                console.log('⚠️ 没有找到可扫描的URL');
+                //console.log('⚠️ 没有找到可扫描的URL');
                 this.updateDeepScanProgress(0, 0, '没有找到可扫描的URL');
                 return;
             }
@@ -422,7 +422,7 @@ class DeepScanner {
     async collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles) {
         const urls = new Set();
         
-        console.log('🔍 收集初始URL，当前结果:', Object.keys(this.srcMiner.results));
+        //console.log('🔍 收集初始URL，当前结果:', Object.keys(this.srcMiner.results));
         
         // 从JS文件中收集
         if (scanJsFiles && this.srcMiner.results.jsFiles) {
@@ -471,7 +471,7 @@ class DeepScanner {
         }
         
         const urlArray = Array.from(urls);
-        console.log(`📊 收集到 ${urlArray.length} 个初始URL`);
+        //console.log(`📊 收集到 ${urlArray.length} 个初始URL`);
         return urlArray;
     }
     
@@ -512,11 +512,11 @@ class DeepScanner {
             this.srcMiner.currentDepth = depth;
             
             if (currentUrls.length === 0) {
-                console.log(`第 ${depth} 层没有URL需要扫描`);
+                //console.log(`第 ${depth} 层没有URL需要扫描`);
                 break;
             }
             
-            console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
+            //console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
             this.updateDeepScanProgress(0, currentUrls.length, `第 ${depth} 层扫描`);
             
             // 分批处理URL - 使用优化的批处理方法
@@ -526,12 +526,12 @@ class DeepScanner {
             const nextUrlsSet = new Set(newUrls);
             currentUrls = Array.from(nextUrlsSet).filter(url => !this.srcMiner.scannedUrls.has(url));
             
-            console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
+            //console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
             
             // 每层扫描完成后强制更新显示
             this.srcMiner.results = this.srcMiner.deepScanResults;
             this.srcMiner.displayResults();
-            console.log(`🔄 第 ${depth} 层扫描完成，已更新显示界面`);
+            //console.log(`🔄 第 ${depth} 层扫描完成，已更新显示界面`);
             
             // 每层扫描后释放内存
             if (typeof window.gc === 'function') {
@@ -596,7 +596,7 @@ class DeepScanner {
                                 // 实时更新显示
                                 this.srcMiner.results = this.srcMiner.deepScanResults;
                                 this.srcMiner.displayResults();
-                                console.log(`🔄 实时更新显示 - 扫描到新数据来源: ${url}`);
+                                //console.log(`🔄 实时更新显示 - 扫描到新数据来源: ${url}`);
                             }
                             
                             // 收集新URL
@@ -635,7 +635,7 @@ class DeepScanner {
     // 获取URL内容 - 通过后台脚本发送请求
     async fetchUrlContent(url) {
         try {
-            console.log(`🔥 深度扫描 - 准备通过后台脚本请求: ${url}`);
+            //console.log(`🔥 深度扫描 - 准备通过后台脚本请求: ${url}`);
             
             const requestOptions = {
                 method: 'GET',
@@ -647,12 +647,12 @@ class DeepScanner {
                 timeout: this.timeout
             };
             
-            console.log(`🔥 深度扫描 - 发送消息到后台脚本，URL: ${url}`);
+            //console.log(`🔥 深度扫描 - 发送消息到后台脚本，URL: ${url}`);
             
             // 通过后台脚本发送请求
             const response = await this.makeRequestViaBackground(url, requestOptions);
             
-            console.log(`🔥 深度扫描 - 后台脚本响应: ${response.status} ${response.statusText}`);
+            //console.log(`🔥 深度扫描 - 后台脚本响应: ${response.status} ${response.statusText}`);
             
             if (!response.ok) {
                 console.warn(`HTTP ${response.status} for ${url}`);
@@ -733,7 +733,7 @@ class DeepScanner {
     
     // 🔥 统一化版本：从内容中提取信息 - 完全使用PatternExtractor
     extractFromContent(content, sourceUrl) {
-        console.log(`🔍 深度扫描统一化版本开始提取内容，来源: ${sourceUrl}`);
+        //console.log(`🔍 深度扫描统一化版本开始提取内容，来源: ${sourceUrl}`);
         
         // 内容太大时进行截断，避免处理过大的文件
         const maxContentLength = 500000; // 约500KB
@@ -742,28 +742,28 @@ class DeepScanner {
         
         // 🔥 统一化版本：完全使用PatternExtractor进行提取
         if (this.srcMiner.patternExtractor) {
-            console.log('✅ 深度扫描统一化版本：使用PatternExtractor进行统一提取');
+            //console.log('✅ 深度扫描统一化版本：使用PatternExtractor进行统一提取');
             
             try {
                 // 确保自定义正则配置已加载
                 if (!this.srcMiner.patternExtractor.customPatternsLoaded) {
-                    console.log('🔄 深度扫描统一化版本：重新加载自定义正则配置...');
+                    //console.log('🔄 深度扫描统一化版本：重新加载自定义正则配置...');
                     this.srcMiner.patternExtractor.loadCustomPatterns();
                 }
                 
                 // 使用统一的PatternExtractor进行提取
                 const extractedResults = this.srcMiner.patternExtractor.extractPatterns(processedContent);
                 
-                console.log('📊 深度扫描统一化版本提取结果:', extractedResults);
-                console.log('📈 深度扫描统一化版本提取到的数据类型数量:', Object.keys(extractedResults).length);
+                //console.log('📊 深度扫描统一化版本提取结果:', extractedResults);
+                //console.log('📈 深度扫描统一化版本提取到的数据类型数量:', Object.keys(extractedResults).length);
                 
                 // 统计每种类型的数量
                 Object.entries(extractedResults).forEach(([type, items]) => {
                     if (Array.isArray(items) && items.length > 0) {
-                        console.log(`📋 深度扫描统一化版本 ${type}: ${items.length} 个项目`);
+                        //console.log(`📋 深度扫描统一化版本 ${type}: ${items.length} 个项目`);
                         // 如果是自定义正则结果，显示更详细的信息
                         if (type.startsWith('custom_')) {
-                            console.log(`🎯 深度扫描统一化版本自定义正则 ${type} 匹配内容:`, items.slice(0, 3));
+                            //console.log(`🎯 深度扫描统一化版本自定义正则 ${type} 匹配内容:`, items.slice(0, 3));
                         }
                     }
                 });
@@ -781,7 +781,7 @@ class DeepScanner {
     
     // 🔥 统一化版本：从内容中收集新的URL - 使用PatternExtractor提取的URL（异步版本）
     async collectUrlsFromContent(content, baseUrl, options) {
-        console.log('🔍 深度扫描统一化版本：从内容中收集URL...');
+        //console.log('🔍 深度扫描统一化版本：从内容中收集URL...');
         
         const urls = new Set();
         const { scanJsFiles, scanHtmlFiles, scanApiFiles } = options;
@@ -837,7 +837,7 @@ class DeepScanner {
                     }
                 }
                 
-                console.log(`✅ 深度扫描统一化版本：从PatternExtractor收集到 ${urls.size} 个URL`);
+                //console.log(`✅ 深度扫描统一化版本：从PatternExtractor收集到 ${urls.size} 个URL`);
             } catch (error) {
                 console.error('❌ 深度扫描统一化版本：使用PatternExtractor收集URL失败:', error);
             }
@@ -937,7 +937,7 @@ class DeepScanner {
     
     // 🔥 统一化版本：不再需要单独的过滤器处理，PatternExtractor已经处理了所有逻辑
     applyFilters(results, content, sourceUrl = '未知URL') {
-        console.log('🔥 深度扫描统一化版本：跳过旧的过滤器处理，PatternExtractor已经处理了所有提取和过滤逻辑');
+        //console.log('🔥 深度扫描统一化版本：跳过旧的过滤器处理，PatternExtractor已经处理了所有提取和过滤逻辑');
         // 统一化版本不再需要额外的过滤器处理
         // 所有提取和过滤逻辑都已经在PatternExtractor中统一处理
     }
@@ -976,7 +976,7 @@ class DeepScanner {
             
             // 如果允许扫描所有域名
             if (domainSettings.allowAllDomains) {
-                console.log(`🌐 允许所有域名: ${urlObj.hostname}`);
+                //console.log(`🌐 允许所有域名: ${urlObj.hostname}`);
                 return true;
             }
             
@@ -991,7 +991,7 @@ class DeepScanner {
                                         baseHostname.endsWith('.' + urlHostname);
                 
                 if (isSameOrSubdomain) {
-                    //console.log(`🔗 允许子域名: ${urlHostname} (基于 ${baseHostname})`);
+                    ////console.log(`🔗 允许子域名: ${urlHostname} (基于 ${baseHostname})`);
                     return true;
                 }
             }
@@ -999,9 +999,9 @@ class DeepScanner {
             // 默认：只允许完全相同的域名
             const isSame = urlObj.hostname === baseUrlObj.hostname;
             if (isSame) {
-                console.log(`✅ 同域名: ${urlObj.hostname}`);
+                //console.log(`✅ 同域名: ${urlObj.hostname}`);
             } else {
-                console.log(`❌ 不同域名: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
+                //console.log(`❌ 不同域名: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
             }
             return isSame;
             
@@ -1025,7 +1025,7 @@ class DeepScanner {
                 allowSubdomains: false,
                 allowAllDomains: false
             };
-            console.log('🔍 [深度扫描] 从storage获取的域名设置:', domainSettings);
+            //console.log('🔍 [深度扫描] 从storage获取的域名设置:', domainSettings);
             return domainSettings;
         } catch (error) {
             console.error('获取域名扫描设置失败:', error);
@@ -1079,7 +1079,7 @@ class DeepScanner {
         const totalScanned = this.srcMiner.scannedUrls.size;
         const totalResults = Object.values(this.srcMiner.results).reduce((sum, arr) => sum + (arr?.length || 0), 0);
         
-        console.log(`🎉 深度扫描完成！扫描了 ${totalScanned} 个文件，提取了 ${totalResults} 个项目`);
+        //console.log(`🎉 深度扫描完成！扫描了 ${totalScanned} 个文件，提取了 ${totalResults} 个项目`);
     }
     
     showError(message) {
@@ -1091,7 +1091,7 @@ class DeepScanner {
     }
     
     showSuccessNotification(message) {
-        console.log('深度扫描提示:', message);
+        //console.log('深度扫描提示:', message);
         // 显示成功提示
         if (typeof this.srcMiner.showNotification === 'function') {
             this.srcMiner.showNotification(message, 'success');

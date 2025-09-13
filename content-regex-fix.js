@@ -18,7 +18,7 @@ class SRCMinerContentRegexFix {
             
             if (result.regexSettings) {
                 customSettings = result.regexSettings;
-                console.log('🔄 Content Script加载regexSettings配置:', customSettings);
+                //console.log('🔄 Content Script加载regexSettings配置:', customSettings);
             } else if (result.phantomRegexConfig) {
                 // 转换phantomRegexConfig格式为regexSettings格式
                 const phantomConfig = result.phantomRegexConfig;
@@ -30,15 +30,15 @@ class SRCMinerContentRegexFix {
                     phoneNumbers: phantomConfig.phone || '',
                     credentials: phantomConfig.sensitive || ''
                 };
-                console.log('🔄 Content Script从phantomRegexConfig转换配置:', customSettings);
+                //console.log('🔄 Content Script从phantomRegexConfig转换配置:', customSettings);
             }
             
             if (customSettings) {
                 this.customRegexConfig = customSettings;
-                console.log('✅ Content Script正则表达式配置已更新');
+                //console.log('✅ Content Script正则表达式配置已更新');
                 return true;
             } else {
-                console.log('📋 Content Script使用默认正则表达式配置');
+                //console.log('📋 Content Script使用默认正则表达式配置');
                 return false;
             }
         } catch (error) {
@@ -60,7 +60,7 @@ class SRCMinerContentRegexFix {
                         results.emails.add(email);
                     }
                 });
-                console.log('🔧 使用自定义邮箱正则表达式，匹配到', emails.length, '个邮箱');
+                //console.log('🔧 使用自定义邮箱正则表达式，匹配到', emails.length, '个邮箱');
                 return true;
             } catch (error) {
                 console.error('自定义邮箱正则表达式格式错误:', error);
@@ -81,12 +81,12 @@ class SRCMinerContentRegexFix {
                 phones.forEach(phone => {
                     if (phone && phone.length > 3 && phone.length < 50) {
                         results.phoneNumbers.add(phone);
-                        console.log(`🌐 [DEBUG] 自定义正则手机号发现 - URL: ${window.location.href}, 手机号: ${phone}`);
+                        //console.log(`🌐 [DEBUG] 自定义正则手机号发现 - URL: ${window.location.href}, 手机号: ${phone}`);
                     }
                 });
-                console.log('🔧 使用自定义手机号正则表达式，匹配到', phones.length, '个手机号');
+                //console.log('🔧 使用自定义手机号正则表达式，匹配到', phones.length, '个手机号');
                 if (phones.length > 0) {
-                    console.log(`🔍 [DEBUG] 自定义正则手机号提取汇总 - 来源URL: ${window.location.href}, 总数: ${phones.length}`);
+                    //console.log(`🔍 [DEBUG] 自定义正则手机号提取汇总 - 来源URL: ${window.location.href}, 总数: ${phones.length}`);
                 }
                 return true;
             } catch (error) {
@@ -110,7 +110,7 @@ class SRCMinerContentRegexFix {
                         results.domains.add(domain);
                     }
                 });
-                console.log('🔧 使用自定义域名正则表达式，匹配到', domains.length, '个域名');
+                //console.log('🔧 使用自定义域名正则表达式，匹配到', domains.length, '个域名');
                 return true;
             } catch (error) {
                 console.error('自定义域名正则表达式格式错误:', error);
@@ -136,7 +136,7 @@ class SRCMinerContentRegexFix {
                         results.absoluteApis.add(api);
                     }
                 });
-                console.log('🔧 使用自定义绝对路径API正则表达式，匹配到', absoluteApis.length, '个API');
+                //console.log('🔧 使用自定义绝对路径API正则表达式，匹配到', absoluteApis.length, '个API');
                 hasCustomApi = true;
             } catch (error) {
                 console.error('自定义绝对路径API正则表达式格式错误:', error);
@@ -153,7 +153,7 @@ class SRCMinerContentRegexFix {
                         results.relativeApis.add(api);
                     }
                 });
-                console.log('🔧 使用自定义相对路径API正则表达式，匹配到', relativeApis.length, '个API');
+                //console.log('🔧 使用自定义相对路径API正则表达式，匹配到', relativeApis.length, '个API');
                 hasCustomApi = true;
             } catch (error) {
                 console.error('自定义相对路径API正则表达式格式错误:', error);
@@ -176,7 +176,7 @@ class SRCMinerContentRegexFix {
                         results.sensitiveKeywords.add(credential);
                     }
                 });
-                console.log('🔧 使用自定义敏感信息正则表达式，匹配到', credentials.length, '个敏感信息');
+                //console.log('🔧 使用自定义敏感信息正则表达式，匹配到', credentials.length, '个敏感信息');
                 return true;
             } catch (error) {
                 console.error('自定义敏感信息正则表达式格式错误:', error);

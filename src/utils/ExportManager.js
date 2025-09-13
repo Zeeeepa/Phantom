@@ -213,10 +213,10 @@ class ExportManager {
             if (tabs[0] && tabs[0].url) {
                 const url = new URL(tabs[0].url);
                 domain = url.hostname;
-                console.log('获取到域名:', domain);
+                //console.log('获取到域名:', domain);
             }
         } catch (e) {
-            console.log('获取域名失败，使用备选方案:', e);
+            //console.log('获取域名失败，使用备选方案:', e);
             // 尝试从DOM获取域名信息作为备选方案
             try {
                 const domainElement = document.getElementById('currentDomain');
@@ -226,11 +226,11 @@ class ExportManager {
                     const match = domainText.match(/https?:\/\/([^\/\s:]+)/);
                     if (match && match[1]) {
                         domain = match[1];
-                        console.log('从DOM获取到域名:', domain);
+                        //console.log('从DOM获取到域名:', domain);
                     }
                 }
             } catch (domError) {
-                console.log('从DOM获取域名也失败:', domError);
+                //console.log('从DOM获取域名也失败:', domError);
             }
         }
         

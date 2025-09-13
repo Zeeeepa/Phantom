@@ -8,17 +8,17 @@ class ContentExtractor {
         try {
             // 确保在顶层窗口执行
             if (window !== window.top) {
-                console.log('跳过iframe扫描，只扫描顶层页面');
+                //console.log('跳过iframe扫描，只扫描顶层页面');
                 return this.getEmptyResults();
             }
             
             // 验证当前页面URL是否匹配目标URL
             if (targetUrl && window.location.href !== targetUrl) {
-                console.log('页面URL不匹配，跳过扫描');
+                //console.log('页面URL不匹配，跳过扫描');
                 return this.getEmptyResults();
             }
             
-            console.log('🔍 开始扫描顶层页面:', window.location.href);
+            //console.log('🔍 开始扫描顶层页面:', window.location.href);
             
             const results = {
                 absoluteApis: new Set(),
@@ -100,16 +100,16 @@ class ContentExtractor {
                 }
             }
             
-            console.log('🔍 ContentExtractor最终结果转换完成，包含的键:', Object.keys(finalResults));
+            //console.log('🔍 ContentExtractor最终结果转换完成，包含的键:', Object.keys(finalResults));
             const customKeys = Object.keys(finalResults).filter(key => key.startsWith('custom_'));
             if (customKeys.length > 0) {
-                console.log(`✅ ContentExtractor最终结果包含 ${customKeys.length} 个自定义正则键:`, customKeys);
+                //console.log(`✅ ContentExtractor最终结果包含 ${customKeys.length} 个自定义正则键:`, customKeys);
             }
             
-            console.log('✅ 扫描完成，结果统计:');
+            //console.log('✅ 扫描完成，结果统计:');
             Object.keys(finalResults).forEach(key => {
                 if (finalResults[key].length > 0) {
-                    console.log(`  ${key}: ${finalResults[key].length} 个`);
+                    //console.log(`  ${key}: ${finalResults[key].length} 个`);
                 }
             });
             
@@ -227,7 +227,7 @@ class ContentExtractor {
                 }
             }
         } catch (e) {
-            console.log('无法访问存储内容:', e);
+            //console.log('无法访问存储内容:', e);
         }
         
         return storage.join('\n');
@@ -244,19 +244,19 @@ class ContentExtractor {
         // 使用PatternExtractor统一化系统来提取信息
         if (window.patternExtractor && typeof window.patternExtractor.extractPatterns === 'function') {
             try {
-                console.log('🔍🔍🔍 ContentExtractor找到PatternExtractor，准备调用extractPatterns方法');
-                console.log('📊 ContentExtractor处理内容长度:', processContent.length);
+                //console.log('🔍🔍🔍 ContentExtractor找到PatternExtractor，准备调用extractPatterns方法');
+                //console.log('📊 ContentExtractor处理内容长度:', processContent.length);
                 
                 // 每次都强制重新加载最新配置，确保使用最新设置
-                console.log('🔄 ContentExtractor强制重新加载最新配置...');
+                //console.log('🔄 ContentExtractor强制重新加载最新配置...');
                 await window.patternExtractor.loadCustomPatterns();
                 
-                console.log('📊 ContentExtractor当前可用的正则模式:', Object.keys(window.patternExtractor.patterns));
-                console.log('🚀🚀🚀 ContentExtractor即将调用PatternExtractor.extractPatterns方法！');
+                //console.log('📊 ContentExtractor当前可用的正则模式:', Object.keys(window.patternExtractor.patterns));
+                //console.log('🚀🚀🚀 ContentExtractor即将调用PatternExtractor.extractPatterns方法！');
                 
                 const extractedData = await window.patternExtractor.extractPatterns(processContent, window.location.href);
                 
-                console.log('✅✅✅ ContentExtractor调用PatternExtractor.extractPatterns完成，返回数据:', extractedData);
+                //console.log('✅✅✅ ContentExtractor调用PatternExtractor.extractPatterns完成，返回数据:', extractedData);
                 
                 // 将提取的数据合并到results中，包括动态自定义正则结果
                 if (extractedData) {
@@ -269,25 +269,25 @@ class ContentExtractor {
                         else if (key.startsWith('custom_') && Array.isArray(extractedData[key])) {
                             if (!results[key]) {
                                 results[key] = new Set();
-                                console.log(`📦 ContentExtractor为自定义正则 ${key} 创建结果集合`);
+                                //console.log(`📦 ContentExtractor为自定义正则 ${key} 创建结果集合`);
                             }
                             extractedData[key].forEach(item => results[key].add(item));
-                            console.log(`✅ ContentExtractor自定义正则 ${key} 添加了 ${extractedData[key].length} 个结果`);
+                            //console.log(`✅ ContentExtractor自定义正则 ${key} 添加了 ${extractedData[key].length} 个结果`);
                         }
                     });
                     
                     // 验证自定义正则结果是否正确添加
                     const customKeys = Object.keys(extractedData).filter(key => key.startsWith('custom_'));
                     if (customKeys.length > 0) {
-                        console.log(`✅ ContentExtractor处理了 ${customKeys.length} 个自定义正则结果:`, customKeys);
+                        //console.log(`✅ ContentExtractor处理了 ${customKeys.length} 个自定义正则结果:`, customKeys);
                     }
                 }
                 
-                console.log('✅ ContentExtractor统一化系统提取完成');
+                //console.log('✅ ContentExtractor统一化系统提取完成');
             } catch (error) {
                 console.error('❌ ContentExtractor统一化系统提取失败:', error);
                 // 统一化版本：不使用降级方案
-                console.log('⚠️ ContentExtractor统一化版本：不使用降级方案');
+                //console.log('⚠️ ContentExtractor统一化版本：不使用降级方案');
             }
         } else {
             console.warn('⚠️ ContentExtractor统一化版本：PatternExtractor未找到或extractPatterns方法不存在，跳过提取');

@@ -1,15 +1,15 @@
 // 离屏文档脚本 - 用于处理需要完整Web API的网络请求
 
-console.log('🔧 离屏文档已加载');
+//console.log('🔧 离屏文档已加载');
 
 // 监听来自后台脚本的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log('🔧 离屏文档收到消息:', request.action);
+    //console.log('🔧 离屏文档收到消息:', request.action);
     
     if (request.action === 'makeRequestWithCookie') {
         handleRequestWithCustomHeaders(request.url, request.options, request.customHeaders)
             .then(response => {
-                console.log('🔧 离屏文档请求完成:', response.status);
+                //console.log('🔧 离屏文档请求完成:', response.status);
                 sendResponse({ success: true, data: response });
             })
             .catch(error => {
@@ -23,8 +23,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // 在离屏文档中处理带自定义请求头的请求
 async function handleRequestWithCustomHeaders(url, options = {}, customHeaders = []) {
     try {
-        console.log(`📋 离屏文档发送请求: ${url}`);
-        console.log(`📋 使用自定义请求头:`, customHeaders);
+        //console.log(`📋 离屏文档发送请求: ${url}`);
+        //console.log(`📋 使用自定义请求头:`, customHeaders);
         
         const fetchOptions = {
             method: options.method || 'GET',
@@ -43,7 +43,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
             for (const header of customHeaders) {
                 if (header.key && header.value) {
                     fetchOptions.headers[header.key] = header.value;
-                    console.log(`📋 已设置请求头: ${header.key} = ${header.value.substring(0, 50)}${header.value.length > 50 ? '...' : ''}`);
+                    //console.log(`📋 已设置请求头: ${header.key} = ${header.value.substring(0, 50)}${header.value.length > 50 ? '...' : ''}`);
                     
                     // 如果是Cookie请求头，尝试通过document.cookie设置（如果是同域请求）
                     if (header.key.toLowerCase() === 'cookie') {
@@ -55,7 +55,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
                                 for (const cookie of cookies) {
                                     if (cookie) {
                                         document.cookie = cookie;
-                                        console.log(`🍪 已设置document.cookie: ${cookie.substring(0, 30)}...`);
+                                        //console.log(`🍪 已设置document.cookie: ${cookie.substring(0, 30)}...`);
                                     }
                                 }
                             }
@@ -67,7 +67,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
             }
         }
         
-        console.log(`📋 离屏文档最终请求头:`, fetchOptions.headers);
+        //console.log(`📋 离屏文档最终请求头:`, fetchOptions.headers);
         
         // 添加超时控制
         const timeout = options.timeout || 10000;
@@ -90,7 +90,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
         }
         const text = await response.text();
         
-        console.log(`✅ 离屏文档请求完成: ${response.status} ${response.statusText}`);
+        //console.log(`✅ 离屏文档请求完成: ${response.status} ${response.statusText}`);
         
         return {
             status: response.status,
