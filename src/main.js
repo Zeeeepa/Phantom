@@ -99,19 +99,26 @@ class ILoveYouTranslucent7 {
                 return;
             }
             
-            const pageKey = this.getPageStorageKey(tab.url);
-            const keysToCheck = [
-                `${pageKey}__results`,
-                `${pageKey}__deepResults`,
-                `${pageKey}__deepBackup`
-            ];
+            const urlObj = new URL(tab.url);
+            const hostname = urlObj.hostname;
+            const fullUrl = `https://${hostname}`;
             
-            const data = await chrome.storage.local.get(keysToCheck);
+            // 从IndexedDB检查数据完整性
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
             
-            // 如果存储中有当前页面的数据但内存中没有，重新加载
-            if ((data[`${pageKey}__results`] || data[`${pageKey}__deepResults`] || data[`${pageKey}__deepBackup`]) && 
-                Object.keys(this.results || {}).length === 0) {
-                //console.log(`🔧 检测到页面 ${pageKey} 数据丢失，正在恢复...`);
+            // 检查普通扫描结果
+            const scanDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
+            const scanData = scanDataWrapper ? scanDataWrapper.results : null;
+            
+            // 检查深度扫描结果
+            const deepScanDataWrapper = await window.indexedDBManager.loadDeepScanResults(fullUrl);
+            const deepScanData = deepScanDataWrapper ? deepScanDataWrapper.results : null;
+            
+            // 如果IndexedDB中有当前页面的数据但内存中没有，重新加载
+            if ((scanData || deepScanData) && Object.keys(this.results || {}).length === 0) {
+                //console.log(`🔧 检测到页面 ${hostname} IndexedDB数据丢失，正在恢复...`);
                 await this.loadResults();
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
@@ -648,8 +655,8 @@ class ILoveYouTranslucent7 {
 
         // 检查名称和键名是否重复
         try {
-            const data = await chrome.storage.local.get('customRegexConfigs');
-            const customConfigs = data.customRegexConfigs || {};
+            // 从SettingsManager获取自定义正则配置
+            const customConfigs = await this.settingsManager.getCustomRegexConfigs();
 
             // 检查键名是否重复
             if (customConfigs[key]) {
@@ -684,26 +691,12 @@ class ILoveYouTranslucent7 {
     // 保存自定义正则配置
     async saveCustomRegexConfig(name, key, pattern) {
         try {
-            // 获取现有的自定义正则配置
-            const data = await chrome.storage.local.get('customRegexConfigs');
-            const customConfigs = data.customRegexConfigs || {};
-
-            // 检查键名是否已存在
-            if (customConfigs[key]) {
-                if (!confirm(`存储键名 "${key}" 已存在，是否覆盖？`)) {
-                    return;
-                }
-            }
-
-            // 添加新的配置
-            customConfigs[key] = {
+            // 通过SettingsManager保存自定义正则配置
+            await this.settingsManager.saveCustomRegexConfig(key, {
                 name: name,
                 pattern: pattern,
                 createdAt: Date.now()
-            };
-
-            // 保存到存储
-            await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+            });
 
             //console.log('✅ 自定义正则配置已保存:', { name, key, pattern });
 
@@ -724,8 +717,7 @@ class ILoveYouTranslucent7 {
     // 加载并显示自定义正则配置列表
     async loadCustomRegexList() {
         try {
-            const data = await chrome.storage.local.get('customRegexConfigs');
-            const customConfigs = data.customRegexConfigs || {};
+            const customConfigs = await this.settingsManager.getCustomRegexConfigs();
             
             // 查找或创建自定义正则配置列表容器
             let listContainer = document.getElementById('customRegexList');
@@ -938,8 +930,7 @@ class ILoveYouTranslucent7 {
                     }
                     
                     // 检查名称是否与其他配置重复（排除当前配置）
-                    const data = await chrome.storage.local.get('customRegexConfigs');
-                    const customConfigs = data.customRegexConfigs || {};
+                    const customConfigs = await this.settingsManager.getCustomRegexConfigs();
                     const existingNames = Object.entries(customConfigs)
                         .filter(([k, v]) => k !== key)
                         .map(([k, v]) => v.name);
@@ -952,15 +943,12 @@ class ILoveYouTranslucent7 {
                     
                     try {
                         // 更新配置
-                        customConfigs[key] = {
-                            ...customConfigs[key],
+                        await this.settingsManager.saveCustomRegexConfig(key, {
                             name: newName,
                             pattern: newPattern,
+                            createdAt: customConfigs[key]?.createdAt || Date.now(),
                             updatedAt: Date.now()
-                        };
-                        
-                        // 保存到存储
-                        await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+                        });
                         
                         //console.log(`✅ 已更新自定义正则配置: ${newName} (${key})`);
                         this.showNotification(`自定义正则配置 "${newName}" 已更新`, 'success');
@@ -1053,14 +1041,8 @@ class ILoveYouTranslucent7 {
         }
         
         try {
-            const data = await chrome.storage.local.get('customRegexConfigs');
-            const customConfigs = data.customRegexConfigs || {};
-            
-            // 删除指定的配置
-            delete customConfigs[key];
-            
-            // 保存更新后的配置
-            await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+            // 通过SettingsManager删除配置
+            await this.settingsManager.deleteCustomRegexConfig(key);
             
             //console.log(`✅ 已删除自定义正则配置: ${name} (${key})`);
             this.showNotification(`自定义正则配置 "${name}" 已删除`, 'success');
@@ -1093,21 +1075,26 @@ class ILoveYouTranslucent7 {
             // 更新当前扫描域名显示
             this.updateCurrentDomain(tab.url);
             
-            const lastScanKey = `lastScan_${tab.url}`;
-            const data = await chrome.storage.local.get(lastScanKey);
+            const urlObj = new URL(tab.url);
+            const fullUrl = `https://${urlObj.hostname}`;
+            
+            // 从IndexedDB检查上次扫描时间
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
+            
+            const scanDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
+            const scanData = scanDataWrapper ? scanDataWrapper.results : null;
             
             // 如果没有扫描过当前页面，或者超过5分钟，则自动扫描
             const now = Date.now();
-            const lastScanTime = data[lastScanKey] || 0;
+            const lastScanTime = scanDataWrapper ? scanDataWrapper.timestamp : 0;
             const fiveMinutes = 5 * 60 * 1000;
             
             if (now - lastScanTime > fiveMinutes) {
                 setTimeout(() => {
                     this.startScan(true); // 静默扫描
                 }, 2000);
-                
-                // 记录扫描时间
-                chrome.storage.local.set({ [lastScanKey]: now });
             }
         } catch (error) {
             console.error('自动扫描检查失败:', error);
@@ -1163,16 +1150,20 @@ class ILoveYouTranslucent7 {
             document.getElementById('results').innerHTML = '';
             document.getElementById('stats').textContent = '';
             
-            // 清空当前页面相关的持久化存储数据
-            const keysToRemove = [
-                `${pageKey}__results`,
-                `${pageKey}__deepResults`, 
-                `${pageKey}__deepBackup`,
-                `${pageKey}__deepState`,
-                `${pageKey}__lastSave`
-            ];
+            // 从IndexedDB删除所有相关数据
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
             
-            await chrome.storage.local.remove(keysToRemove);
+            const urlObj = new URL(tab.url);
+            const hostname = urlObj.hostname;
+            const fullUrl = `https://${hostname}`;
+            
+            // 删除普通扫描结果
+            await window.indexedDBManager.deleteScanResults(fullUrl);
+            
+            // 删除深度扫描相关数据（包括结果和状态）
+            await window.indexedDBManager.deleteDeepScanData(fullUrl);
             
             // 重置深度扫描UI状态
             this.resetDeepScanUI();
@@ -1212,23 +1203,31 @@ class ILoveYouTranslucent7 {
                 return;
             }
             
-            const pageKey = this.getPageStorageKey(tab.url);
-            const saveData = {};
+            const urlObj = new URL(tab.url);
+            const hostname = urlObj.hostname;
+            // 构造完整的URL用于保存
+            const fullUrl = `https://${hostname}`;
             
-            // 为当前页面保存数据 - 使用统一的存储键格式
-            saveData[`${pageKey}__results`] = this.results;
-            saveData[`${pageKey}__lastSave`] = Date.now();
+            // 初始化IndexedDBManager
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
             
-            // 如果有深度扫描结果，保存深度扫描数据
+            // 使用IndexedDB保存普通扫描结果
+            if (this.results && Object.keys(this.results).length > 0) {
+                await window.indexedDBManager.saveScanResults(fullUrl, this.results);
+                //console.log(`✅ 普通扫描结果保存到IndexedDB成功: ${hostname}`);
+            }
+            
+            // 保存深度扫描结果
             if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
-                saveData[`${pageKey}__deepResults`] = this.deepScanResults;
-                saveData[`${pageKey}__deepBackup`] = this.deepScanResults;
-                console.log('💾 保存深度扫描结果，数据条目:', 
-                    Object.values(this.deepScanResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0));
+                await window.indexedDBManager.saveDeepScanResults(fullUrl, this.deepScanResults);
+                //console.log('💾 深度扫描结果保存到IndexedDB，数据条目:', 
+                    //Object.values(this.deepScanResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0));
             }
             
             // 保存深度扫描状态
-            saveData[`${pageKey}__deepState`] = {
+            const deepState = {
                 running: this.deepScanRunning,
                 scannedUrls: Array.from(this.scannedUrls || []),
                 currentDepth: this.currentDepth,
@@ -1236,9 +1235,8 @@ class ILoveYouTranslucent7 {
                 concurrency: this.concurrency
             };
             
-            // 执行保存
-            await chrome.storage.local.set(saveData);
-            //console.log(`✅ 页面数据保存成功: ${pageKey}`);
+            await window.indexedDBManager.saveDeepScanState(fullUrl, deepState);
+            //console.log(`✅ 深度扫描状态保存到IndexedDB成功: ${hostname}`);
             
         } catch (error) {
             console.error('❌ 数据保存失败:', error);
@@ -1254,25 +1252,25 @@ class ILoveYouTranslucent7 {
                 return;
             }
             
+            const urlObj = new URL(tab.url);
+            const hostname = urlObj.hostname;
             const pageKey = this.getPageStorageKey(tab.url);
             
-            // 获取当前页面的所有相关数据 - 使用统一的存储键格式
-            const keysToLoad = [
-                `${pageKey}__results`,
-                `${pageKey}__deepResults`,
-                `${pageKey}__deepBackup`,
-                `${pageKey}__deepState`,
-                `${pageKey}__lastSave`
-            ];
+            //console.log(`🔄 正在加载页面数据: ${hostname}`);
             
-            const data = await chrome.storage.local.get(keysToLoad);
+            // 从IndexedDB加载普通扫描结果
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
             
-            console.log(`🔄 正在加载页面数据: ${pageKey}`, {
-                hasBasic: !!data[`${pageKey}__results`],
-                hasDeep: !!data[`${pageKey}__deepResults`],
-                hasBackup: !!data[`${pageKey}__deepBackup`],
-                lastSave: data[`${pageKey}__lastSave`] ? new Date(data[`${pageKey}__lastSave`]).toLocaleString() : '无'
-            });
+            // 构造完整的URL用于加载
+            const fullUrl = `https://${hostname}`;
+            const loadedDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
+            const indexedDBResults = loadedDataWrapper ? loadedDataWrapper.results : null;
+            
+            // 从IndexedDB加载深度扫描结果和状态
+            const deepScanDataWrapper = await window.indexedDBManager.loadDeepScanResults(fullUrl);
+            const deepScanResults = deepScanDataWrapper ? deepScanDataWrapper.results : null;
             
             // 优先使用最完整的数据源
             let bestResults = null;
@@ -1280,9 +1278,8 @@ class ILoveYouTranslucent7 {
             
             // 比较各个数据源的完整性
             const sources = [
-                { data: data[`${pageKey}__deepResults`], name: 'deepResults' },
-                { data: data[`${pageKey}__deepBackup`], name: 'deepBackup' },
-                { data: data[`${pageKey}__results`], name: 'results' }
+                { data: deepScanResults, name: 'deepScanResults' },
+                { data: indexedDBResults, name: 'scanResults' }
             ];
             
             for (const source of sources) {
@@ -1298,14 +1295,14 @@ class ILoveYouTranslucent7 {
             if (bestResults) {
                 this.results = bestResults;
                 this.deepScanResults = bestResults;
-                //console.log(`✅ 从 ${bestSource} 加载了页面数据，共 ${Object.values(bestResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0)} 条记录`);
+                //console.log(`✅ 从IndexedDB ${bestSource} 加载了页面数据，共 ${Object.values(bestResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0)} 条记录`);
                 this.displayResults();
             } else {
-                //console.log(`⚠️ 页面 ${pageKey} 未找到有效的扫描数据`);
+                //console.log(`⚠️ 页面 ${hostname} 未找到有效的扫描数据`);
             }
             
-            // 恢复深度扫描状态
-            const deepState = data[`${pageKey}__deepState`];
+            // 从IndexedDB恢复深度扫描状态
+            const deepState = await window.indexedDBManager.loadDeepScanState(fullUrl);
             if (deepState) {
                 this.deepScanRunning = deepState.running || false;
                 this.scannedUrls = new Set(deepState.scannedUrls || []);
@@ -1313,11 +1310,11 @@ class ILoveYouTranslucent7 {
                 this.maxDepth = deepState.maxDepth || 2;
                 this.concurrency = deepState.concurrency || 3;
                 
-                console.log('🔄 恢复深度扫描状态:', {
-                    running: this.deepScanRunning,
-                    scannedCount: this.scannedUrls.size,
-                    depth: this.currentDepth
-                });
+                //console.log('🔄 从IndexedDB恢复深度扫描状态:', {
+                //    running: this.deepScanRunning,
+                //    scannedCount: this.scannedUrls.size,
+                //    depth: this.currentDepth
+                //});
             }
         } catch (error) {
             console.error('❌ 加载结果失败:', error);
@@ -1337,7 +1334,7 @@ class ILoveYouTranslucent7 {
     }
 }
 
-const CURRENT_VERSION = 'v1.7.3'; // 请根据实际版本修改
+const CURRENT_VERSION = 'v1.7.4'; // 请根据实际版本修改
 
 function compareVersion(v1, v2) {
     const arr1 = v1.replace(/^v/, '').split('.').map(Number);

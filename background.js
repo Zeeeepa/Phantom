@@ -346,9 +346,8 @@ class BackgroundSRCMiner {
         try {
             console.log('🔧 开始执行JS注入 (world: MAIN)...');
             
-            // 存储用户代码到本地存储
-            await chrome.storage.local.set({ userCode: code });
-            console.log('✅ 用户代码已存储到本地');
+            // 记录执行的脚本内容（用于调试）
+            console.log('✅ 准备执行用户代码，长度:', code.length);
 
             // 使用 world: 'MAIN' 在主世界执行脚本，绕过CSP限制
             const results = await chrome.scripting.executeScript({
@@ -422,9 +421,8 @@ class BackgroundSRCMiner {
                 return;
             }
 
-            // 存储用户代码到本地存储
-            await chrome.storage.local.set({ userCode: scriptContent });
-            console.log('✅ 用户代码已存储到本地');
+            // 记录执行的脚本内容（用于调试）
+            console.log('✅ 准备执行用户代码，长度:', scriptContent.length);
 
             // 使用 world: 'MAIN' 在主世界执行脚本，绕过CSP限制
             const results = await chrome.scripting.executeScript({

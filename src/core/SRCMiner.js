@@ -106,10 +106,22 @@ class SRCMiner {
     // 检查数据完整性
     async checkDataIntegrity() {
         try {
-            const data = await chrome.storage.local.get(['srcMinerResults', 'deepScanResults']);
+            // 获取当前页面URL
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (!tab || !tab.url) return;
+            
+            const urlObj = new URL(tab.url);
+            const fullUrl = `https://${urlObj.hostname}`;
+            
+            // 从IndexedDB检查数据
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
+            
+            const storedData = await window.indexedDBManager.loadScanResults(fullUrl);
             
             // 如果存储中有数据但内存中没有，重新加载
-            if ((data.srcMinerResults || data.deepScanResults) && 
+            if (storedData && storedData.results && 
                 Object.keys(this.results || {}).length === 0) {
                 //console.log('🔧 检测到数据丢失，正在恢复...');
                 await this.loadResults();
@@ -619,21 +631,25 @@ class SRCMiner {
             // 更新当前扫描域名显示
             this.updateCurrentDomain(tab.url);
             
-            const lastScanKey = `lastScan_${tab.url}`;
-            const data = await chrome.storage.local.get(lastScanKey);
+            const urlObj = new URL(tab.url);
+            const fullUrl = `https://${urlObj.hostname}`;
+            
+            // 从IndexedDB检查上次扫描时间
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
+            
+            const scanData = await window.indexedDBManager.loadScanResults(fullUrl);
             
             // 如果没有扫描过当前页面，或者超过5分钟，则自动扫描
             const now = Date.now();
-            const lastScanTime = data[lastScanKey] || 0;
+            const lastScanTime = scanData ? scanData.timestamp : 0;
             const fiveMinutes = 5 * 60 * 1000;
             
             if (now - lastScanTime > fiveMinutes) {
                 setTimeout(() => {
                     this.startScan(true); // 静默扫描
                 }, 2000);
-                
-                // 记录扫描时间
-                chrome.storage.local.set({ [lastScanKey]: now });
             }
         } catch (error) {
             console.error('自动扫描检查失败:', error);
@@ -675,7 +691,8 @@ class SRCMiner {
                 return;
             }
             
-            const pageKey = this.getPageStorageKey(tab.url);
+            const urlObj = new URL(tab.url);
+            const fullUrl = `https://${urlObj.hostname}`;
             
             // 清空内存中的数据
             this.results = {};
@@ -689,16 +706,14 @@ class SRCMiner {
             document.getElementById('results').innerHTML = '';
             document.getElementById('stats').textContent = '';
             
-            // 清空当前页面相关的持久化存储数据
-            const keysToRemove = [
-                `${pageKey}_results`,
-                `${pageKey}_deepResults`, 
-                `${pageKey}_deepBackup`,
-                `${pageKey}_deepState`,
-                `${pageKey}_lastSave`
-            ];
+            // 从IndexedDB清空当前页面相关的数据
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
             
-            await chrome.storage.local.remove(keysToRemove);
+            await window.indexedDBManager.deleteScanResults(fullUrl);
+            await window.indexedDBManager.deleteDeepScanResults(fullUrl);
+            await window.indexedDBManager.deleteDeepScanState(fullUrl);
             
             // 重置深度扫描UI状态
             this.resetDeepScanUI();
@@ -707,9 +722,9 @@ class SRCMiner {
             this.updateCategorySelect();
             
             // 显示清空成功提示
-            this.showNotification(`页面 ${tab.url} 的扫描数据已清空`, 'success');
+            this.showNotification(`页面 ${urlObj.hostname} 的扫描数据已清空`, 'success');
             
-            //console.log(`✅ 页面 ${pageKey} 的扫描数据已清空`);
+            //console.log(`✅ 页面 ${urlObj.hostname} 的扫描数据已清空`);
             
         } catch (error) {
             console.error('❌ 清空数据失败:', error);
@@ -810,13 +825,6 @@ class SRCMiner {
             const urlObj = new URL(tab.url);
             const hostname = urlObj.hostname;
             
-            // 使用与普通扫描相同的存储格式
-            const resultsKey = `${hostname}__results`;
-            const lastSaveKey = `${hostname}__lastSave`;
-            const deepStateKey = `${hostname}__deepState`;
-            
-            const saveData = {};
-            
             //console.log('💾 [SAVE LOG] 开始保存结果...');
             //console.log('💾 [SAVE LOG] 当前 this.results 统计:', this.getResultsStats(this.results));
             //console.log('💾 [SAVE LOG] 当前 this.deepScanResults 统计:', this.getResultsStats(this.deepScanResults));
@@ -843,23 +851,29 @@ class SRCMiner {
                 //console.log('💾 [SAVE LOG] 合并后最终结果统计:', this.getResultsStats(finalResults));
             }
             
-            // 保存最终的筛选后结果
+            // 保存最终的筛选后结果到IndexedDB
             if (Object.keys(finalResults).length > 0) {
-                saveData[resultsKey] = finalResults;
-                saveData[lastSaveKey] = Date.now();
-                
                 const itemCount = Object.values(finalResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-                //console.log(`💾 [SAVE LOG] 最终保存到 ${resultsKey}，共 ${itemCount} 条筛选后的记录`);
+                //console.log(`💾 [SAVE LOG] 最终保存到 IndexedDB，共 ${itemCount} 条筛选后的记录`);
                 
                 // 验证保存的数据
                 const domainCount = finalResults.domains ? finalResults.domains.length : 0;
                 //console.log(`💾 [SAVE LOG] 验证：保存的域名数量 = ${domainCount}`);
+                
+                // 使用IndexedDB保存普通扫描结果
+                if (!window.indexedDBManager) {
+                    window.indexedDBManager = new IndexedDBManager();
+                }
+                // 构造完整的URL用于保存
+                const fullUrl = `https://${hostname}`;
+                await window.indexedDBManager.saveScanResults(fullUrl, finalResults);
+                //console.log(`✅ [SAVE LOG] IndexedDB 保存完成: ${hostname}`);
             } else {
                 //console.log('💾 [SAVE LOG] 没有有效结果需要保存');
             }
             
-            // 保存深度扫描状态
-            saveData[deepStateKey] = {
+            // 使用IndexedDB保存深度扫描状态
+            const deepState = {
                 running: this.deepScanRunning,
                 scannedUrls: Array.from(this.scannedUrls || []),
                 currentDepth: this.currentDepth,
@@ -867,35 +881,13 @@ class SRCMiner {
                 concurrency: this.concurrency
             };
             
-            // 执行保存前的最终检查
-            //console.log(`💾 [SAVE LOG] 准备保存的数据键值:`, Object.keys(saveData));
-            if (saveData[resultsKey]) {
-                //console.log(`💾 [SAVE LOG] 准备保存到 ${resultsKey} 的数据统计:`, this.getResultsStats(saveData[resultsKey]));
-                //console.log(`💾 [SAVE LOG] 准备保存的域名示例:`, saveData[resultsKey].domains ? saveData[resultsKey].domains.slice(0, 10) : []);
-            }
+            await window.indexedDBManager.saveDeepScanState(fullUrl, deepState);
+            //console.log(`✅ [SAVE LOG] 深度扫描状态保存到IndexedDB完成: ${hostname}`);
             
-            // 执行保存
-            //console.log(`💾 [SAVE LOG] 开始执行 chrome.storage.local.set...`);
-            await chrome.storage.local.set(saveData);
-            //console.log(`✅ [SAVE LOG] chrome.storage.local.set 执行完成: ${hostname}`);
-            
-            // 验证保存后的数据
-            //console.log(`💾 [SAVE LOG] 开始验证保存结果...`);
-            const verifyData = await chrome.storage.local.get(resultsKey);
-            if (verifyData[resultsKey]) {
-                const verifyCount = Object.values(verifyData[resultsKey]).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-                const verifyDomainCount = verifyData[resultsKey].domains ? verifyData[resultsKey].domains.length : 0;
-                //console.log(`💾 [SAVE LOG] 保存验证成功：存储中共 ${verifyCount} 条记录，域名 ${verifyDomainCount} 个`);
-                //console.log(`💾 [SAVE LOG] 存储中的域名示例:`, verifyData[resultsKey].domains ? verifyData[resultsKey].domains.slice(0, 10) : []);
-                
-                // 检查是否有筛选标记
-                if (verifyData[resultsKey]._filtered) {
-                    //console.log(`✅ [SAVE LOG] 存储的数据已标记为筛选后数据`);
-                } else {
-                    console.warn(`⚠️ [SAVE LOG] 存储的数据未标记为筛选后数据`);
-                }
-            } else {
-                console.error(`❌ [SAVE LOG] 保存验证失败：未找到保存的数据 ${resultsKey}`);
+            // 如果有深度扫描结果，也保存到IndexedDB
+            if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
+                await window.indexedDBManager.saveDeepScanResults(fullUrl, this.deepScanResults);
+                //console.log(`✅ [SAVE LOG] 深度扫描结果保存到IndexedDB完成: ${hostname}`);
             }
             
         } catch (error) {
@@ -996,28 +988,23 @@ class SRCMiner {
             const urlObj = new URL(tab.url);
             const hostname = urlObj.hostname;
             
-            // 使用与普通扫描相同的存储格式
-            const resultsKey = `${hostname}__results`;
-            const lastSaveKey = `${hostname}__lastSave`;
-            const deepStateKey = `${hostname}__deepState`;
+            console.log(`🔄 [LOAD LOG] 正在加载页面数据: ${hostname}`);
             
-            // 获取当前页面的所有相关数据
-            const keysToLoad = [resultsKey, lastSaveKey, deepStateKey];
-            const data = await chrome.storage.local.get(keysToLoad);
+            // 从IndexedDB加载普通扫描结果
+            if (!window.indexedDBManager) {
+                window.indexedDBManager = new IndexedDBManager();
+            }
             
-            console.log(`🔄 [LOAD LOG] 正在加载页面数据: ${hostname}`, {
-                hasResults: !!data[resultsKey],
-                hasDeepState: !!data[deepStateKey],
-                lastSave: data[lastSaveKey] ? new Date(data[lastSaveKey]).toLocaleString() : '无'
-            });
+            // 构造完整的URL用于加载
+            const fullUrl = `https://${hostname}`;
+            const loadedDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
+            const loadedData = loadedDataWrapper ? loadedDataWrapper.results : null;
             
-            // 加载扫描结果
-            if (data[resultsKey] && typeof data[resultsKey] === 'object') {
-                const loadedData = data[resultsKey];
+            if (loadedData && typeof loadedData === 'object') {
                 const itemCount = Object.values(loadedData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
                 const domainCount = loadedData.domains ? loadedData.domains.length : 0;
                 
-                //console.log(`🔄 [LOAD LOG] 从存储加载数据统计:`, this.getResultsStats(loadedData));
+                //console.log(`🔄 [LOAD LOG] 从IndexedDB加载数据统计:`, this.getResultsStats(loadedData));
                 //console.log(`🔄 [LOAD LOG] 存储中域名数量: ${domainCount}`);
                 
                 // 检查数据是否已经筛选过
@@ -1042,8 +1029,9 @@ class SRCMiner {
                 //console.log(`⚠️ [LOAD LOG] 页面 ${hostname} 未找到有效的扫描数据`);
             }
             
-            // 恢复深度扫描状态
-            const deepState = data[deepStateKey];
+            // 从IndexedDB恢复深度扫描状态
+            const deepState = await window.indexedDBManager.loadDeepScanState(fullUrl);
+            
             if (deepState) {
                 this.deepScanRunning = deepState.running || false;
                 this.scannedUrls = new Set(deepState.scannedUrls || []);
@@ -1051,11 +1039,29 @@ class SRCMiner {
                 this.maxDepth = deepState.maxDepth || 2;
                 this.concurrency = deepState.concurrency || 3;
                 
-                console.log('🔄 [LOAD LOG] 恢复深度扫描状态:', {
+                console.log('🔄 [LOAD LOG] 从IndexedDB恢复深度扫描状态:', {
                     running: this.deepScanRunning,
                     scannedCount: this.scannedUrls.size,
                     depth: this.currentDepth
                 });
+            }
+            
+            // 尝试从IndexedDB加载深度扫描结果
+            const deepScanDataWrapper = await window.indexedDBManager.loadDeepScanResults(fullUrl);
+            if (deepScanDataWrapper && deepScanDataWrapper.results) {
+                const deepScanData = deepScanDataWrapper.results;
+                const deepItemCount = Object.values(deepScanData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+                
+                // 如果深度扫描结果比普通扫描结果更完整，使用深度扫描结果
+                if (deepItemCount > 0) {
+                    const currentItemCount = loadedData ? Object.values(loadedData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0) : 0;
+                    if (deepItemCount > currentItemCount) {
+                        this.results = deepScanData;
+                        this.deepScanResults = deepScanData;
+                        console.log(`🔄 [LOAD LOG] 使用IndexedDB深度扫描结果，共 ${deepItemCount} 条记录`);
+                        this.displayResults();
+                    }
+                }
             }
         } catch (error) {
             console.error('❌ [LOAD LOG] 加载结果失败:', error);

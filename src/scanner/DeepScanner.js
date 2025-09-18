@@ -359,12 +359,29 @@ class DeepScanner {
             this.srcMiner.displayResults();
             this.srcMiner.saveResults();
             
-            // 额外保存深度扫描专用数据
-            chrome.storage.local.set({
-                deepScanComplete: true,
-                deepScanTimestamp: Date.now(),
-                deepScanUrl: (await chrome.tabs.query({ active: true, currentWindow: true }))[0]?.url
-            });
+            // 额外保存深度扫描专用数据到IndexedDB
+            const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (currentTab && currentTab.url) {
+                const urlObj = new URL(currentTab.url);
+                const fullUrl = `https://${urlObj.hostname}`;
+                
+                if (!window.indexedDBManager) {
+                    window.indexedDBManager = new IndexedDBManager();
+                }
+                
+                const deepState = {
+                    running: false,
+                    complete: true,
+                    timestamp: Date.now(),
+                    url: currentTab.url,
+                    scannedUrls: Array.from(this.srcMiner.scannedUrls || []),
+                    currentDepth: this.srcMiner.currentDepth,
+                    maxDepth: this.srcMiner.maxDepth,
+                    concurrency: this.srcMiner.concurrency
+                };
+                
+                await window.indexedDBManager.saveDeepScanState(fullUrl, deepState);
+            }
             
             this.showDeepScanComplete();
             
@@ -410,11 +427,28 @@ class DeepScanner {
             // 清理缓存
             this.urlContentCache.clear();
             
-            // 保存扫描完成状态
-            chrome.storage.local.set({
-                lastDeepScanCompleted: Date.now(),
-                deepScanRunning: false
-            });
+            // 保存扫描完成状态到IndexedDB
+            const [completedTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (completedTab && completedTab.url) {
+                const urlObj = new URL(completedTab.url);
+                const fullUrl = `https://${urlObj.hostname}`;
+                
+                if (!window.indexedDBManager) {
+                    window.indexedDBManager = new IndexedDBManager();
+                }
+                
+                const finalState = {
+                    running: false,
+                    complete: true,
+                    lastCompleted: Date.now(),
+                    scannedUrls: Array.from(this.srcMiner.scannedUrls || []),
+                    currentDepth: this.srcMiner.currentDepth,
+                    maxDepth: this.srcMiner.maxDepth,
+                    concurrency: this.srcMiner.concurrency
+                };
+                
+                await window.indexedDBManager.saveDeepScanState(fullUrl, finalState);
+            }
         }
     }
     
@@ -918,13 +952,25 @@ class DeepScanner {
             // 立即保存到存储，使用统一的存储键格式
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (tab && tab.url) {
-                const pageKey = this.getPageStorageKey(tab.url);
-                chrome.storage.local.set({ 
-                    [`${pageKey}__results`]: this.srcMiner.deepScanResults,
-                    [`${pageKey}__deepResults`]: this.srcMiner.deepScanResults,
-                    [`${pageKey}__deepBackup`]: this.srcMiner.deepScanResults,
-                    [`${pageKey}__lastSave`]: Date.now()
-                });
+                // 使用IndexedDB保存深度扫描结果
+                try {
+                    if (!window.indexedDBManager) {
+                        window.indexedDBManager = new IndexedDBManager();
+                    }
+                    
+                    const urlObj = new URL(tab.url);
+                    const fullUrl = `https://${urlObj.hostname}`;
+                    
+                    // 保存普通扫描结果
+                    await window.indexedDBManager.saveScanResults(fullUrl, this.srcMiner.deepScanResults);
+                    
+                    // 保存深度扫描结果
+                    await window.indexedDBManager.saveDeepScanResults(fullUrl, this.srcMiner.deepScanResults);
+                    
+                    //console.log('✅ 深度扫描结果已保存到IndexedDB');
+                } catch (error) {
+                    console.error('❌ 保存深度扫描结果到IndexedDB失败:', error);
+                }
             }
             
             console.log('🔄 深度扫描数据已保存，当前结果数量:', 
@@ -1062,12 +1108,37 @@ class DeepScanner {
         // 确保最终结果被保存
         this.srcMiner.saveResults();
         
-        // 保存深度扫描完成状态
-        chrome.storage.local.set({
-            deepScanComplete: true,
-            deepScanCompletedAt: Date.now(),
-            deepScanResultsCount: Object.values(this.srcMiner.results).reduce((sum, arr) => sum + (arr?.length || 0), 0)
-        });
+        // 保存深度扫描完成状态到IndexedDB
+        const saveCompletionState = async () => {
+            try {
+                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tab && tab.url) {
+                    const urlObj = new URL(tab.url);
+                    const fullUrl = `https://${urlObj.hostname}`;
+                    
+                    if (!window.indexedDBManager) {
+                        window.indexedDBManager = new IndexedDBManager();
+                    }
+                    
+                    const completionState = {
+                        running: false,
+                        complete: true,
+                        completedAt: Date.now(),
+                        resultsCount: Object.values(this.srcMiner.results).reduce((sum, arr) => sum + (arr?.length || 0), 0),
+                        scannedUrls: Array.from(this.srcMiner.scannedUrls || []),
+                        currentDepth: this.srcMiner.currentDepth,
+                        maxDepth: this.srcMiner.maxDepth,
+                        concurrency: this.srcMiner.concurrency
+                    };
+                    
+                    await window.indexedDBManager.saveDeepScanState(fullUrl, completionState);
+                }
+            } catch (error) {
+                console.error('保存深度扫描完成状态失败:', error);
+            }
+        };
+        
+        saveCompletionState();
         
         setTimeout(() => {
             if (deepScanBtnText) {

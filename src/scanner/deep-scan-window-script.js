@@ -288,7 +288,35 @@ async function initializePage() {
     await loadFilters();
 
     try {
-        const { deepScanConfig } = await chrome.storage.local.get(['deepScanConfig']);
+        // 获取baseUrl（从扫描配置中的baseUrl或当前窗口的opener）
+        let baseUrl = '';
+        if (window.opener) {
+            try {
+                // 尝试从opener窗口获取URL
+                baseUrl = window.opener.location.origin;
+            } catch (e) {
+                // 如果跨域访问失败，使用默认方式
+                console.warn('无法从opener获取URL，使用默认方式');
+            }
+        }
+        
+        // 从IndexedDB加载深度扫描配置
+        let deepScanConfig = null;
+        if (baseUrl) {
+            deepScanConfig = await window.IndexedDBManager.loadDeepScanState(baseUrl);
+        }
+        
+        // 如果没有找到配置，尝试获取所有可用的配置
+        if (!deepScanConfig) {
+            console.warn('⚠️ 未找到指定URL的扫描配置，尝试获取所有可用配置...');
+            const allConfigs = await window.IndexedDBManager.getAllDeepScanStates();
+            if (allConfigs && allConfigs.length > 0) {
+                // 使用最新的配置
+                deepScanConfig = allConfigs[allConfigs.length - 1];
+                console.log('✅ 找到可用配置:', deepScanConfig.baseUrl);
+            }
+        }
+        
         if (!deepScanConfig) throw new Error('未找到扫描配置');
         scanConfig = deepScanConfig;
 
@@ -890,9 +918,8 @@ async function saveResultsToStorage() {
         
         //console.log('📝 [DEBUG] 使用存储键:', domainKey);
         
-        // 获取当前存储中的普通扫描结果
-        const storageData = await chrome.storage.local.get([domainKey]);
-        const existingResults = storageData[domainKey] || {};
+        // 从IndexedDB获取当前的普通扫描结果
+        const existingResults = await window.IndexedDBManager.loadScanResults(scanConfig.baseUrl) || {};
         
         // 合并深度扫描结果到普通扫描结果中
         const mergedResults = { ...existingResults };
@@ -922,11 +949,8 @@ async function saveResultsToStorage() {
             totalScanned: scannedUrls.size
         };
         
-        // 保存合并后的结果到正确的域名键中
-        const saveData = {};
-        saveData[domainKey] = mergedResults;
-        
-        await chrome.storage.local.set(saveData);
+        // 保存合并后的结果到IndexedDB
+        await window.IndexedDBManager.saveScanResults(scanConfig.baseUrl, mergedResults);
         
         //console.log('✅ 深度扫描结果已合并到主扫描结果中');
         //console.log('📊 存储键:', domainKey);

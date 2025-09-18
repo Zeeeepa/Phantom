@@ -685,11 +685,14 @@ class SettingsManager {
                 const keyInput = group.querySelector('.header-key-input');
                 const valueInput = group.querySelector('.header-value-input');
                 
-                const key = keyInput.value.trim();
-                const value = valueInput.value.trim();
-                
-                if (key && value) {
-                    headers.push({ key, value });
+                // 添加空值检查，防止访问 null 对象的属性
+                if (keyInput && valueInput && keyInput.value && valueInput.value) {
+                    const key = keyInput.value.trim();
+                    const value = valueInput.value.trim();
+                    
+                    if (key && value) {
+                        headers.push({ key, value });
+                    }
                 }
             });
 
@@ -834,21 +837,12 @@ class SettingsManager {
                 if (
                     // 双下划线格式（实际存储格式）
                     key.endsWith('__results') || 
-                    key.endsWith('__deepResults') || 
-                    key.endsWith('__deepBackup') || 
-                    key.endsWith('__deepState') || 
                     key.endsWith('__lastSave') ||
                     // 单下划线格式（兼容性）
                     key.endsWith('_results') || 
-                    key.endsWith('_deepResults') || 
-                    key.endsWith('_deepBackup') || 
-                    key.endsWith('_deepState') || 
                     key.endsWith('_lastSave') ||
                     // 旧版本的全局键
                     key === 'srcMinerResults' ||
-                    key === 'deepScanResults' ||
-                    key === 'deepScanBackup' ||
-                    key === 'deepScanState' ||
                     key === 'lastSaveTime' ||
                     // 其他可能的扫描相关键
                     key === 'deepScanComplete' ||
@@ -867,18 +861,29 @@ class SettingsManager {
             
             //console.log(`🔍 找到 ${keysToRemove.length} 个数据键需要清空:`, keysToRemove);
             
-            // 第四步：删除所有相关键
+            // 第四步：删除chrome.storage中的相关键（保留非扫描数据）
             if (keysToRemove.length > 0) {
                 await chrome.storage.local.remove(keysToRemove);
-                //console.log(`✅ 已删除 ${keysToRemove.length} 个数据键`);
+                //console.log(`✅ 已删除chrome.storage中的 ${keysToRemove.length} 个数据键`);
             }
             
-            // 第五步：验证删除结果并处理残留数据
+            // 第五步：清空IndexedDB中的所有扫描数据
+            try {
+                if (!window.indexedDBManager) {
+                    window.indexedDBManager = new IndexedDBManager();
+                }
+                await window.indexedDBManager.clearAllScanResults();
+                //console.log('✅ 已清空IndexedDB中的所有扫描数据');
+            } catch (error) {
+                console.error('❌ 清空IndexedDB数据失败:', error);
+            }
+            
+            // 第六步：验证chrome.storage删除结果并处理残留数据
             const verifyData = await chrome.storage.local.get(keysToRemove);
             const remainingKeys = Object.keys(verifyData);
             
             if (remainingKeys.length > 0) {
-                console.warn('⚠️ 发现残留数据键，尝试强制删除:', remainingKeys);
+                console.warn('⚠️ 发现chrome.storage残留数据键，尝试强制删除:', remainingKeys);
                 // 尝试逐个删除剩余的键
                 for (const key of remainingKeys) {
                     try {
@@ -890,7 +895,7 @@ class SettingsManager {
                 }
             }
             
-            // 第六步：清空界面显示
+            // 第七步：清空界面显示
             const resultsDiv = document.getElementById('results');
             const statsDiv = document.getElementById('stats');
             if (resultsDiv) {
@@ -902,7 +907,7 @@ class SettingsManager {
                 //console.log('✅ 已清空统计显示区域');
             }
             
-            // 第七步：重置UI状态
+            // 第八步：重置UI状态
             if (window.srcMiner) {
                 // 只有在没有深度扫描运行时才重置UI状态
                 if (!window.srcMiner.deepScanRunning) {
@@ -926,16 +931,12 @@ class SettingsManager {
                 }
             }
             
-            // 第八步：最终验证
+            // 第九步：最终验证chrome.storage（只检查非扫描数据相关键）
             const finalCheck = await chrome.storage.local.get(null);
             const remainingDataKeys = Object.keys(finalCheck).filter(key => 
                 key.endsWith('__results') || 
-                key.endsWith('__deepResults') || 
-                key.endsWith('__deepBackup') || 
-                key.endsWith('__deepState') || 
                 key.endsWith('__lastSave') ||
                 key.endsWith('_results') || 
-                key.endsWith('_deepResults') || 
                 key.endsWith('_deepBackup') || 
                 key.endsWith('_deepState') || 
                 key.endsWith('_lastSave') ||
@@ -946,6 +947,14 @@ class SettingsManager {
                 key === 'lastSaveTime' ||
                 key.startsWith('lastScan_')
             );
+            
+            // 第十步：验证IndexedDB清空结果
+            try {
+                const indexedDBStats = await window.indexedDBManager.getStats();
+                //console.log('📊 IndexedDB清空后统计:', indexedDBStats);
+            } catch (error) {
+                console.error('❌ 获取IndexedDB统计失败:', error);
+            }
             
             // 第九步：恢复自动保存机制
             if (originalSaveResults && window.srcMiner) {
@@ -1020,6 +1029,55 @@ class SettingsManager {
                 allowSubdomains: false,
                 allowAllDomains: false
             };
+        }
+    }
+
+    /**
+     * 获取自定义正则配置
+     */
+    async getCustomRegexConfigs() {
+        try {
+            const result = await chrome.storage.local.get('customRegexConfigs');
+            return result.customRegexConfigs || {};
+        } catch (error) {
+            console.error('获取自定义正则配置失败:', error);
+            return {};
+        }
+    }
+
+    /**
+     * 保存自定义正则配置
+     */
+    async saveCustomRegexConfig(key, config) {
+        try {
+            const data = await chrome.storage.local.get('customRegexConfigs');
+            const customConfigs = data.customRegexConfigs || {};
+            
+            customConfigs[key] = config;
+            
+            await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+            console.log('✅ 自定义正则配置已保存:', { key, config });
+        } catch (error) {
+            console.error('❌ 保存自定义正则配置失败:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 删除自定义正则配置
+     */
+    async deleteCustomRegexConfig(key) {
+        try {
+            const data = await chrome.storage.local.get('customRegexConfigs');
+            const customConfigs = data.customRegexConfigs || {};
+            
+            delete customConfigs[key];
+            
+            await chrome.storage.local.set({ customRegexConfigs: customConfigs });
+            console.log('✅ 自定义正则配置已删除:', key);
+        } catch (error) {
+            console.error('❌ 删除自定义正则配置失败:', error);
+            throw error;
         }
     }
 }

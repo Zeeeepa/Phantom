@@ -382,23 +382,27 @@ const JSHookPresets = {
 
         ],
     
-    // 初始化预设脚本到chrome.storage
+    // 初始化预设脚本到IndexedDB
     async initializePresets() {
         try {
-            console.log('[JSHook Presets] 开始初始化预设脚本...');
+            //console.log('[JSHook Presets] 开始初始化预设脚本...');
+            //console.log('[JSHook Presets] 预设脚本总数:', this.presetScripts.length);
+            
+            // 检查IndexedDBManager是否可用
+            if (!window.IndexedDBManager) {
+                console.error('[JSHook Presets] IndexedDBManager未找到');
+                return;
+            }
             
             // 获取现有脚本
-            const result = await new Promise(resolve => {
-                chrome.storage.local.get(['savedScripts'], resolve);
-            });
-            
-            const existingScripts = result.savedScripts || [];
-            console.log('[JSHook Presets] 现有脚本数量:', existingScripts.length);
+            const existingScripts = await window.IndexedDBManager.loadJSScripts();
+            //console.log('[JSHook Presets] 现有脚本数量:', existingScripts.length);
+            //console.log('[JSHook Presets] 现有脚本:', existingScripts.map(s => s.name));
             
             // 检查是否已经有预设脚本
             const hasPresets = existingScripts.some(script => script.isPreset === true);
             if (hasPresets) {
-                console.log('[JSHook Presets] 预设脚本已存在，跳过初始化');
+                //console.log('[JSHook Presets] 预设脚本已存在，跳过初始化');
                 return;
             }
             
@@ -408,28 +412,24 @@ const JSHookPresets = {
                 id: `preset_${index}_${Date.now()}`,
                 isPreset: true,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                timestamp: Date.now()
             }));
             
-            console.log('[JSHook Presets] 准备添加预设脚本数量:', presetsWithMetadata.length);
+            //console.log('[JSHook Presets] 准备添加预设脚本数量:', presetsWithMetadata.length);
+            //console.log('[JSHook Presets] 预设脚本名称:', presetsWithMetadata.map(s => s.name));
             
-            // 合并预设脚本和现有脚本
+            // 合并预设脚本和现有脚本，然后保存到IndexedDB
             const allScripts = [...existingScripts, ...presetsWithMetadata];
+            //console.log('[JSHook Presets] 合并后总脚本数量:', allScripts.length);
             
-            // 保存到chrome.storage
-            await new Promise((resolve, reject) => {
-                chrome.storage.local.set({
-                    savedScripts: allScripts
-                }, () => {
-                    if (chrome.runtime.lastError) {
-                        reject(chrome.runtime.lastError);
-                    } else {
-                        resolve();
-                    }
-                });
-            });
+            await window.IndexedDBManager.saveJSScripts(allScripts);
             
-            console.log('[JSHook Presets] 预设脚本初始化完成，总脚本数量:', allScripts.length);
+            //console.log('[JSHook Presets] 预设脚本初始化完成');
+            
+            // 验证保存结果
+            const verifyScripts = await window.IndexedDBManager.loadJSScripts();
+            //console.log('[JSHook Presets] 验证：保存后脚本数量:', verifyScripts.length);
             
         } catch (error) {
             console.error('[JSHook Presets] 初始化预设脚本失败:', error);
@@ -439,13 +439,14 @@ const JSHookPresets = {
     // 重置预设脚本（开发调试用）
     async resetPresets() {
         try {
-            await new Promise(resolve => {
-                chrome.storage.local.set({
-                    presetsInitialized: false
-                }, resolve);
-            });
+            // 删除所有预设脚本
+            const scripts = await window.IndexedDBManager.loadJSScripts();
+            const nonPresetScripts = scripts.filter(script => script.isPreset !== true);
             
-            console.log('[JSHook Presets] 预设脚本标记已重置');
+            // 保存非预设脚本回IndexedDB
+            await window.IndexedDBManager.saveJSScripts(nonPresetScripts);
+            
+            console.log('[JSHook Presets] 预设脚本已重置');
             
         } catch (error) {
             console.error('[JSHook Presets] 重置预设脚本失败:', error);

@@ -53,15 +53,15 @@ class DeepScanWindow {
             jsFiles: scanConfig.initialResults.jsFiles?.length || 0
         });
 
-        // 将配置保存到chrome.storage，供扫描窗口读取
+        // 将配置保存到IndexedDB，供扫描窗口读取
         try {
-            //console.log('🔍 [DEBUG] 开始保存配置到chrome.storage...');
-            await chrome.storage.local.set({ 'deepScanConfig': scanConfig });
-            //console.log('✅ [DEBUG] 深度扫描配置已保存到storage');
+            //console.log('🔍 [DEBUG] 开始保存配置到IndexedDB...');
+            await window.IndexedDBManager.saveDeepScanState(baseUrl, scanConfig);
+            //console.log('✅ [DEBUG] 深度扫描配置已保存到IndexedDB');
             
             // 验证保存是否成功
-            const verification = await chrome.storage.local.get(['deepScanConfig']);
-            //console.log('🔍 [DEBUG] 验证保存结果:', verification.deepScanConfig ? '成功' : '失败');
+            const verification = await window.IndexedDBManager.loadDeepScanState(baseUrl);
+            //console.log('🔍 [DEBUG] 验证保存结果:', verification ? '成功' : '失败');
             
         } catch (error) {
             console.error('❌ [DEBUG] 保存深度扫描配置失败:', error);
@@ -294,11 +294,19 @@ class DeepScanWindow {
             }, 5000);
         }
 
-        // 保存完成状态
-        chrome.storage.local.set({
+        // 保存完成状态到IndexedDB
+        const completionState = {
             deepScanComplete: true,
             deepScanCompletedAt: Date.now(),
             deepScanResultsCount: Object.values(this.srcMiner.results).reduce((sum, arr) => sum + (arr?.length || 0), 0)
+        };
+        
+        // 获取当前页面URL用于保存状态
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs[0] && tabs[0].url) {
+                const baseUrl = new URL(tabs[0].url).origin;
+                IndexedDBManager.saveDeepScanState(baseUrl, completionState);
+            }
         });
     }
 
