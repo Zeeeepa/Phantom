@@ -422,6 +422,17 @@ class ApiTester {
         try {
             let url = item;
             
+            // 修复：如果item是对象，提取value属性
+            if (typeof item === 'object' && item !== null) {
+                url = item.value || item.url || item;
+            }
+            
+            // 修复：确保url是字符串类型
+            if (!url || typeof url !== 'string') {
+                console.error('buildTestUrl: url参数无效:', url);
+                return null;
+            }
+            
             switch (categoryKey) {
                 case 'absoluteApis':
                 case 'paths':

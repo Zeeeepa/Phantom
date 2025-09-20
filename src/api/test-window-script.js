@@ -491,6 +491,18 @@ async function processSingleRequest(item, index) {
 function buildTestUrl(item, categoryKey, baseUrl) {
     try {
         let url = item;
+        
+        // 修复：如果item是对象，提取value属性
+        if (typeof item === 'object' && item !== null) {
+            url = item.value || item.url || item;
+            console.log('buildTestUrl: 从对象提取URL:', url, '原始对象:', item);
+        }
+        
+        // 修复：确保url是字符串类型
+        if (!url || typeof url !== 'string') {
+            console.error('buildTestUrl: url参数无效:', url);
+            return baseUrl || 'https://example.com';
+        }
 
         // 获取自定义base API路径
         const customBaseApiPaths = testData.customBaseApiPaths || [];
@@ -606,6 +618,17 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                     customBaseApiPaths.forEach(basePath => {
                         let url = item;
                         
+                        // 修复：如果item是对象，提取value属性
+                        if (typeof item === 'object' && item !== null) {
+                            url = item.value || item.url || item;
+                        }
+                        
+                        // 修复：确保url是字符串类型
+                        if (!url || typeof url !== 'string') {
+                            console.error('expandItemsForMultipleBasePaths: url参数无效:', url);
+                            return;
+                        }
+                        
                         switch (categoryKey) {
                             case 'absoluteApis':
                             case 'paths':
@@ -615,7 +638,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                                 break;
                                 
                             case 'relativeApis':
-                                if (!url.startsWith('http')) {
+                                if (typeof url === 'string' && !url.startsWith('http')) {
                                     url = customDomain + basePath + (url.startsWith('/') ? '' : '/') + url;
                                 }
                                 break;
@@ -623,7 +646,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                             case 'jsFiles':
                             case 'cssFiles':
                             case 'images':
-                                if (!url.startsWith('http')) {
+                                if (typeof url === 'string' && !url.startsWith('http')) {
                                     if (url.startsWith('/')) {
                                         url = customDomain + basePath + url;
                                     } else {
@@ -633,7 +656,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                                 break;
                                 
                             default:
-                                if (!url.startsWith('http')) {
+                                if (typeof url === 'string' && !url.startsWith('http')) {
                                     url = customDomain + basePath + (url.startsWith('/') ? '' : '/') + url;
                                 }
                         }
@@ -651,16 +674,28 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                     // 没有自定义Base API路径，直接使用自定义域名
                     let url = item;
                     
+                    // 修复：如果item是对象，提取value属性
+                    if (typeof item === 'object' && item !== null) {
+                        url = item.value || item.url || item;
+                    }
+                    
+                    // 修复：确保url是字符串类型
+                    if (!url || typeof url !== 'string') {
+                        console.error('expandItemsForMultipleBasePaths: url参数无效:', url);
+                        return;
+                    }
+                    
                     switch (categoryKey) {
                         case 'absoluteApis':
                         case 'paths':
-                            if (url.startsWith('/')) {
+                            // 修复：确保url是字符串类型
+                            if (typeof url === 'string' && url.startsWith('/')) {
                                 url = customDomain + url;
                             }
                             break;
                             
                         case 'relativeApis':
-                            if (!url.startsWith('http')) {
+                            if (typeof url === 'string' && !url.startsWith('http')) {
                                 url = customDomain + (url.startsWith('/') ? '' : '/') + url;
                             }
                             break;
@@ -668,7 +703,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                         case 'jsFiles':
                         case 'cssFiles':
                         case 'images':
-                            if (!url.startsWith('http')) {
+                            if (typeof url === 'string' && !url.startsWith('http')) {
                                 if (url.startsWith('/')) {
                                     url = customDomain + url;
                                 } else {
@@ -678,7 +713,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                             break;
                             
                         default:
-                            if (!url.startsWith('http')) {
+                            if (typeof url === 'string' && !url.startsWith('http')) {
                                 url = customDomain + (url.startsWith('/') ? '' : '/') + url;
                             }
                     }
@@ -743,6 +778,17 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
         
         // 总是添加原始项目（使用原始域名）
         let originalUrl = item;
+        
+        // 修复：如果item是对象，提取value属性
+        if (typeof item === 'object' && item !== null) {
+            originalUrl = item.value || item.url || item;
+        }
+        
+        // 修复：确保originalUrl是字符串类型
+        if (!originalUrl || typeof originalUrl !== 'string') {
+            console.warn('originalUrl不是字符串类型:', originalUrl);
+            return expandedItems; // 跳过这个项目
+        }
         
         // 处理原始域名的URL构建
         switch (categoryKey) {

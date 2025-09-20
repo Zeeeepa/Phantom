@@ -1003,7 +1003,18 @@ class SRCMiner {
             // 构造完整的URL用于加载
             const fullUrl = `https://${hostname}`;
             const loadedDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
-            const loadedData = loadedDataWrapper ? loadedDataWrapper.results : null;
+            // 修复：正确处理新的数据结构，数据存储在 results 属性中
+            let loadedData = null;
+            if (loadedDataWrapper && loadedDataWrapper.results) {
+                // 检查是否是新的嵌套结构
+                if (loadedDataWrapper.results.results) {
+                    // 新格式：数据在 results.results 中
+                    loadedData = loadedDataWrapper.results.results;
+                } else {
+                    // 旧格式：数据直接在 results 中
+                    loadedData = loadedDataWrapper.results;
+                }
+            }
             
             if (loadedData && typeof loadedData === 'object') {
                 const itemCount = Object.values(loadedData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
