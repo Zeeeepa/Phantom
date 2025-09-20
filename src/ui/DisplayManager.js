@@ -316,10 +316,42 @@ class DisplayManager {
         items.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'item';
-            itemDiv.textContent = item;
+            
+            // 🔥 修复：正确处理对象显示
+            if (typeof item === 'object' && item !== null) {
+                // 如果是对象，尝试获取有意义的属性或转换为JSON
+                if (item.url || item.path || item.value || item.content || item.name) {
+                    itemDiv.textContent = item.url || item.path || item.value || item.content || item.name || JSON.stringify(item);
+                } else {
+                    itemDiv.textContent = JSON.stringify(item);
+                }
+            } else {
+                // 如果是字符串或其他基本类型，直接显示
+                itemDiv.textContent = String(item);
+            }
+            
             itemDiv.title = '点击复制';
+            
+            // 添加悬停显示URL位置功能
+            this.addUrlLocationTooltip(itemDiv, item, category.key);
+            
+            // 添加右键菜单功能
+            this.addContextMenu(itemDiv, item);
+            
             itemDiv.addEventListener('click', () => {
-                navigator.clipboard.writeText(item).then(() => {
+                // 🔥 修复：正确处理对象复制，避免[object Object]
+                let textToCopy = item;
+                if (typeof item === 'object' && item !== null) {
+                    if (item.url || item.path || item.value || item.content || item.name) {
+                        textToCopy = item.url || item.path || item.value || item.content || item.name || JSON.stringify(item);
+                    } else {
+                        textToCopy = JSON.stringify(item);
+                    }
+                } else {
+                    textToCopy = String(item);
+                }
+                
+                navigator.clipboard.writeText(textToCopy).then(() => {
                     itemDiv.classList.add('copied');
                     setTimeout(() => {
                         itemDiv.classList.remove('copied');
@@ -439,23 +471,139 @@ class DisplayManager {
         items.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'result-item';
-            itemDiv.textContent = item;
+            
+            // 🔥 修复：正确处理对象显示
+            if (typeof item === 'object' && item !== null) {
+                // 如果是对象，尝试获取有意义的属性或转换为JSON
+                if (item.url || item.path || item.value || item.content || item.name) {
+                    itemDiv.textContent = item.url || item.path || item.value || item.content || item.name || JSON.stringify(item);
+                } else {
+                    itemDiv.textContent = JSON.stringify(item);
+                }
+            } else {
+                // 如果是字符串或其他基本类型，直接显示
+                itemDiv.textContent = String(item);
+            }
+            
             itemDiv.style.padding = '8px 10px';
             itemDiv.style.margin = '3px 0';
             itemDiv.style.borderBottom = '1px solid rgba(255, 255, 255, 0.05)';
             itemDiv.style.wordBreak = 'break-all';
             itemDiv.style.transition = 'all 0.3s';
             itemDiv.style.borderRadius = '4px';
+            itemDiv.style.cursor = 'pointer';
             
-            itemDiv.onmouseover = () => {
+            // 添加悬停显示来源功能
+            let tooltip = null;
+            
+            itemDiv.onmouseover = async (e) => {
                 itemDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                 itemDiv.style.transform = 'translateX(3px)';
+                
+                // 创建并显示tooltip
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.style.position = 'fixed';
+                    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+                    tooltip.style.color = '#fff';
+                    tooltip.style.padding = '8px 12px';
+                    tooltip.style.borderRadius = '6px';
+                    tooltip.style.fontSize = '12px';
+                    tooltip.style.zIndex = '10000';
+                    tooltip.style.maxWidth = '300px';
+                    tooltip.style.wordWrap = 'break-word';
+                    tooltip.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                    tooltip.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+                    tooltip.style.pointerEvents = 'none';
+                    document.body.appendChild(tooltip);
+                }
+                
+                // 获取项目位置信息
+                try {
+                    const locationInfo = await this.getItemLocationInfo(item);
+                    tooltip.innerHTML = `
+                        <div style="font-weight: bold; color: #00d4aa; margin-bottom: 4px;">来源信息</div>
+                        <div><strong>页面:</strong> ${locationInfo.pageTitle}</div>
+                        <div><strong>URL:</strong> ${locationInfo.sourceUrl}</div>
+                        <div><strong>时间:</strong> ${new Date(locationInfo.extractedAt).toLocaleString('zh-CN')}</div>
+                    `;
+                } catch (error) {
+                    tooltip.innerHTML = `
+                        <div style="font-weight: bold; color: #ff6b6b; margin-bottom: 4px;">来源信息</div>
+                        <div>获取来源信息失败</div>
+                    `;
+                }
+                
+                // 定位tooltip
+                const rect = itemDiv.getBoundingClientRect();
+                tooltip.style.left = (rect.left + 10) + 'px';
+                tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+                
+                // 确保tooltip不超出屏幕边界
+                const tooltipRect = tooltip.getBoundingClientRect();
+                if (tooltipRect.left < 0) {
+                    tooltip.style.left = '10px';
+                }
+                if (tooltipRect.right > window.innerWidth) {
+                    tooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
+                }
+                if (tooltipRect.top < 0) {
+                    tooltip.style.top = (rect.bottom + 10) + 'px';
+                }
             };
             
             itemDiv.onmouseout = () => {
                 itemDiv.style.backgroundColor = 'transparent';
                 itemDiv.style.transform = 'translateX(0)';
+                
+                // 隐藏tooltip
+                if (tooltip) {
+                    document.body.removeChild(tooltip);
+                    tooltip = null;
+                }
             };
+            
+            // 添加右键菜单功能
+            itemDiv.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                
+                // 移除已存在的菜单
+                const existingMenu = document.querySelector('.context-menu');
+                if (existingMenu) {
+                    existingMenu.remove();
+                }
+
+                const menu = this.createContextMenu(item);
+                document.body.appendChild(menu);
+
+                // 定位菜单
+                const rect = menu.getBoundingClientRect();
+                let left = e.clientX;
+                let top = e.clientY;
+
+                // 确保菜单不超出视窗
+                if (left + rect.width > window.innerWidth) {
+                    left = window.innerWidth - rect.width - 10;
+                }
+                if (top + rect.height > window.innerHeight) {
+                    top = window.innerHeight - rect.height - 10;
+                }
+
+                menu.style.left = left + 'px';
+                menu.style.top = top + 'px';
+
+                // 点击其他地方时关闭菜单
+                const closeMenu = (event) => {
+                    if (!menu.contains(event.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                };
+                
+                setTimeout(() => {
+                    document.addEventListener('click', closeMenu);
+                }, 0);
+            });
             
             list.appendChild(itemDiv);
         });
@@ -468,7 +616,22 @@ class DisplayManager {
     copyAllItems(categoryKey, items) {
         if (!items || items.length === 0) return;
         
-        const text = items.join('\n');
+        // 🔥 修复：正确处理对象复制，避免[object Object]
+        const processedItems = items.map(item => {
+            if (typeof item === 'object' && item !== null) {
+                // 如果是对象，尝试获取有意义的属性或转换为JSON
+                if (item.url || item.path || item.value || item.content || item.name) {
+                    return item.url || item.path || item.value || item.content || item.name || JSON.stringify(item);
+                } else {
+                    return JSON.stringify(item);
+                }
+            } else {
+                // 如果是字符串或其他基本类型，直接返回
+                return String(item);
+            }
+        });
+        
+        const text = processedItems.join('\n');
         navigator.clipboard.writeText(text).then(() => {
             // 显示复制成功提示
             const categoryDiv = document.querySelector(`.category[data-category-key="${categoryKey}"]`);
@@ -1002,5 +1165,526 @@ class DisplayManager {
         }
         
         return filteredResults;
+    }
+
+    // 添加URL位置提示功能
+    async addUrlLocationTooltip(element, item, category = null) {
+        let tooltip = null;
+        let hoverTimeout = null;
+
+        element.addEventListener('mouseenter', () => {
+            // 延迟显示提示，避免快速移动时频繁触发
+            hoverTimeout = setTimeout(async () => {
+                try {
+                    const locationInfo = await this.getItemLocationInfo(category, item);
+                    if (locationInfo) {
+                        tooltip = this.createTooltip(locationInfo);
+                        document.body.appendChild(tooltip);
+                        this.positionTooltip(tooltip, element);
+                    }
+                } catch (error) {
+                    console.error('[DisplayManager] 获取位置信息失败:', error);
+                }
+            }, 500); // 500ms延迟显示
+        });
+
+        element.addEventListener('mouseleave', () => {
+            if (hoverTimeout) {
+                clearTimeout(hoverTimeout);
+                hoverTimeout = null;
+            }
+            if (tooltip) {
+                document.body.removeChild(tooltip);
+                tooltip = null;
+            }
+        });
+
+        element.addEventListener('mousemove', (e) => {
+            if (tooltip) {
+                this.positionTooltip(tooltip, element, e);
+            }
+        });
+    }
+
+    // 获取项目的位置信息 - 支持两种调用方式：getItemLocationInfo(item) 或 getItemLocationInfo(category, item)
+    async getItemLocationInfo(categoryOrItem, item = null) {
+        try {
+            // 🔥 修复：兼容两种调用方式
+            let category = null;
+            let actualItem = null;
+            
+            if (item === null) {
+                // 单参数调用：getItemLocationInfo(item)
+                actualItem = categoryOrItem;
+                category = null; // 不知道具体分类，需要在所有分类中搜索
+            } else {
+                // 双参数调用：getItemLocationInfo(category, item)
+                category = categoryOrItem;
+                actualItem = item;
+            }
+            
+            // 🔥 修复：直接从数据项本身获取sourceUrl信息
+            if (typeof actualItem === 'object' && actualItem !== null) {
+                // 如果item本身就包含sourceUrl信息，直接使用
+                if (actualItem.sourceUrl && !actualItem.sourceUrl.startsWith('chrome-extension://')) {
+                    return {
+                        sourceUrl: actualItem.sourceUrl,
+                        pageTitle: actualItem.pageTitle || document.title || '扫描结果',
+                        extractedAt: actualItem.extractedAt || new Date().toISOString()
+                    };
+                }
+            }
+            
+            // 🔥 修复：尝试从IndexedDB查找数据
+            const indexedDBManager = this.srcMiner?.indexedDBManager || window.IndexedDBManager || window.indexedDBManager;
+            if (!indexedDBManager) {
+                console.warn('[DisplayManager] IndexedDBManager未初始化，返回当前页面信息');
+                return {
+                    sourceUrl: window.location.href.startsWith('chrome-extension://') ? '扫描目标页面' : window.location.href,
+                    pageTitle: document.title || '扫描结果',
+                    extractedAt: new Date().toISOString()
+                };
+            }
+
+            try {
+                // 🔥 修复：获取所有扫描结果
+                const allResults = await indexedDBManager.getAllData('scanResults');
+                
+                if (allResults && allResults.length > 0) {
+                    // 获取要查找的值
+                    const searchValue = typeof actualItem === 'object' && actualItem !== null ? 
+                        (actualItem.value || actualItem.text || actualItem.content || JSON.stringify(actualItem)) : 
+                        String(actualItem);
+                    
+                    // 在所有扫描结果中查找匹配项
+                    for (const result of allResults.reverse()) { // 从最新的开始查找
+                        if (result.results) {
+                            // 如果指定了分类，只在该分类中查找
+                            const categoriesToSearch = category ? [category] : Object.keys(result.results);
+                            
+                            for (const searchCategory of categoriesToSearch) {
+                                const categoryData = result.results[searchCategory];
+                                
+                                if (Array.isArray(categoryData)) {
+                                    for (const dataItem of categoryData) {
+                                        let itemValue = null;
+                                        let itemSourceUrl = null;
+                                        let itemPageTitle = null;
+                                        let itemExtractedAt = null;
+
+                                        if (typeof dataItem === 'object' && dataItem !== null) {
+                                            // 对象格式：{value: "xxx", sourceUrl: "xxx", ...}
+                                            itemValue = dataItem.value || dataItem.text || dataItem.content;
+                                            itemSourceUrl = dataItem.sourceUrl;
+                                            itemPageTitle = dataItem.pageTitle;
+                                            itemExtractedAt = dataItem.extractedAt;
+                                        } else {
+                                            // 字符串格式，使用扫描结果的源信息
+                                            itemValue = String(dataItem);
+                                            itemSourceUrl = result.sourceUrl;
+                                            itemPageTitle = result.pageTitle;
+                                            itemExtractedAt = result.extractedAt;
+                                        }
+
+                                        // 比较值是否匹配
+                                        if (itemValue === searchValue) {
+                                            // 🔥 修复：确保不返回chrome-extension URL
+                                            const finalSourceUrl = itemSourceUrl && !itemSourceUrl.startsWith('chrome-extension://') ? 
+                                                itemSourceUrl : 
+                                                (result.sourceUrl && !result.sourceUrl.startsWith('chrome-extension://') ? 
+                                                    result.sourceUrl : 
+                                                    '扫描目标页面');
+                                            
+                                            return {
+                                                sourceUrl: finalSourceUrl,
+                                                pageTitle: itemPageTitle || result.pageTitle || '扫描结果',
+                                                extractedAt: itemExtractedAt || result.extractedAt || result.timestamp || new Date().toISOString()
+                                            };
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (dbError) {
+                console.warn('[DisplayManager] IndexedDB查询失败:', dbError);
+            }
+            
+            // 🔥 修复：如果都没找到，返回当前页面信息而不是chrome-extension URL
+            const currentUrl = window.location.href;
+            return {
+                sourceUrl: currentUrl.startsWith('chrome-extension://') ? '扫描目标页面' : currentUrl,
+                pageTitle: document.title || '扫描结果',
+                extractedAt: new Date().toISOString()
+            };
+            
+        } catch (error) {
+            console.error('[DisplayManager] 获取位置信息时出错:', error);
+            // 🔥 修复：即使出错也不返回chrome-extension URL
+            const currentUrl = window.location.href;
+            return {
+                sourceUrl: currentUrl.startsWith('chrome-extension://') ? '数据来源未知' : currentUrl,
+                pageTitle: document.title || '扫描结果',
+                extractedAt: new Date().toISOString()
+            };
+        }
+    }
+
+    // 在扫描结果中查找包含sourceUrl的匹配项
+    findItemWithSourceUrl(item, results) {
+        if (!results) return null;
+        
+        // 将item转换为字符串进行比较
+        const itemStr = typeof item === 'object' && item !== null ? 
+            (item.text || item.content || item.value || JSON.stringify(item)) : 
+            String(item);
+        
+        // 递归搜索所有结果，返回包含sourceUrl的匹配项
+        const searchInObject = (obj) => {
+            if (Array.isArray(obj)) {
+                for (const element of obj) {
+                    if (typeof element === 'string') {
+                        if (element === itemStr) {
+                            // 字符串匹配但没有sourceUrl信息
+                            return null;
+                        }
+                    } else if (typeof element === 'object' && element !== null) {
+                        // 检查对象的各种可能的值字段
+                        const elementStr = element.text || element.content || element.value || JSON.stringify(element);
+                        if (elementStr === itemStr) {
+                            // 找到匹配项，返回包含sourceUrl的对象
+                            return element;
+                        }
+                        // 递归搜索
+                        const found = searchInObject(element);
+                        if (found) return found;
+                    }
+                }
+            } else if (typeof obj === 'object' && obj !== null) {
+                for (const value of Object.values(obj)) {
+                    const found = searchInObject(value);
+                    if (found) return found;
+                }
+            }
+            return null;
+        };
+
+        return searchInObject(results);
+    }
+
+    // 检查项目是否在扫描结果中（保留原有方法用于其他地方）
+    isItemInResults(item, results) {
+        return this.findItemWithSourceUrl(item, results) !== null;
+    }
+
+    // 创建提示框
+    createTooltip(locationInfo) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'url-location-tooltip';
+        tooltip.style.cssText = `
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            max-width: 300px;
+            word-wrap: break-word;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        `;
+
+        const formatDate = (dateStr) => {
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleString('zh-CN');
+            } catch (error) {
+                return '刚刚';
+            }
+        };
+
+        // 🔥 修复：确保所有信息都有有效值，避免显示"未知"
+        const pageTitle = locationInfo.pageTitle || document.title || '当前页面';
+        const sourceUrl = locationInfo.sourceUrl || window.location.href;
+        const extractedAt = locationInfo.extractedAt || new Date().toISOString();
+        const scanId = locationInfo.scanId || 'current-session';
+
+        // 🔥 修复：截断过长的URL显示
+        const displayUrl = sourceUrl.length > 50 ? sourceUrl.substring(0, 47) + '...' : sourceUrl;
+        const displayTitle = pageTitle.length > 30 ? pageTitle.substring(0, 27) + '...' : pageTitle;
+
+        tooltip.innerHTML = `
+            <div style="margin-bottom: 5px;"><strong>提取来源:</strong></div>
+            <div style="margin-bottom: 3px;">${displayTitle}</div>
+            <div style="margin-bottom: 3px;">${displayUrl}</div>
+            <div style="margin-bottom: 3px;">${formatDate(extractedAt)}</div>
+        `;
+
+        return tooltip;
+    }
+
+    // 定位提示框 - 🔥 修复：悬浮在鼠标上方
+    positionTooltip(tooltip, element, mouseEvent = null) {
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+        let left, top;
+
+        if (mouseEvent) {
+            // 🔥 修复：使用鼠标位置，显示在鼠标上方
+            left = mouseEvent.pageX - tooltipRect.width / 2; // 水平居中于鼠标
+            top = mouseEvent.pageY - tooltipRect.height - 15; // 显示在鼠标上方，留15px间距
+        } else {
+            // 如果没有鼠标事件，使用元素中心位置
+            const rect = element.getBoundingClientRect();
+            left = rect.left + scrollX + rect.width / 2 - tooltipRect.width / 2;
+            top = rect.top + scrollY - tooltipRect.height - 15;
+        }
+
+        // 🔥 修复：确保提示框不超出视口边界
+        // 水平方向调整
+        if (left + tooltipRect.width > viewportWidth + scrollX) {
+            left = viewportWidth + scrollX - tooltipRect.width - 10;
+        }
+        if (left < scrollX + 10) {
+            left = scrollX + 10;
+        }
+
+        // 垂直方向调整 - 如果上方空间不够，显示在鼠标下方
+        if (top < scrollY + 10) {
+            if (mouseEvent) {
+                top = mouseEvent.pageY + 15; // 显示在鼠标下方
+            } else {
+                const rect = element.getBoundingClientRect();
+                top = rect.bottom + scrollY + 15;
+            }
+        }
+
+        // 确保不超出底部
+        if (top + tooltipRect.height > viewportHeight + scrollY) {
+            top = viewportHeight + scrollY - tooltipRect.height - 10;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+    }
+
+    // 添加右键菜单功能
+    addContextMenu(element, item) {
+        element.addEventListener('contextmenu', async (e) => {
+            e.preventDefault();
+            
+            // 移除已存在的菜单
+            const existingMenu = document.querySelector('.context-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+
+            const menu = this.createContextMenu(item);
+            document.body.appendChild(menu);
+
+            // 定位菜单
+            const rect = menu.getBoundingClientRect();
+            let left = e.clientX;
+            let top = e.clientY;
+
+            // 确保菜单不超出视窗
+            if (left + rect.width > window.innerWidth) {
+                left = window.innerWidth - rect.width - 10;
+            }
+            if (top + rect.height > window.innerHeight) {
+                top = window.innerHeight - rect.height - 10;
+            }
+
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+
+            // 点击其他地方时关闭菜单
+            const closeMenu = (event) => {
+                if (!menu.contains(event.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            };
+            
+            setTimeout(() => {
+                document.addEventListener('click', closeMenu);
+            }, 0);
+        });
+    }
+
+    // 创建右键菜单
+    createContextMenu(item) {
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.style.cssText = `
+            position: absolute;
+            background: #2c3e50;
+            color: #ecf0f1;
+            border: 1px solid #34495e;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10001;
+            min-width: 180px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        `;
+
+        const menuItems = [
+            {
+                text: '复制内容',
+                icon: '',
+                action: () => {
+                    // 处理对象类型的 item，确保正确转换为字符串
+                    let textToCopy;
+                    if (typeof item === 'object' && item !== null) {
+                        if (item.hasOwnProperty('text') || item.hasOwnProperty('content') || item.hasOwnProperty('value')) {
+                            textToCopy = item.text || item.content || item.value || JSON.stringify(item);
+                        } else {
+                            textToCopy = JSON.stringify(item);
+                        }
+                    } else {
+                        textToCopy = item;
+                    }
+                    
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        this.showNotification('内容已复制到剪贴板');
+                    });
+                }
+            },
+            {
+                text: '复制提取位置',
+                icon: '',
+                action: async () => {
+                    const locationInfo = await this.getItemLocationInfo(item);
+                    if (locationInfo && locationInfo.sourceUrl) {
+                        navigator.clipboard.writeText(locationInfo.sourceUrl).then(() => {
+                            this.showNotification('提取位置URL已复制到剪贴板');
+                        });
+                    } else {
+                        this.showNotification('未找到提取位置URL', 'error');
+                    }
+                }
+            },
+            {
+                text: '打开源页面',
+                icon: '',
+                action: async () => {
+                    const locationInfo = await this.getItemLocationInfo(item);
+                    if (locationInfo && locationInfo.sourceUrl) {
+                        window.open(locationInfo.sourceUrl, '_blank');
+                    } else {
+                        this.showNotification('未找到源页面URL', 'error');
+                    }
+                }
+            }
+        ];
+
+        menuItems.forEach((menuItem, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.cssText = `
+                padding: 8px 12px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 14px;
+                ${index === 0 ? 'border-top-left-radius: 4px; border-top-right-radius: 4px;' : ''}
+                ${index === menuItems.length - 1 ? 'border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;' : ''}
+            `;
+
+            itemDiv.innerHTML = `<span>${menuItem.icon}</span><span>${menuItem.text}</span>`;
+
+            itemDiv.addEventListener('mouseenter', () => {
+                itemDiv.style.backgroundColor = '#34495e';
+            });
+
+            itemDiv.addEventListener('mouseleave', () => {
+                itemDiv.style.backgroundColor = 'transparent';
+            });
+
+            itemDiv.addEventListener('click', () => {
+                menuItem.action();
+                menu.remove();
+            });
+
+            menu.appendChild(itemDiv);
+        });
+
+        return menu;
+    }
+
+    // 显示通知
+    showNotification(message, type = 'success') {
+        // 移除已存在的通知
+        const existingNotification = document.querySelector('.phantom-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        const notification = document.createElement('div');
+        notification.className = 'phantom-notification';
+        
+        const bgColor = type === 'error' ? '#ff4757' : '#2ed573';
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            z-index: 10002;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.3s ease-out;
+        `;
+
+        // 添加动画样式
+        if (!document.querySelector('#phantom-notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'phantom-notification-styles';
+            style.textContent = `
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes slideOutRight {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        // 3秒后自动消失
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 3000);
     }
 }

@@ -452,25 +452,29 @@ class DeepScanner {
         }
     }
     
-    // 收集初始扫描URL - 异步版本
+    // 收集初始扫描URL - 异步版本（兼容新旧数据格式）
     async collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles) {
         const urls = new Set();
         
         //console.log('🔍 收集初始URL，当前结果:', Object.keys(this.srcMiner.results));
         
-        // 从JS文件中收集
+        // 从JS文件中收集 - 兼容新旧格式
         if (scanJsFiles && this.srcMiner.results.jsFiles) {
             for (const jsFile of this.srcMiner.results.jsFiles) {
-                const fullUrl = this.resolveUrl(jsFile, baseUrl);
+                // 提取URL值 - 兼容对象格式和字符串格式
+                const url = typeof jsFile === 'object' ? jsFile.value : jsFile;
+                const fullUrl = this.resolveUrl(url, baseUrl);
                 if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                     urls.add(fullUrl);
                 }
             }
         }
         
-        // 从HTML/页面URL中收集
+        // 从HTML/页面URL中收集 - 兼容新旧格式
         if (scanHtmlFiles && this.srcMiner.results.urls) {
-            for (const url of this.srcMiner.results.urls) {
+            for (const urlItem of this.srcMiner.results.urls) {
+                // 提取URL值 - 兼容对象格式和字符串格式
+                const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
                 const fullUrl = this.resolveUrl(url, baseUrl);
                 if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                     // 只收集可能是页面的URL
@@ -481,11 +485,13 @@ class DeepScanner {
             }
         }
         
-        // 从API接口中收集
+        // 从API接口中收集 - 兼容新旧格式
         if (scanApiFiles) {
             // 绝对路径API
             if (this.srcMiner.results.absoluteApis) {
-                for (const api of this.srcMiner.results.absoluteApis) {
+                for (const apiItem of this.srcMiner.results.absoluteApis) {
+                    // 提取URL值 - 兼容对象格式和字符串格式
+                    const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const fullUrl = this.resolveUrl(api, baseUrl);
                     if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                         urls.add(fullUrl);
@@ -495,7 +501,9 @@ class DeepScanner {
             
             // 相对路径API
             if (this.srcMiner.results.relativeApis) {
-                for (const api of this.srcMiner.results.relativeApis) {
+                for (const apiItem of this.srcMiner.results.relativeApis) {
+                    // 提取URL值 - 兼容对象格式和字符串格式
+                    const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const fullUrl = this.resolveUrl(api, baseUrl);
                     if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
                         urls.add(fullUrl);
@@ -770,7 +778,7 @@ class DeepScanner {
         //console.log(`🔍 深度扫描统一化版本开始提取内容，来源: ${sourceUrl}`);
         
         // 内容太大时进行截断，避免处理过大的文件
-        const maxContentLength = 500000; // 约500KB
+        const maxContentLength = 800000; // 约800KB
         const processedContent = content.length > maxContentLength ? 
             content.substring(0, maxContentLength) : content;
         
@@ -813,7 +821,7 @@ class DeepScanner {
         }
     }
     
-    // 🔥 统一化版本：从内容中收集新的URL - 使用PatternExtractor提取的URL（异步版本）
+    // 🔥 统一化版本：从内容中收集新的URL - 使用PatternExtractor提取的URL（异步版本，兼容新旧格式）
     async collectUrlsFromContent(content, baseUrl, options) {
         //console.log('🔍 深度扫描统一化版本：从内容中收集URL...');
         
@@ -830,9 +838,11 @@ class DeepScanner {
             try {
                 const extractedData = this.srcMiner.patternExtractor.extractPatterns(processedContent);
                 
-                // 从提取结果中收集URL
+                // 从提取结果中收集URL - 兼容新旧格式
                 if (scanJsFiles && extractedData.jsFiles) {
-                    for (const jsFile of extractedData.jsFiles) {
+                    for (const jsFileItem of extractedData.jsFiles) {
+                        // 提取URL值 - 兼容对象格式和字符串格式
+                        const jsFile = typeof jsFileItem === 'object' ? jsFileItem.value : jsFileItem;
                         const fullUrl = this.resolveUrl(jsFile, baseUrl);
                         if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
                             urls.add(fullUrl);
@@ -841,7 +851,9 @@ class DeepScanner {
                 }
                 
                 if (scanHtmlFiles && extractedData.urls) {
-                    for (const url of extractedData.urls) {
+                    for (const urlItem of extractedData.urls) {
+                        // 提取URL值 - 兼容对象格式和字符串格式
+                        const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
                         const fullUrl = this.resolveUrl(url, baseUrl);
                         if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && this.isValidPageUrl(url)) {
                             urls.add(fullUrl);
@@ -850,9 +862,11 @@ class DeepScanner {
                 }
                 
                 if (scanApiFiles) {
-                    // 收集绝对API
+                    // 收集绝对API - 兼容新旧格式
                     if (extractedData.absoluteApis) {
-                        for (const api of extractedData.absoluteApis) {
+                        for (const apiItem of extractedData.absoluteApis) {
+                            // 提取URL值 - 兼容对象格式和字符串格式
+                            const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                             const fullUrl = this.resolveUrl(api, baseUrl);
                             if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
                                 urls.add(fullUrl);
@@ -860,9 +874,11 @@ class DeepScanner {
                         }
                     }
                     
-                    // 收集相对API
+                    // 收集相对API - 兼容新旧格式
                     if (extractedData.relativeApis) {
-                        for (const api of extractedData.relativeApis) {
+                        for (const apiItem of extractedData.relativeApis) {
+                            // 提取URL值 - 兼容对象格式和字符串格式
+                            const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                             const fullUrl = this.resolveUrl(api, baseUrl);
                             if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
                                 urls.add(fullUrl);
@@ -961,11 +977,14 @@ class DeepScanner {
                     const urlObj = new URL(tab.url);
                     const fullUrl = `https://${urlObj.hostname}`;
                     
-                    // 保存普通扫描结果
-                    await window.indexedDBManager.saveScanResults(fullUrl, this.srcMiner.deepScanResults);
+                    // 获取页面标题用于URL位置跟踪
+                    const pageTitle = document.title || tab.title || 'Unknown Page';
                     
-                    // 保存深度扫描结果
-                    await window.indexedDBManager.saveDeepScanResults(fullUrl, this.srcMiner.deepScanResults);
+                    // 保存普通扫描结果，包含URL位置信息
+                    await window.indexedDBManager.saveScanResults(fullUrl, this.srcMiner.deepScanResults, tab.url, pageTitle);
+                    
+                    // 保存深度扫描结果，现在也包含源URL和页面标题信息
+                    await window.indexedDBManager.saveDeepScanResults(fullUrl, this.srcMiner.deepScanResults, tab.url, pageTitle);
                     
                     //console.log('✅ 深度扫描结果已保存到IndexedDB');
                 } catch (error) {

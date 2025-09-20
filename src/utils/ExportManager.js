@@ -116,13 +116,25 @@ class ExportManager {
     <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
    </Borders>
   </Style>
+  <Style ss:ID="URL">
+   <Font ss:Color="#0066CC" ss:Underline="Single"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
  </Styles>`;
 
         // 为每个分类创建工作表
         const categories = Object.keys(this.srcMiner.results);
         let hasData = false;
 
-        categories.forEach(category => {
+        // 获取DisplayManager实例以使用getItemLocationInfo方法
+        const displayManager = this.srcMiner.displayManager;
+
+        for (const category of categories) {
             const items = this.srcMiner.results[category];
             if (Array.isArray(items) && items.length > 0) {
                 hasData = true;
@@ -134,26 +146,71 @@ class ExportManager {
    <Column ss:Width="50"/>
    <Column ss:Width="400"/>
    <Column ss:Width="120"/>
+   <Column ss:Width="350"/>
+   <Column ss:Width="200"/>
+   <Column ss:Width="150"/>
    <Row>
     <Cell ss:StyleID="Header"><Data ss:Type="String">序号</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">内容</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">分类</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">来源URL</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">结果来源</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">提取时间</Data></Cell>
    </Row>`;
 
-                items.forEach((item, index) => {
+                // 为每个项目获取位置信息
+                for (let index = 0; index < items.length; index++) {
+                    const item = items[index];
+                    let locationInfo = {
+                        sourceUrl: '未知来源',
+                        pageTitle: '未知页面',
+                        extractedAt: new Date().toISOString()
+                    };
+
+                    // 尝试获取位置信息
+                    try {
+                        if (displayManager && typeof displayManager.getItemLocationInfo === 'function') {
+                            locationInfo = await displayManager.getItemLocationInfo(category, item);
+                        } else {
+                            // 如果DisplayManager不可用，尝试直接从item获取信息
+                            if (typeof item === 'object' && item !== null) {
+                                locationInfo = {
+                                    sourceUrl: item.sourceUrl || '未知来源',
+                                    pageTitle: item.pageTitle || '未知页面',
+                                    extractedAt: item.extractedAt || new Date().toISOString()
+                                };
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`[ExportManager] 获取项目位置信息失败:`, error);
+                    }
+
+                    // 获取项目的显示内容
+                    const itemContent = typeof item === 'object' && item !== null ? 
+                        (item.value || item.text || item.content || JSON.stringify(item)) : 
+                        String(item);
+
+                    // 格式化提取时间
+                    const extractedTime = locationInfo.extractedAt ? 
+                        new Date(locationInfo.extractedAt).toLocaleString('zh-CN') : 
+                        '未知时间';
+
                     xlsContent += `
    <Row>
     <Cell ss:StyleID="Data"><Data ss:Type="Number">${index + 1}</Data></Cell>
-    <Cell ss:StyleID="Data"><Data ss:Type="String">${this.escapeXml(item)}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${this.escapeXml(itemContent)}</Data></Cell>
     <Cell ss:StyleID="Data"><Data ss:Type="String">${this.escapeXml(category)}</Data></Cell>
+    <Cell ss:StyleID="URL"><Data ss:Type="String">${this.escapeXml(locationInfo.sourceUrl)}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${this.escapeXml(locationInfo.pageTitle)}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${this.escapeXml(extractedTime)}</Data></Cell>
    </Row>`;
-                });
+                }
 
                 xlsContent += `
   </Table>
  </Worksheet>`;
             }
-        });
+        }
 
         // 如果没有数据，创建一个空的工作表
         if (!hasData) {

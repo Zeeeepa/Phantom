@@ -21,12 +21,17 @@ class DeepScanWindow {
         //console.log('🔍 [DEBUG] 开始创建深度扫描窗口，配置:', config);
         
         let baseUrl = '';
+        let sourceUrl = '';
+        let pageTitle = '';
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             //console.log('🔍 [DEBUG] 当前标签页:', tab);
             if (tab && tab.url) {
                 baseUrl = new URL(tab.url).origin;
+                sourceUrl = tab.url; // 完整的源URL
+                pageTitle = tab.title || '';
                 //console.log('🔍 [DEBUG] 解析得到baseUrl:', baseUrl);
+                //console.log('🔍 [DEBUG] 解析得到sourceUrl:', sourceUrl);
             }
         } catch (error) {
             console.error('❌ [DEBUG] 获取当前页面URL失败:', error);
@@ -41,6 +46,8 @@ class DeepScanWindow {
             scanHtmlFiles: config.scanHtmlFiles !== false,
             scanApiFiles: config.scanApiFiles !== false,
             baseUrl: baseUrl,
+            sourceUrl: sourceUrl, // 添加完整的源URL
+            pageTitle: pageTitle, // 添加页面标题
             initialResults: this.srcMiner.results || {},
             timestamp: Date.now()
         };

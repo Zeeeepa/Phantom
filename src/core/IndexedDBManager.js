@@ -84,7 +84,7 @@ class IndexedDBManager {
     /**
      * 保存扫描结果
      */
-    async saveScanResults(url, results) {
+    async saveScanResults(url, results, sourceUrl = null, pageTitle = null) {
         try {
             await this.init();
             
@@ -94,11 +94,54 @@ class IndexedDBManager {
             const urlObj = new URL(url);
             const storageKey = this.generateStorageKey(url);
             
+            // 使用传入的sourceUrl，如果没有则使用url参数
+            const actualSourceUrl = sourceUrl || url;
+            const actualPageTitle = pageTitle || document.title || urlObj.hostname;
+            const currentTime = new Date().toISOString();
+            
+            // 转换普通扫描结果格式，确保每个项目都有sourceUrl字段
+            const transformedResults = {};
+            
+            if (results && typeof results === 'object') {
+                for (const [key, value] of Object.entries(results)) {
+                    if (Array.isArray(value)) {
+                        // 将数组中的每个字符串转换为包含sourceUrl的对象
+                        transformedResults[key] = value.map(item => {
+                            if (typeof item === 'string') {
+                                return {
+                                    value: item,
+                                    sourceUrl: actualSourceUrl,
+                                    extractedAt: currentTime,
+                                    pageTitle: actualPageTitle
+                                };
+                            } else if (typeof item === 'object' && item !== null) {
+                                // 如果已经是对象，确保包含必要字段
+                                return {
+                                    ...item,
+                                    sourceUrl: item.sourceUrl || actualSourceUrl,
+                                    extractedAt: item.extractedAt || currentTime,
+                                    pageTitle: item.pageTitle || actualPageTitle
+                                };
+                            }
+                            return item;
+                        });
+                    } else {
+                        // 非数组数据保持原样
+                        transformedResults[key] = value;
+                    }
+                }
+            } else {
+                transformedResults = results;
+            }
+            
             const data = {
                 id: storageKey,
                 domain: urlObj.hostname,
                 url: url,
-                results: results,
+                results: transformedResults,
+                sourceUrl: actualSourceUrl,
+                pageTitle: actualPageTitle,
+                extractedAt: currentTime,
                 timestamp: Date.now(),
                 lastSave: Date.now()
             };
@@ -332,7 +375,7 @@ class IndexedDBManager {
     /**
      * 保存深度扫描结果
      */
-    async saveDeepScanResults(url, results) {
+    async saveDeepScanResults(url, results, sourceUrl = null, pageTitle = null) {
         try {
             await this.init();
             
@@ -342,11 +385,18 @@ class IndexedDBManager {
             const urlObj = new URL(url);
             const storageKey = this.generateStorageKey(url) + '__deep';
             
+            // 获取源URL和页面标题 - 修复深度扫描显示"未知"的问题
+            const actualSourceUrl = sourceUrl || window.location.href || url;
+            const actualPageTitle = pageTitle || document.title || urlObj.hostname;
+            
             const data = {
                 id: storageKey,
                 domain: urlObj.hostname,
                 url: url,
                 results: results,
+                sourceUrl: actualSourceUrl,  // 添加源URL信息
+                pageTitle: actualPageTitle,  // 添加页面标题信息
+                extractedAt: new Date().toISOString(),  // 添加提取时间
                 type: 'deepScan',
                 timestamp: Date.now(),
                 lastSave: Date.now()
@@ -659,6 +709,45 @@ class IndexedDBManager {
         } catch (error) {
             console.error('❌ JS脚本清除失败:', error);
             throw error;
+        }
+    }
+
+    /**
+     * 获取最近的扫描结果
+     */
+    async getRecentScanResults(limit = 10) {
+        try {
+            await this.init();
+            
+            const transaction = this.db.transaction([this.storeName], 'readonly');
+            const store = transaction.objectStore(this.storeName);
+            
+            return new Promise((resolve, reject) => {
+                const request = store.getAll();
+                
+                request.onsuccess = () => {
+                    const results = request.result || [];
+                    // 按时间戳排序，最新的在前
+                    const sortedResults = results.sort((a, b) => {
+                        const timeA = new Date(a.extractedAt || a.timestamp || 0).getTime();
+                        const timeB = new Date(b.extractedAt || b.timestamp || 0).getTime();
+                        return timeB - timeA;
+                    });
+                    
+                    // 限制返回数量
+                    const limitedResults = sortedResults.slice(0, limit);
+                    resolve(limitedResults);
+                };
+                
+                request.onerror = () => {
+                    console.error('❌ 获取最近扫描结果失败:', request.error);
+                    reject(request.error);
+                };
+            });
+            
+        } catch (error) {
+            console.error('❌ 获取最近扫描结果操作失败:', error);
+            return [];
         }
     }
 

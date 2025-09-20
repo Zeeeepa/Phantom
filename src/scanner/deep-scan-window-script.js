@@ -236,14 +236,20 @@ function batchMergeResults(newResults) {
     // 将新结果添加到待处理队列
     Object.keys(newResults).forEach(key => {
         if (!pendingResults[key]) {
-            pendingResults[key] = new Set();
+            pendingResults[key] = new Map(); // 使用Map来存储对象，以value为键避免重复
         }
         
         if (Array.isArray(newResults[key])) {
             newResults[key].forEach(item => {
-                if (item && !pendingResults[key].has(item)) {
-                    pendingResults[key].add(item);
-                    hasNewData = true;
+                if (item) {
+                    // 处理结构化对象（带sourceUrl）和简单字符串
+                    const itemKey = typeof item === 'object' ? item.value : item;
+                    const itemData = typeof item === 'object' ? item : { value: item, sourceUrl: 'unknown' };
+                    
+                    if (!pendingResults[key].has(itemKey)) {
+                        pendingResults[key].set(itemKey, itemData);
+                        hasNewData = true;
+                    }
                 }
             });
         }
@@ -264,10 +270,17 @@ function flushPendingResults() {
             scanResults[key] = [];
         }
         
-        const existingSet = new Set(scanResults[key]);
-        pendingResults[key].forEach(item => {
-            if (!existingSet.has(item)) {
-                scanResults[key].push(item);
+        // 创建现有结果的键集合，用于去重
+        const existingKeys = new Set();
+        scanResults[key].forEach(item => {
+            const itemKey = typeof item === 'object' ? item.value : item;
+            existingKeys.add(itemKey);
+        });
+        
+        // 添加新的结果项
+        pendingResults[key].forEach((itemData, itemKey) => {
+            if (!existingKeys.has(itemKey)) {
+                scanResults[key].push(itemData);
             }
         });
         
@@ -532,7 +545,9 @@ async function collectInitialUrls() {
         if (scanConfig.scanJsFiles && initialResults.jsFiles) {
             //console.log(`📁 [DEBUG] 从普通扫描结果收集JS文件: ${initialResults.jsFiles.length} 个`);
             for (const jsFile of initialResults.jsFiles) {
-                const fullUrl = resolveUrl(jsFile, scanConfig.baseUrl);
+                // 兼容新格式（对象）和旧格式（字符串）
+                const url = typeof jsFile === 'object' ? jsFile.value : jsFile;
+                const fullUrl = resolveUrl(url, scanConfig.baseUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                     urls.add(fullUrl);
                     //console.log(`✅ [DEBUG] 添加JS文件: ${fullUrl}`);
@@ -543,7 +558,9 @@ async function collectInitialUrls() {
         // 从普通扫描结果中收集HTML页面进行深度扫描
         if (scanConfig.scanHtmlFiles && initialResults.urls) {
             //console.log(`🌐 [DEBUG] 从普通扫描结果收集URL: ${initialResults.urls.length} 个`);
-            for (const url of initialResults.urls) {
+            for (const urlItem of initialResults.urls) {
+                // 兼容新格式（对象）和旧格式（字符串）
+                const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
                 const fullUrl = resolveUrl(url, scanConfig.baseUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl) && isValidPageUrl(fullUrl)) {
                     urls.add(fullUrl);
@@ -557,7 +574,9 @@ async function collectInitialUrls() {
             // 绝对路径API
             if (initialResults.absoluteApis) {
                 //console.log(`🔗 [DEBUG] 从普通扫描结果收集绝对API: ${initialResults.absoluteApis.length} 个`);
-                for (const api of initialResults.absoluteApis) {
+                for (const apiItem of initialResults.absoluteApis) {
+                    // 兼容新格式（对象）和旧格式（字符串）
+                    const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const fullUrl = resolveUrl(api, scanConfig.baseUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
@@ -569,7 +588,9 @@ async function collectInitialUrls() {
             // 相对路径API
             if (initialResults.relativeApis) {
                 //console.log(`🔗 [DEBUG] 从普通扫描结果收集相对API: ${initialResults.relativeApis.length} 个`);
-                for (const api of initialResults.relativeApis) {
+                for (const apiItem of initialResults.relativeApis) {
+                    // 兼容新格式（对象）和旧格式（字符串）
+                    const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const fullUrl = resolveUrl(api, scanConfig.baseUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
@@ -930,11 +951,21 @@ async function saveResultsToStorage() {
                 mergedResults[key] = [];
             }
             
-            // 使用Set进行去重合并
-            const existingSet = new Set(mergedResults[key]);
+            // 创建现有结果的键集合，用于去重
+            const existingKeys = new Set();
+            mergedResults[key].forEach(item => {
+                const itemKey = typeof item === 'object' ? item.value : item;
+                existingKeys.add(itemKey);
+            });
+            
+            // 合并新的结果项
             scanResults[key].forEach(item => {
-                if (item && !existingSet.has(item)) {
-                    mergedResults[key].push(item);
+                if (item) {
+                    const itemKey = typeof item === 'object' ? item.value : item;
+                    if (!existingKeys.has(itemKey)) {
+                        mergedResults[key].push(item);
+                        existingKeys.add(itemKey);
+                    }
                 }
             });
         });
@@ -949,8 +980,10 @@ async function saveResultsToStorage() {
             totalScanned: scannedUrls.size
         };
         
-        // 保存合并后的结果到IndexedDB
-        await window.IndexedDBManager.saveScanResults(scanConfig.baseUrl, mergedResults);
+        // 保存合并后的结果到IndexedDB，包含URL位置信息
+        const pageTitle = scanConfig.pageTitle || document.title || 'Deep Scan Results';
+        // 使用基础URL作为存储键，但保持每个结果项的具体来源URL
+        await window.IndexedDBManager.saveScanResults(scanConfig.baseUrl, mergedResults, scanConfig.baseUrl, pageTitle);
         
         //console.log('✅ 深度扫描结果已合并到主扫描结果中');
         //console.log('📊 存储键:', domainKey);
@@ -1215,7 +1248,35 @@ function updateResultsDisplay() {
                     items.forEach((item, index) => {
                         const li = document.createElement('li');
                         li.className = 'result-item';
-                        li.textContent = item;
+                        
+                        // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示
+                        if (typeof item === 'object' && item !== null) {
+                            // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
+                            if (item.value !== undefined && item.sourceUrl) {
+                                const itemValue = String(item.value);
+                                const itemSourceUrl = String(item.sourceUrl);
+                                // 只显示值，不直接显示来源URL，仅在悬停时显示
+                                li.innerHTML = `<span class="result-value">${itemValue}</span>`;
+                                li.style.cssText = 'padding: 5px 0;';
+                                // 悬停提示显示该项目的sourceUrl
+                                li.title = `来源: ${itemSourceUrl}`;
+                            } else if (item.url || item.path || item.value || item.content) {
+                                // 兼容其他对象格式
+                                const displayValue = item.url || item.path || item.value || item.content || JSON.stringify(item);
+                                li.textContent = String(displayValue);
+                                li.title = String(displayValue);
+                            } else {
+                                const jsonStr = JSON.stringify(item);
+                                li.textContent = jsonStr;
+                                li.title = jsonStr;
+                            }
+                        } else {
+                            // 如果是字符串或其他基本类型，直接显示
+                            const displayValue = String(item);
+                            li.textContent = displayValue;
+                            li.title = displayValue;
+                        }
+                        
                         fragment.appendChild(li);
                     });
                     
@@ -1281,7 +1342,31 @@ function createCustomResultCategory(key, items) {
         items.forEach(item => {
             const li = document.createElement('li');
             li.className = 'result-item';
-            li.textContent = item;
+            
+            // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示
+            if (typeof item === 'object' && item !== null) {
+                // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
+                if (item.value !== undefined && item.sourceUrl) {
+                    const itemValue = String(item.value);
+                    const itemSourceUrl = String(item.sourceUrl);
+                    // 只显示值，不直接显示来源URL，仅在悬停时显示
+                    li.innerHTML = `<span class="result-value">${itemValue}</span>`;
+                    li.style.cssText = 'padding: 5px 0;';
+                    // 悬停提示显示该项目的sourceUrl
+                    li.title = `来源: ${itemSourceUrl}`;
+                } else {
+                    // 兼容其他对象格式
+                    const jsonStr = JSON.stringify(item);
+                    li.textContent = jsonStr;
+                    li.title = jsonStr;
+                }
+            } else {
+                // 如果是字符串或其他基本类型，直接显示
+                const displayValue = String(item);
+                li.textContent = displayValue;
+                li.title = displayValue;
+            }
+            
             listElement.appendChild(li);
         });
     }

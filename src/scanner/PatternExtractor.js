@@ -4,7 +4,7 @@
  */
 class PatternExtractor {
     constructor() {
-        // 静态文件扩展名列表 - 用于过滤绝对路径API
+        // 静态文件扩展名列表 - 用于过滤绝对路径和相对路径API
         this.staticFileExtensions = [
             // 图片文件
             '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff', '.tif',
@@ -18,6 +18,85 @@ class PatternExtractor {
             '.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac',
             // 视频文件
             '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'
+        ];
+
+        // 域名黑名单：不会展示以下域名
+        this.DOMAIN_BLACKLIST = [
+            'el.datepicker.today',
+            'obj.style.top',
+            'window.top',
+            'mydragdiv.style.top',
+            'container.style.top',
+            'location.host',
+            'page.info',
+            'res.info',
+            'item.info',
+            'vuejs.org'
+        ];
+
+        // 内容类型过滤列表 - 用于静态路径和相对路径过滤
+        this.FILTERED_CONTENT_TYPES = [  
+            'multipart/form-data',
+            'node_modules/',
+            'pause/break',
+            'partial/ajax',
+            'chrome/',
+            'firefox/',
+            'edge/',
+            'examples/element-ui',
+            'static/js/',
+            'static/css/',
+            'stylesheet/less',
+            'jpg/jpeg/png/pdf',
+            // 日期类型
+            'yyyy/mm/dd',
+            'dd/mm/yyyy',
+            'mm/dd/yy',
+            'yy/mm/dd',
+            'm/d/Y',
+            'm/d/y',
+            'xx/xx',
+            'zrender/vml/vml',
+            // CSS单位和正则表达式模式
+            '/rem/g',
+            '/vw/g',
+            '/vh/g',
+            '/-/g',
+            '/./g',
+            '/f.value',
+            '/i.test',
+            // 操作系统检测模式
+            '/android/i.test',
+            '/CrOS/.test',
+            '/windows/i.test',
+            '/macintosh/i.test',
+            '/linux/i.test',
+            '/tablet/i.test',
+            '/xbox/i.test',
+            '/bada/i.test',
+            // 浏览器检测模式
+            '/silk/i.test',
+            '/sailfish/i.test',
+            '/tizen/i.test',
+            '/SamsungBrowser/i.test',
+            '/opera/i.test',
+            '/Whale/i.test',
+            '/MZBrowser/i.test',
+            '/coast/i.test',
+            '/focus/i.test',
+            '/yabrowser/i.test',
+            '/ucbrowser/i.test',
+            '/mxios/i.test',
+            '/epiphany/i.test',
+            '/puffin/i.test',
+            '/sleipnir/i.test',
+            '/k-meleon/i.test',
+            '/vivaldi/i.test',
+            '/phantom/i.test',
+            '/slimerjs/i.test',
+            '/qupzilla/i.test',
+            '/chromium/i.test',
+            '/googlebot/i.test'
         ];
         
         // 引入身份证验证过滤器
@@ -95,6 +174,109 @@ class PatternExtractor {
         
         // 检查是否以静态文件扩展名结尾
         return this.staticFileExtensions.some(ext => cleanUrl.endsWith(ext));
+    }
+
+    /**
+     * 检查域名是否在黑名单中
+     * @param {string} domain - 要检查的域名
+     * @returns {boolean} 是否在黑名单中
+     */
+    isDomainBlacklisted(domain) {
+        if (!domain || typeof domain !== 'string') {
+            return false;
+        }
+        
+        // 清理域名，移除协议、路径等
+        const cleanDomain = domain.toLowerCase()
+            .replace(/^https?:\/\//, '')  // 移除协议
+            .replace(/\/.*$/, '')         // 移除路径
+            .replace(/:\d+$/, '')         // 移除端口
+            .trim();
+        
+        // 检查是否在黑名单中
+        const isBlacklisted = this.DOMAIN_BLACKLIST.includes(cleanDomain);
+        
+        if (isBlacklisted) {
+            console.log(`🚫 [PatternExtractor] 域名已被黑名单过滤: "${cleanDomain}"`);
+        }
+        
+        return isBlacklisted;
+    }
+
+    /**
+     * 检查路径是否包含需要过滤的内容类型
+     * @param {string} path - 要检查的路径
+     * @returns {boolean} 是否包含需要过滤的内容类型
+     */
+    containsFilteredContentType(path) {
+        if (!path || typeof path !== 'string') {
+            return false;
+        }
+        
+        const lowerPath = path.toLowerCase();
+        
+        // 检查是否包含任何过滤的内容类型
+        const isFiltered = this.FILTERED_CONTENT_TYPES.some(contentType => {
+            return lowerPath.includes(contentType.toLowerCase());
+        });
+        
+        if (isFiltered) {
+            console.log(`🚫 [PatternExtractor] 路径包含过滤内容类型，已过滤: "${path}"`);
+        }
+        
+        return isFiltered;
+    }
+
+    /**
+     * 过滤静态文件路径
+     * @param {Array} paths - 路径数组
+     * @returns {Array} 过滤后的路径数组
+     */
+    filterStaticPaths(paths) {
+        return paths.filter(path => {
+            // 检查是否包含需要过滤的内容类型
+            if (this.containsFilteredContentType(path)) {
+                return false;
+            }
+            
+            // 获取文件扩展名
+            const ext = path.toLowerCase().match(/\.[^.]*$/);
+            if (!ext) return true; // 没有扩展名的保留
+            
+            // 检查是否为静态文件扩展名
+            return !this.staticFileExtensions.includes(ext[0]);
+        });
+    }
+
+    /**
+     * 过滤相对路径中的静态文件
+     * @param {Array} relativePaths - 相对路径数组
+     * @returns {Array} 过滤后的相对路径数组
+     */
+    filterStaticRelativePaths(relativePaths) {
+        return relativePaths.filter(path => {
+            // 检查是否包含需要过滤的内容类型
+            if (this.containsFilteredContentType(path)) {
+                return false;
+            }
+            
+            // 处理相对路径，可能包含 ../ 或 ./
+            const normalizedPath = path.replace(/^\.\.?\//, '');
+            
+            // 获取文件扩展名
+            const ext = normalizedPath.toLowerCase().match(/\.[^.]*$/);
+            if (!ext) return true; // 没有扩展名的保留
+            
+            // 检查是否为静态文件扩展名
+            const isStaticFile = this.staticFileExtensions.includes(ext[0]);
+            
+            // 记录过滤的静态文件（用于调试）
+            if (isStaticFile) {
+                console.log(`🚫 [PatternExtractor] 过滤相对路径静态文件: ${path}`);
+            }
+            
+            return !isStaticFile;
+        });
     }
 
     // 处理相对路径API，去除开头的"."符号但保留"/"
@@ -184,7 +366,7 @@ class PatternExtractor {
             } else {
                 console.warn('⚠️ PatternExtractor未找到regexSettings配置，添加基础资源正则');
                 // 添加基础资源文件正则（这些不依赖设置界面，是基础功能）
-                this.patterns.jsFile = /(?:src|href)\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`]|import\s+.*?from\s+["'`]([^"'`]*\.js)["'`]|require\s*\(\s*["'`]([^"'`]*\.js)["'`]\s*\)/gi;
+                this.patterns.jsFile = /<script[^>]*\ssrc\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`][^>]*>|(?:src|href)\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`]|import\s+.*?from\s+["'`]([^"'`]*\.js)["'`]|require\s*\(\s*["'`]([^"'`]*\.js)["'`]\s*\)/gi;
                 this.patterns.cssFile = /(?:href)\s*=\s*["'`]([^"'`]*\.css(?:\?[^"'`]*)?)["'`]/gi;
                 this.patterns.image = /(?:src|href|data-src)\s*=\s*["'`]([^"'`]*\.(?:jpg|jpeg|png|gif|bmp|svg|webp|ico|tiff)(?:\?[^"'`]*)?)["'`]/gi;
                 this.patterns.url = /(https?:\/\/[a-zA-Z0-9\-\.]+(?:\:[0-9]+)?(?:\/[^\s"'<>]*)?)/g;
@@ -451,7 +633,7 @@ class PatternExtractor {
             }
             
             // 添加基础资源文件正则（这些不依赖设置界面，是基础功能）
-            this.patterns.jsFile = /(?:src|href)\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`]|import\s+.*?from\s+["'`]([^"'`]*\.js)["'`]|require\s*\(\s*["'`]([^"'`]*\.js)["'`]\s*\)/gi;
+            this.patterns.jsFile = /<script[^>]*\ssrc\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`][^>]*>|(?:src|href)\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`]|import\s+.*?from\s+["'`]([^"'`]*\.js)["'`]|require\s*\(\s*["'`]([^"'`]*\.js)["'`]\s*\)/gi;
             this.patterns.cssFile = /(?:href)\s*=\s*["'`]([^"'`]*\.css(?:\?[^"'`]*)?)["'`]/gi;
             this.patterns.image = /(?:src|href|data-src)\s*=\s*["'`]([^"'`]*\.(?:jpg|jpeg|png|gif|bmp|svg|webp|ico|tiff)(?:\?[^"'`]*)?)["'`]/gi;
             this.patterns.url = /(https?:\/\/[a-zA-Z0-9\-\.]+(?:\:[0-9]+)?(?:\/[^\s"'<>]*)?)/g;
@@ -507,6 +689,20 @@ class PatternExtractor {
                 // 🔥 新增特殊处理：过滤绝对路径API中的静态文件
                 if (patternKey === 'absoluteApi' && this.isStaticFile(trimmedText)) {
                     //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedText}"`);
+                    matchCount++;
+                    continue;
+                }
+                
+                // 🔥 新增特殊处理：过滤域名黑名单
+                if (patternKey === 'domain' && this.isDomainBlacklisted(trimmedText)) {
+                    //console.log(`🚫 [PatternExtractor] 域名在黑名单中，已过滤: "${trimmedText}"`);
+                    matchCount++;
+                    continue;
+                }
+                
+                // 🔥 新增特殊处理：过滤包含过滤内容类型的内容
+                if (this.containsFilteredContentType(trimmedText)) {
+                    //console.log(`🚫 [PatternExtractor] ${patternKey} 包含过滤内容类型，已过滤: "${trimmedText}"`);
                     matchCount++;
                     continue;
                 }
@@ -593,6 +789,10 @@ class PatternExtractor {
                     // 🔥 新增校验：过滤掉静态文件（如.jpg, .png, .css等）
                     else if (this.isStaticFile(trimmedApi)) {
                         //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedApi}"`);
+                    }
+                    // 🔥 新增校验：过滤掉包含过滤内容类型的API
+                    else if (this.containsFilteredContentType(trimmedApi)) {
+                        //console.log(`🚫 [PatternExtractor] 绝对路径API包含过滤内容类型，已过滤: "${trimmedApi}"`);
                     } else {
                         results.absoluteApis.add(trimmedApi);
                         absoluteApiCount++;
@@ -642,10 +842,20 @@ class PatternExtractor {
                 if (api && api.trim()) {
                     // 🔥 新增：处理相对路径API，去除开头的"."符号但保留"/"
                     const processedApi = this.processRelativeApi(api.trim());
-                    results.relativeApis.add(processedApi);
-                    relativeApiCount++;
+                    
+                    // 🔥 新增特殊处理：过滤相对路径API中的静态文件（应用绝对路径API的过滤模式）
+                    if (this.isStaticFile(processedApi)) {
+                        //console.log(`🚫 [PatternExtractor] 相对路径API为静态文件，已过滤: "${processedApi}"`);
+                    }
+                    // 🔥 新增特殊处理：过滤相对路径API中包含过滤内容类型的API
+                    else if (this.containsFilteredContentType(processedApi)) {
+                        //console.log(`🚫 [PatternExtractor] 相对路径API包含过滤内容类型，已过滤: "${processedApi}"`);
+                    } else {
+                        results.relativeApis.add(processedApi);
+                        relativeApiCount++;
+                        //console.log(`✅ [PatternExtractor] 相对路径API处理后添加: "${processedApi}" (原始: "${api.trim()}")`);
+                    }
                     matchCount++;
-                    //console.log(`✅ [PatternExtractor] 相对路径API处理后添加: "${processedApi}" (原始: "${api.trim()}")`);
                 }
                 
                 // 防止无限循环
@@ -690,7 +900,7 @@ class PatternExtractor {
             let match;
             let jsFileCount = 0;
             while ((match = this.patterns.jsFile.exec(processContent)) !== null) {
-                const jsFile = match[1] || match[2] || match[3];
+                const jsFile = match[1] || match[2] || match[3] || match[4];
                 if (jsFile) {
                     const cleanJsFile = jsFile.replace(/["'`]/g, '').trim();
                     results.jsFiles.add(cleanJsFile);
@@ -711,9 +921,14 @@ class PatternExtractor {
                 const cssFile = match[1];
                 if (cssFile) {
                     const cleanCssFile = cssFile.replace(/["'`]/g, '').trim();
-                    results.cssFiles.add(cleanCssFile);
-                    cssFileCount++;
-                    //console.log(`✅ [PatternExtractor] CSS文件添加: "${cleanCssFile}"`);
+                    // 🔥 应用过滤：检查是否包含过滤内容类型
+                    if (!this.containsFilteredContentType(cleanCssFile)) {
+                        results.cssFiles.add(cleanCssFile);
+                        cssFileCount++;
+                        //console.log(`✅ [PatternExtractor] CSS文件添加: "${cleanCssFile}"`);
+                    } else {
+                        //console.log(`🚫 [PatternExtractor] CSS文件包含过滤内容类型，已过滤: "${cleanCssFile}"`);
+                    }
                 }
             }
             //console.log(`📊 [PatternExtractor] CSS文件提取完成，共找到 ${cssFileCount} 个`);
@@ -729,9 +944,14 @@ class PatternExtractor {
                 const image = match[1];
                 if (image) {
                     const cleanImage = image.replace(/["'`]/g, '').trim();
-                    results.images.add(cleanImage);
-                    imageCount++;
-                    //console.log(`✅ [PatternExtractor] 图片添加: "${cleanImage}"`);
+                    // 🔥 应用过滤：检查是否包含过滤内容类型
+                    if (!this.containsFilteredContentType(cleanImage)) {
+                        results.images.add(cleanImage);
+                        imageCount++;
+                        //console.log(`✅ [PatternExtractor] 图片添加: "${cleanImage}"`);
+                    } else {
+                        //console.log(`🚫 [PatternExtractor] 图片包含过滤内容类型，已过滤: "${cleanImage}"`);
+                    }
                 }
             }
             //console.log(`📊 [PatternExtractor] 图片提取完成，共找到 ${imageCount} 个`);
@@ -746,9 +966,14 @@ class PatternExtractor {
             while ((match = this.patterns.url.exec(processContent)) !== null) {
                 const url = match[0];
                 if (url) {
-                    results.urls.add(url);
-                    urlCount++;
-                    //console.log(`✅ [PatternExtractor] URL添加: "${url}"`);
+                    // 🔥 应用过滤：检查是否包含过滤内容类型
+                    if (!this.containsFilteredContentType(url)) {
+                        results.urls.add(url);
+                        urlCount++;
+                        //console.log(`✅ [PatternExtractor] URL添加: "${url}"`);
+                    } else {
+                        //console.log(`🚫 [PatternExtractor] URL包含过滤内容类型，已过滤: "${url}"`);
+                    }
                 }
             }
             //console.log(`📊 [PatternExtractor] URL提取完成，共找到 ${urlCount} 个`);
@@ -1027,6 +1252,18 @@ class PatternExtractor {
                                         return;
                                     }
                                     
+                                    // 🔥 新增特殊处理：过滤域名黑名单
+                                    if (patternKey === 'domain' && this.isDomainBlacklisted(trimmedText)) {
+                                        //console.log(`🚫 [PatternExtractor] 域名在黑名单中，已过滤: "${trimmedText}"`);
+                                        return;
+                                    }
+                                    
+                                    // 🔥 新增特殊处理：过滤包含过滤内容类型的内容
+                                    if (this.containsFilteredContentType(trimmedText)) {
+                                        //console.log(`🚫 [PatternExtractor] ${patternKey} 包含过滤内容类型，已过滤: "${trimmedText}"`);
+                                        return;
+                                    }
+                                    
                                     results[resultKey].add(trimmedText);
                                     //console.log(`✅ [PatternExtractor] ${patternKey} 匹配到 ${index + 1}: "${trimmedText}"`);
                                 }
@@ -1090,9 +1327,16 @@ class PatternExtractor {
                         while ((match = regex.exec(processContent)) !== null) {
                             const matchedText = match[0];
                             if (matchedText && matchedText.trim()) {
-                                results[patternKey].add(matchedText.trim());
-                                matchCount++;
-                                //console.log(`✅ [PatternExtractor] 自定义正则 ${patternKey} 匹配到 ${matchCount}: "${matchedText.trim()}"`);
+                                const trimmedText = matchedText.trim();
+                                
+                                // 🔥 应用过滤：检查是否包含过滤内容类型
+                                if (!this.containsFilteredContentType(trimmedText)) {
+                                    results[patternKey].add(trimmedText);
+                                    matchCount++;
+                                    //console.log(`✅ [PatternExtractor] 自定义正则 ${patternKey} 匹配到 ${matchCount}: "${trimmedText}"`);
+                                } else {
+                                    //console.log(`🚫 [PatternExtractor] 自定义正则 ${patternKey} 包含过滤内容类型，已过滤: "${trimmedText}"`);
+                                }
                             }
                             
                             // 防止无限循环
@@ -1140,19 +1384,39 @@ class PatternExtractor {
                 //console.log(`✅ [PatternExtractor] 身份证验证完成，有效身份证 ${results.idCards.size} 个`);
             }
             
-            // 6. 转换Set为Array，包括所有动态创建的键 - 修复：遍历所有键
+            // 6. 转换Set为Array并添加源URL信息，包括所有动态创建的键
             const finalResults = {};
             
-            //console.log('🔍 [PatternExtractor] 开始转换结果，当前results对象的所有键:', Object.keys(results));
+            //console.log('🔍 [PatternExtractor] 开始转换结果并添加源URL信息，当前results对象的所有键:', Object.keys(results));
             
-            // 修复：遍历所有键，包括动态创建的自定义正则键
+            // 修复：遍历所有键，包括动态创建的自定义正则键，并为每个项目添加源URL
             for (const [key, value] of Object.entries(results)) {
-                finalResults[key] = value instanceof Set ? [...value] : value;
-                
                 if (value instanceof Set) {
-                    //console.log(`🔄 [PatternExtractor] 转换 ${key}: Set(${value.size}) -> Array(${finalResults[key].length})`);
+                    // 将Set转换为包含源URL信息的对象数组
+                    finalResults[key] = [...value].map(item => {
+                        // 🔥 修复：检查item是否已经是包含sourceUrl的对象
+                        if (typeof item === 'object' && item !== null && item.hasOwnProperty('value')) {
+                            // 如果已经是对象格式，确保包含所有必要字段
+                            return {
+                                value: item.value,
+                                sourceUrl: item.sourceUrl || sourceUrl,
+                                extractedAt: item.extractedAt || new Date().toISOString(),
+                                pageTitle: item.pageTitle || document.title || 'Unknown Page'
+                            };
+                        } else {
+                            // 如果是字符串，转换为对象格式
+                            return {
+                                value: item,
+                                sourceUrl: sourceUrl,
+                                extractedAt: new Date().toISOString(),
+                                pageTitle: document.title || 'Unknown Page'
+                            };
+                        }
+                    });
+                    
+                    //console.log(`🔄 [PatternExtractor] 转换 ${key}: Set(${value.size}) -> Array(${finalResults[key].length}) 并添加源URL`);
                     if (finalResults[key].length > 0) {
-                        //console.log(`📊 [PatternExtractor] ${key}: ${finalResults[key].length} 个结果`);
+                        //console.log(`📊 [PatternExtractor] ${key}: ${finalResults[key].length} 个结果，源URL: ${sourceUrl}`);
                         // 如果是自定义正则结果，显示更详细的信息
                         if (key.startsWith('custom_')) {
                             //console.log(`🎯 [PatternExtractor] 自定义正则 ${key} 结果预览:`, finalResults[key].slice(0, 3));
@@ -1162,7 +1426,48 @@ class PatternExtractor {
                         //console.log(`📦 [PatternExtractor] 保留空的自定义正则键 ${key}`);
                     }
                 } else if (value) {
-                    //console.log(`🔄 [PatternExtractor] 直接复制 ${key}:`, typeof value, value);
+                    // 对于非Set类型的值，也添加源URL信息
+                    if (Array.isArray(value)) {
+                        finalResults[key] = value.map(item => {
+                            // 🔥 修复：检查item是否已经是包含sourceUrl的对象
+                            if (typeof item === 'object' && item !== null && item.hasOwnProperty('value')) {
+                                return {
+                                    value: item.value,
+                                    sourceUrl: item.sourceUrl || sourceUrl,
+                                    extractedAt: item.extractedAt || new Date().toISOString(),
+                                    pageTitle: item.pageTitle || document.title || 'Unknown Page'
+                                };
+                            } else {
+                                return {
+                                    value: item,
+                                    sourceUrl: sourceUrl,
+                                    extractedAt: new Date().toISOString(),
+                                    pageTitle: document.title || 'Unknown Page'
+                                };
+                            }
+                        });
+                    } else {
+                        // 🔥 修复：单个值也要转换为对象格式
+                        if (typeof value === 'object' && value !== null && value.hasOwnProperty('value')) {
+                            finalResults[key] = [{
+                                value: value.value,
+                                sourceUrl: value.sourceUrl || sourceUrl,
+                                extractedAt: value.extractedAt || new Date().toISOString(),
+                                pageTitle: value.pageTitle || document.title || 'Unknown Page'
+                            }];
+                        } else {
+                            finalResults[key] = [{
+                                value: value,
+                                sourceUrl: sourceUrl,
+                                extractedAt: new Date().toISOString(),
+                                pageTitle: document.title || 'Unknown Page'
+                            }];
+                        }
+                    }
+                    //console.log(`🔄 [PatternExtractor] 直接复制并添加源URL ${key}:`, typeof value);
+                } else {
+                    // 空值保持为空数组
+                    finalResults[key] = [];
                 }
             }
             

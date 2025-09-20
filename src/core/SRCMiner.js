@@ -866,8 +866,13 @@ class SRCMiner {
                 }
                 // 构造完整的URL用于保存
                 const fullUrl = `https://${hostname}`;
-                await window.indexedDBManager.saveScanResults(fullUrl, finalResults);
-                //console.log(`✅ [SAVE LOG] IndexedDB 保存完成: ${hostname}`);
+                
+                // 获取页面标题用于URL位置跟踪
+                const pageTitle = document.title || tab.title || 'Unknown Page';
+                
+                // 保存结果时包含URL位置信息
+                await window.indexedDBManager.saveScanResults(fullUrl, finalResults, tab.url, pageTitle);
+                //console.log(`✅ [SAVE LOG] IndexedDB 保存完成: ${hostname}，包含URL位置信息`);
             } else {
                 //console.log('💾 [SAVE LOG] 没有有效结果需要保存');
             }

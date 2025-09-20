@@ -86,17 +86,83 @@ class ContentExtractor {
             await this.performMultiLayerScan(storageContent, results);
             //await this.performMultiLayerScan(cookieContent, results);
             
-            // 转换Set为Array并过滤 - 修复：包含所有动态创建的键
+            // 转换Set为Array并过滤 - 修复：包含所有动态创建的键，确保每个项目都有sourceUrl
             const finalResults = {};
             
             // 处理所有键，包括动态创建的自定义正则键
             for (const [key, value] of Object.entries(results)) {
                 if (value instanceof Set) {
-                    finalResults[key] = Array.from(value).filter(item => item && item.length > 0);
+                    // 🔥 修复：转换Set时确保每个项目都有完整的源URL信息
+                    finalResults[key] = Array.from(value).filter(item => {
+                        // 过滤掉空值
+                        if (typeof item === 'object' && item !== null) {
+                            return item.value && item.value.length > 0;
+                        } else {
+                            return item && item.length > 0;
+                        }
+                    }).map(item => {
+                        // 确保每个项目都是对象格式并包含源URL信息
+                        if (typeof item === 'object' && item !== null && item.hasOwnProperty('value')) {
+                            return {
+                                value: item.value,
+                                sourceUrl: item.sourceUrl || window.location.href,
+                                extractedAt: item.extractedAt || new Date().toISOString(),
+                                pageTitle: item.pageTitle || document.title || 'Unknown Page'
+                            };
+                        } else {
+                            return {
+                                value: item,
+                                sourceUrl: window.location.href,
+                                extractedAt: new Date().toISOString(),
+                                pageTitle: document.title || 'Unknown Page'
+                            };
+                        }
+                    });
                 } else if (Array.isArray(value)) {
-                    finalResults[key] = value.filter(item => item && item.length > 0);
+                    // 🔥 修复：处理数组时确保每个项目都有完整的源URL信息
+                    finalResults[key] = value.filter(item => {
+                        if (typeof item === 'object' && item !== null) {
+                            return item.value && item.value.length > 0;
+                        } else {
+                            return item && item.length > 0;
+                        }
+                    }).map(item => {
+                        if (typeof item === 'object' && item !== null && item.hasOwnProperty('value')) {
+                            return {
+                                value: item.value,
+                                sourceUrl: item.sourceUrl || window.location.href,
+                                extractedAt: item.extractedAt || new Date().toISOString(),
+                                pageTitle: item.pageTitle || document.title || 'Unknown Page'
+                            };
+                        } else {
+                            return {
+                                value: item,
+                                sourceUrl: window.location.href,
+                                extractedAt: new Date().toISOString(),
+                                pageTitle: document.title || 'Unknown Page'
+                            };
+                        }
+                    });
                 } else if (value) {
-                    finalResults[key] = value;
+                    // 🔥 修复：单个值也要转换为包含源URL信息的对象数组
+                    if (typeof value === 'object' && value !== null && value.hasOwnProperty('value')) {
+                        finalResults[key] = [{
+                            value: value.value,
+                            sourceUrl: value.sourceUrl || window.location.href,
+                            extractedAt: value.extractedAt || new Date().toISOString(),
+                            pageTitle: value.pageTitle || document.title || 'Unknown Page'
+                        }];
+                    } else {
+                        finalResults[key] = [{
+                            value: value,
+                            sourceUrl: window.location.href,
+                            extractedAt: new Date().toISOString(),
+                            pageTitle: document.title || 'Unknown Page'
+                        }];
+                    }
+                } else {
+                    // 空值保持为空数组
+                    finalResults[key] = [];
                 }
             }
             
@@ -124,8 +190,8 @@ class ContentExtractor {
     // 获取页面内容 - 优化版本
     getPageContent() {
         try {
-            // 只获取body内容，避免处理整个HTML
-            return document.body.innerHTML;
+            // 获取完整的HTML内容，包括head和body，确保不遗漏任何资源
+            return document.documentElement.outerHTML;
         } catch (e) {
             return '';
         }
@@ -259,11 +325,31 @@ class ContentExtractor {
                 //console.log('✅✅✅ ContentExtractor调用PatternExtractor.extractPatterns完成，返回数据:', extractedData);
                 
                 // 将提取的数据合并到results中，包括动态自定义正则结果
+                // 🔥 修复：保持PatternExtractor返回的完整对象结构（包含sourceUrl）
                 if (extractedData) {
                     Object.keys(extractedData).forEach(key => {
                         // 处理预定义的结果键
                         if (results[key] && Array.isArray(extractedData[key])) {
-                            extractedData[key].forEach(item => results[key].add(item));
+                            extractedData[key].forEach(itemObj => {
+                                // 🔥 修复：确保每个项目都有完整的源URL信息
+                                if (typeof itemObj === 'object' && itemObj !== null && itemObj.hasOwnProperty('value')) {
+                                    // 已经是对象格式，确保包含所有必要字段
+                                    results[key].add({
+                                        value: itemObj.value,
+                                        sourceUrl: itemObj.sourceUrl || window.location.href,
+                                        extractedAt: itemObj.extractedAt || new Date().toISOString(),
+                                        pageTitle: itemObj.pageTitle || document.title || 'Unknown Page'
+                                    });
+                                } else {
+                                    // 兼容旧格式：如果是字符串，转换为对象格式
+                                    results[key].add({
+                                        value: itemObj,
+                                        sourceUrl: window.location.href,
+                                        extractedAt: new Date().toISOString(),
+                                        pageTitle: document.title || 'Unknown Page'
+                                    });
+                                }
+                            });
                         }
                         // 处理动态自定义正则结果
                         else if (key.startsWith('custom_') && Array.isArray(extractedData[key])) {
@@ -271,7 +357,26 @@ class ContentExtractor {
                                 results[key] = new Set();
                                 //console.log(`📦 ContentExtractor为自定义正则 ${key} 创建结果集合`);
                             }
-                            extractedData[key].forEach(item => results[key].add(item));
+                            extractedData[key].forEach(itemObj => {
+                                // 🔥 修复：确保每个自定义正则项目都有完整的源URL信息
+                                if (typeof itemObj === 'object' && itemObj !== null && itemObj.hasOwnProperty('value')) {
+                                    // 已经是对象格式，确保包含所有必要字段
+                                    results[key].add({
+                                        value: itemObj.value,
+                                        sourceUrl: itemObj.sourceUrl || window.location.href,
+                                        extractedAt: itemObj.extractedAt || new Date().toISOString(),
+                                        pageTitle: itemObj.pageTitle || document.title || 'Unknown Page'
+                                    });
+                                } else {
+                                    // 兼容旧格式：如果是字符串，转换为对象格式
+                                    results[key].add({
+                                        value: itemObj,
+                                        sourceUrl: window.location.href,
+                                        extractedAt: new Date().toISOString(),
+                                        pageTitle: document.title || 'Unknown Page'
+                                    });
+                                }
+                            });
                             //console.log(`✅ ContentExtractor自定义正则 ${key} 添加了 ${extractedData[key].length} 个结果`);
                         }
                     });
