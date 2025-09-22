@@ -111,7 +111,9 @@ class PatternExtractor {
             '/Win64/.exec',
             '/d.count',
             '/Math.LN10',
-            '/2-z-Y-Ie-A.mainAxis'
+            '/2-z-Y-Ie-A.mainAxis',
+            '/top/.test',
+            '/Y/.test'
         ];
         
         // 引入身份证验证过滤器
