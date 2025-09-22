@@ -310,7 +310,15 @@ function buildTestUrl(item, categoryKey, baseUrl) {
                 break;
             case 'relativeApis':
                 if (baseUrl && !url.startsWith('http')) {
-                    url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                    // 🔥 修复：自动去除相对路径开头的"."
+                    let cleanedUrl = url;
+                    if (cleanedUrl.startsWith('./')) {
+                        cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
+                    } else if (cleanedUrl.startsWith('.')) {
+                        cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
+                    }
+                    
+                    url = baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
                 }
                 break;
             case 'urls':
@@ -532,7 +540,7 @@ function exportAsJSON() {
 
 // 导出为CSV
 function exportAsCSV() {
-    const headers = ['序号', 'URL', '状态码', '状态文本', '大小', '耗时', '结果'];
+    const headers = ['序号', '路径', '状态码', '状态文本', '大小', '耗时', '结果'];
     const csvContent = [
         headers.join(','),
         ...testResults.map(result => [
@@ -854,7 +862,7 @@ document.addEventListener('DOMContentLoaded', initializePage);
                 <thead>
                     <tr>
                         <th>序号</th>
-                        <th>URL</th>
+                        <th>路径</th>
                         <th>状态码</th>
                         <th>大小</th>
                         <th>耗时</th>

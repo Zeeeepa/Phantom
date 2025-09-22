@@ -506,39 +506,59 @@ function buildTestUrl(item, categoryKey, baseUrl) {
 
         // 获取自定义base API路径
         const customBaseApiPaths = testData.customBaseApiPaths || [];
+        
+        console.log(`🔧 [buildTestUrl] 构建URL: 原始="${url}", 分类="${categoryKey}", 基础URL="${baseUrl}", BaseAPI路径=${JSON.stringify(customBaseApiPaths)}`);
 
         switch (categoryKey) {
             case 'absoluteApis':
             case 'paths':
                 if (baseUrl && url.startsWith('/')) {
-
                     // 如果有自定义base API路径，先添加它
                     if (customBaseApiPaths.length > 0) {
                         // 使用第一个baseapi路径（保持向后兼容）
-                        url = baseUrl + customBaseApiPaths[0] + url;
+                        const baseApiPath = customBaseApiPaths[0];
+                        // 确保baseApiPath以/开头但不以/结尾（除非是根路径）
+                        const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                        url = baseUrl + normalizedBasePath + url;
+                        console.log(`🔧 [buildTestUrl] 绝对路径+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "${item}" = "${url}"`);
                     } else {
                         url = baseUrl + url;
+                        console.log(`🔧 [buildTestUrl] 绝对路径: "${baseUrl}" + "${item}" = "${url}"`);
                     }
-
                 }
                 break;
                 
             case 'relativeApis':
                 if (baseUrl && !url.startsWith('http')) {
-                 // 如果有自定义base API路径，先添加它
+                    // 🔥 修复：自动去除相对路径开头的"."
+                    let cleanedUrl = url;
+                    if (cleanedUrl.startsWith('./')) {
+                        cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
+                        console.log(`🔧 [buildTestUrl] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                    } else if (cleanedUrl.startsWith('.')) {
+                        cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
+                        console.log(`🔧 [buildTestUrl] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                    }
+                    
+                    // 如果有自定义base API路径，先添加它
                     if (customBaseApiPaths.length > 0) {
                         // 使用第一个baseapi路径（保持向后兼容）
-                        url = baseUrl + customBaseApiPaths[0] + (url.startsWith('/') ? '' : '/') + url;
+                        const baseApiPath = customBaseApiPaths[0];
+                        // 确保baseApiPath以/开头但不以/结尾（除非是根路径）
+                        const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                        url = baseUrl + normalizedBasePath + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
+                        console.log(`🔧 [buildTestUrl] 相对路径+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${cleanedUrl}" = "${url}"`);
                     } else {
-                        url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                        url = baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
+                        console.log(`🔧 [buildTestUrl] 相对路径: "${baseUrl}" + "/" + "${cleanedUrl}" = "${url}"`);
                     }
-
                 }
                 break;
                 
             case 'urls':
                 if (!url.startsWith('http')) {
                     url = 'http://' + url;
+                    console.log(`🔧 [buildTestUrl] 完整URL: "http://" + "${item}" = "${url}"`);
                 }
                 break;
                 
@@ -547,40 +567,53 @@ function buildTestUrl(item, categoryKey, baseUrl) {
             case 'images':
                 if (baseUrl && !url.startsWith('http')) {
                     if (url.startsWith('/')) {
-
                         // 如果有自定义base API路径，先添加它
                         if (customBaseApiPaths.length > 0) {
                             // 使用第一个baseapi路径（保持向后兼容）
-                            url = baseUrl + customBaseApiPaths[0] + url;
+                            const baseApiPath = customBaseApiPaths[0];
+                            const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                            url = baseUrl + normalizedBasePath + url;
+                            console.log(`🔧 [buildTestUrl] 文件路径+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "${item}" = "${url}"`);
                         } else {
                             url = baseUrl + url;
+                            console.log(`🔧 [buildTestUrl] 文件路径: "${baseUrl}" + "${item}" = "${url}"`);
                         }
                     } else {
                         // 如果有自定义base API路径，先添加它
                         if (customBaseApiPaths.length > 0) {
                             // 使用第一个baseapi路径（保持向后兼容）
-                            url = baseUrl + customBaseApiPaths[0] + '/' + url;
+                            const baseApiPath = customBaseApiPaths[0];
+                            const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                            url = baseUrl + normalizedBasePath + '/' + url;
+                            console.log(`🔧 [buildTestUrl] 相对文件+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${item}" = "${url}"`);
                         } else {
                             url = baseUrl + '/' + url;
+                            console.log(`🔧 [buildTestUrl] 相对文件: "${baseUrl}" + "/" + "${item}" = "${url}"`);
                         }
-
                     }
                 }
                 break;
                 
             default:
                 if (baseUrl && !url.startsWith('http')) {
-
                     // 如果有自定义base API路径，先添加它
                     if (customBaseApiPaths.length > 0) {
                         // 使用第一个baseapi路径（保持向后兼容）
-                        url = baseUrl + customBaseApiPaths[0] + (url.startsWith('/') ? '' : '/') + url;
+                        const baseApiPath = customBaseApiPaths[0];
+                        const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                        url = baseUrl + normalizedBasePath + (url.startsWith('/') ? '' : '/') + url;
+                        console.log(`🔧 [buildTestUrl] 默认+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${item}" = "${url}"`);
                     } else {
                         url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                        console.log(`🔧 [buildTestUrl] 默认: "${baseUrl}" + "/" + "${item}" = "${url}"`);
                     }
-
                 }
         }
+        
+        // 清理多余的斜杠
+        url = url.replace(/([^:]\/)\/+/g, '$1');
+        
+        console.log(`✅ [buildTestUrl] 最终URL: "${url}"`);
         
         new URL(url);
         return url;
@@ -639,7 +672,17 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                                 
                             case 'relativeApis':
                                 if (typeof url === 'string' && !url.startsWith('http')) {
-                                    url = customDomain + basePath + (url.startsWith('/') ? '' : '/') + url;
+                                    // 🔥 修复：自动去除相对路径开头的"."
+                                    let cleanedUrl = url;
+                                    if (cleanedUrl.startsWith('./')) {
+                                        cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
+                                        console.log(`🔧 [expandItems-customDomain] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                                    } else if (cleanedUrl.startsWith('.')) {
+                                        cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
+                                        console.log(`🔧 [expandItems-customDomain] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                                    }
+                                    
+                                    url = customDomain + basePath + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
                                 }
                                 break;
                                 
@@ -696,7 +739,17 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                             
                         case 'relativeApis':
                             if (typeof url === 'string' && !url.startsWith('http')) {
-                                url = customDomain + (url.startsWith('/') ? '' : '/') + url;
+                                // 🔥 修复：自动去除相对路径开头的"."
+                                let cleanedUrl = url;
+                                if (cleanedUrl.startsWith('./')) {
+                                    cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
+                                    console.log(`🔧 [expandItems-customDomain-noBP] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                                } else if (cleanedUrl.startsWith('.')) {
+                                    cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
+                                    console.log(`🔧 [expandItems-customDomain-noBP] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                                }
+                                
+                                url = customDomain + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
                             }
                             break;
                             
@@ -744,7 +797,17 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                         
                     case 'relativeApis':
                         if (baseUrl && !url.startsWith('http')) {
-                            url = baseUrl + basePath + (url.startsWith('/') ? '' : '/') + url;
+                            // 🔥 修复：自动去除相对路径开头的"."
+                            let cleanedUrl = url;
+                            if (cleanedUrl.startsWith('./')) {
+                                cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
+                                console.log(`🔧 [expandItems-basePath] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                            } else if (cleanedUrl.startsWith('.')) {
+                                cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
+                                console.log(`🔧 [expandItems-basePath] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                            }
+                            
+                            url = baseUrl + basePath + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
                         }
                         break;
                         
@@ -790,13 +853,15 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
             return expandedItems; // 跳过这个项目
         }
         
-        // 处理原始域名的URL构建
+        // 🔥 修复：处理原始域名的URL构建，确保正确显示baseapi+路径
         switch (categoryKey) {
             case 'absoluteApis':
             case 'paths':
                 if (baseUrl && originalUrl.startsWith('/')) {
                     if (customBaseApiPaths.length > 0) {
-                        originalUrl = baseUrl + customBaseApiPaths[0] + originalUrl;
+                        const baseApiPath = customBaseApiPaths[0];
+                        const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                        originalUrl = baseUrl + normalizedBasePath + originalUrl;
                     } else {
                         originalUrl = baseUrl + originalUrl;
                     }
@@ -805,10 +870,22 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                 
             case 'relativeApis':
                 if (baseUrl && !originalUrl.startsWith('http')) {
+                    // 🔥 修复：自动去除相对路径开头的"."
+                    let cleanedOriginalUrl = originalUrl;
+                    if (cleanedOriginalUrl.startsWith('./')) {
+                        cleanedOriginalUrl = cleanedOriginalUrl.substring(2); // 去除 "./"
+                        console.log(`🔧 [expandItems] 去除相对路径开头的"./": "${originalUrl}" -> "${cleanedOriginalUrl}"`);
+                    } else if (cleanedOriginalUrl.startsWith('.')) {
+                        cleanedOriginalUrl = cleanedOriginalUrl.substring(1); // 去除单独的 "."
+                        console.log(`🔧 [expandItems] 去除相对路径开头的".": "${originalUrl}" -> "${cleanedOriginalUrl}"`);
+                    }
+                    
                     if (customBaseApiPaths.length > 0) {
-                        originalUrl = baseUrl + customBaseApiPaths[0] + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
+                        const baseApiPath = customBaseApiPaths[0];
+                        const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                        originalUrl = baseUrl + normalizedBasePath + (cleanedOriginalUrl.startsWith('/') ? '' : '/') + cleanedOriginalUrl;
                     } else {
-                        originalUrl = baseUrl + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
+                        originalUrl = baseUrl + (cleanedOriginalUrl.startsWith('/') ? '' : '/') + cleanedOriginalUrl;
                     }
                 }
                 break;
@@ -819,13 +896,17 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                 if (baseUrl && !originalUrl.startsWith('http')) {
                     if (originalUrl.startsWith('/')) {
                         if (customBaseApiPaths.length > 0) {
-                            originalUrl = baseUrl + customBaseApiPaths[0] + originalUrl;
+                            const baseApiPath = customBaseApiPaths[0];
+                            const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                            originalUrl = baseUrl + normalizedBasePath + originalUrl;
                         } else {
                             originalUrl = baseUrl + originalUrl;
                         }
                     } else {
                         if (customBaseApiPaths.length > 0) {
-                            originalUrl = baseUrl + customBaseApiPaths[0] + '/' + originalUrl;
+                            const baseApiPath = customBaseApiPaths[0];
+                            const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                            originalUrl = baseUrl + normalizedBasePath + '/' + originalUrl;
                         } else {
                             originalUrl = baseUrl + '/' + originalUrl;
                         }
@@ -836,12 +917,17 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
             default:
                 if (baseUrl && !originalUrl.startsWith('http')) {
                     if (customBaseApiPaths.length > 0) {
-                        originalUrl = baseUrl + customBaseApiPaths[0] + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
+                        const baseApiPath = customBaseApiPaths[0];
+                        const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
+                        originalUrl = baseUrl + normalizedBasePath + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
                     } else {
                         originalUrl = baseUrl + (originalUrl.startsWith('/') ? '' : '/') + originalUrl;
                     }
                 }
         }
+        
+        // 清理多余的斜杠
+        originalUrl = originalUrl.replace(/([^:]\/)\/+/g, '$1');
         
         // 添加原始域名的测试项目
         expandedItems.push({
@@ -949,29 +1035,39 @@ function addResultToTable(result) {
     const row = document.createElement('tr');
     
     const statusClass = result.success ? 'status-success' : 'status-error';
+    
+    // 🔥 修复：正确显示完整的URL路径，包括baseapi+路径
     let displayUrl = (result.fullUrl || result.url || '');
+    let fullDisplayUrl = displayUrl; // 保存完整URL用于title显示
+    
     try {
         if (displayUrl.startsWith('http')) {
             const u = new URL(displayUrl);
-            displayUrl = u.pathname + (u.search || '');
+            // 显示完整的路径部分，包括baseapi路径
+            displayUrl = u.pathname + (u.search || '') + (u.hash || '');
+            fullDisplayUrl = u.href; // 完整URL
         }
-    } catch (_) {}
+    } catch (_) {
+        // 如果URL解析失败，保持原样
+        fullDisplayUrl = displayUrl;
+    }
     
     // 提取域名信息
     let domainInfo = '原始域名';
     try {
         if (result.fullUrl && result.fullUrl.startsWith('http')) {
             const urlObj = new URL(result.fullUrl);
-            domainInfo = urlObj.hostname;
+            domainInfo = urlObj.hostname + (urlObj.port ? ':' + urlObj.port : '');
         }
     } catch (e) {
         domainInfo = '未知域名';
     }
     
+    // 🔥 修复：确保URL列显示完整的路径信息
     row.innerHTML = 
         '<td>' + (result.index + 1) + '</td>' +
         '<td class="url-cell" title="' + domainInfo + '">' + domainInfo + '</td>' +
-        '<td class="url-cell" title="' + displayUrl + '">' + displayUrl + '</td>' +
+        '<td class="url-cell" title="' + fullDisplayUrl + '">' + displayUrl + '</td>' +
         '<td class="' + statusClass + '">' + result.status + '</td>' +
         '<td>' + result.size + '</td>' +
         '<td>' + result.time + '</td>' +
@@ -1506,7 +1602,7 @@ function exportAsJSON() {
 
 // 导出为CSV
 function exportAsCSV() {
-    const headers = ['序号', 'URL', '状态码', '状态文本', '大小', '耗时', '结果'];
+    const headers = ['序号', 'url', '状态码', '状态文本', '大小', '耗时', '结果'];
     const csvContent = [
         headers.join(','),
         ...testResults.map(result => [

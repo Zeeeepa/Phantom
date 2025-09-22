@@ -201,16 +201,14 @@ class ContentExtractor {
     getAllScripts() {
         const scripts = [];
         
-        // 内联脚本 - 限制数量和大小
+        // 内联脚本 - 处理所有脚本，不限制数量和大小
         const inlineScripts = document.querySelectorAll('script:not([src])');
-        const maxScripts = Math.min(inlineScripts.length, 50); // 最多处理50个脚本
         
-        for (let i = 0; i < maxScripts; i++) {
+        for (let i = 0; i < inlineScripts.length; i++) {
             const script = inlineScripts[i];
             if (script.textContent) {
-                // 限制每个脚本的大小
-                const content = script.textContent;
-                scripts.push(content.length > 10000 ? content.substring(0, 10000) : content);
+                // 处理完整的脚本内容，不截断
+                scripts.push(script.textContent);
             }
         }
         
@@ -228,11 +226,10 @@ class ContentExtractor {
     getAllStyles() {
         const styles = [];
         
-        // 内联样式 - 限制数量
+        // 内联样式 - 处理所有样式，不限制数量
         const styleElements = document.querySelectorAll('style');
-        const maxStyles = Math.min(styleElements.length, 20); // 最多处理20个样式表
         
-        for (let i = 0; i < maxStyles; i++) {
+        for (let i = 0; i < styleElements.length; i++) {
             const style = styleElements[i];
             if (style.textContent) {
                 styles.push(style.textContent);
@@ -253,11 +250,10 @@ class ContentExtractor {
     getAllLinks() {
         const links = new Set();
         
-        // 限制处理的链接数量
+        // 处理所有链接，不限制数量
         const allLinks = document.querySelectorAll('a[href]');
-        const maxLinks = Math.min(allLinks.length, 200); // 最多处理200个链接
         
-        for (let i = 0; i < maxLinks; i++) {
+        for (let i = 0; i < allLinks.length; i++) {
             links.add(allLinks[i].href);
         }
         
@@ -269,27 +265,23 @@ class ContentExtractor {
         const storage = [];
         
         try {
-            // localStorage - 限制数量
-            const maxItems = 50; // 最多处理50个存储项
-            let count = 0;
+            // localStorage - 处理所有存储项，不限制数量和大小
             
             // localStorage
-            for (let i = 0; i < localStorage.length && count < maxItems; i++) {
+            for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 const value = localStorage.getItem(key);
-                if (value && value.length < 1000) { // 限制值的大小
+                if (value) {
                     storage.push(`localStorage.${key}=${value}`);
-                    count++;
                 }
             }
             
             // sessionStorage
-            for (let i = 0; i < sessionStorage.length && count < maxItems; i++) {
+            for (let i = 0; i < sessionStorage.length; i++) {
                 const key = sessionStorage.key(i);
                 const value = sessionStorage.getItem(key);
-                if (value && value.length < 1000) { // 限制值的大小
+                if (value) {
                     storage.push(`sessionStorage.${key}=${value}`);
-                    count++;
                 }
             }
         } catch (e) {
@@ -303,9 +295,8 @@ class ContentExtractor {
     async performMultiLayerScan(content, results) {
         if (!content || content.length === 0) return;
         
-        // 限制内容大小
-        const maxContentSize = 300000; // 约300KB
-        const processContent = content.length > maxContentSize ? content.substring(0, maxContentSize) : content;
+        // 移除内容大小限制，处理完整内容
+        const processContent = content;
         
         // 使用PatternExtractor统一化系统来提取信息
         if (window.patternExtractor && typeof window.patternExtractor.extractPatterns === 'function') {

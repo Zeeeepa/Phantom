@@ -777,10 +777,8 @@ class DeepScanner {
     extractFromContent(content, sourceUrl) {
         //console.log(`🔍 深度扫描统一化版本开始提取内容，来源: ${sourceUrl}`);
         
-        // 内容太大时进行截断，避免处理过大的文件
-        const maxContentLength = 800000; // 约800KB
-        const processedContent = content.length > maxContentLength ? 
-            content.substring(0, maxContentLength) : content;
+        // 移除内容大小限制，允许处理完整内容
+        const processedContent = content;
         
         // 🔥 统一化版本：完全使用PatternExtractor进行提取
         if (this.srcMiner.patternExtractor) {
@@ -828,10 +826,8 @@ class DeepScanner {
         const urls = new Set();
         const { scanJsFiles, scanHtmlFiles, scanApiFiles } = options;
         
-        // 内容太大时进行截断
-        const maxContentLength = 500000; // 约500KB
-        const processedContent = content.length > maxContentLength ? 
-            content.substring(0, maxContentLength) : content;
+        // 移除内容大小限制，允许处理完整内容
+        const processedContent = content;
         
         // 🔥 统一化版本：使用PatternExtractor提取URL
         if (this.srcMiner.patternExtractor) {

@@ -170,13 +170,323 @@ async function extractFromContent(content, sourceUrl = 'unknown') {
     // 使用统一入口提取
     const results = await patternExtractor.extractPatterns(content, sourceUrl);
 
-    // 🔥 修复：不要清空相对路径API，保持原始数据用于显示
-    convertRelativeApisToAbsolute(results);
+    // 🔥 修复：使用 IndexedDB 数据进行智能相对路径解析
+    await enhanceRelativePathsWithIndexedDB(results, sourceUrl);
 
     return results;
 }
 
-// -------------------- 统一结果处理 --------------------
+// -------------------- 智能相对路径解析 --------------------
+async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
+    console.log('🔍 [DEBUG] 开始智能相对路径解析，当前源URL:', currentSourceUrl);
+    
+    if (!results.relativeApis || results.relativeApis.length === 0) {
+        console.log('⚠️ 没有相对路径API需要解析');
+        return;
+    }
+    
+    try {
+        // 🔥 修复：严格按照IndexedDB数据获取提取来源路径
+        const baseUrl = scanConfig?.baseUrl || window.location.origin;
+        console.log('🔍 [DEBUG] 基础URL:', baseUrl);
+        
+        // 获取所有扫描结果数据，包括深度扫描结果
+        let allScanData = [];
+        
+        // 方法1：尝试获取当前域名的扫描结果
+        try {
+            const currentScanData = await window.IndexedDBManager.loadScanResults(baseUrl);
+            if (currentScanData && currentScanData.results) {
+                allScanData.push(currentScanData);
+                console.log('✅ [DEBUG] 获取到当前域名扫描结果');
+            }
+        } catch (e) {
+            console.warn('⚠️ 获取当前域名扫描结果失败:', e);
+        }
+        
+        // 方法2：获取所有扫描结果作为备选
+        try {
+            const allResults = await window.IndexedDBManager.getAllScanResults();
+            if (allResults && Array.isArray(allResults)) {
+                allScanData = allScanData.concat(allResults);
+                console.log('✅ [DEBUG] 获取到所有扫描结果，共', allResults.length, '个');
+            }
+        } catch (e) {
+            console.warn('⚠️ 获取所有扫描结果失败:', e);
+        }
+        
+        if (allScanData.length === 0) {
+            console.log('⚠️ 未找到任何 IndexedDB 数据，使用传统拼接方式');
+            return;
+        }
+        
+        // 🔥 修复：严格按照IndexedDB中每个数据项的sourceUrl进行路径解析
+        const sourceUrlToBasePath = new Map();
+        const itemToSourceUrlMap = new Map(); // 新增：建立数据项到sourceUrl的映射
+        
+        console.log('🔍 [DEBUG] 开始分析IndexedDB数据，共', allScanData.length, '个数据源');
+        
+        // 遍历所有扫描数据，建立完整的映射关系
+        allScanData.forEach((scanData, dataIndex) => {
+            if (!scanData.results) return;
+            
+            console.log(`🔍 [DEBUG] 分析数据源 ${dataIndex + 1}:`, {
+                url: scanData.url,
+                sourceUrl: scanData.sourceUrl,
+                domain: scanData.domain,
+                pageTitle: scanData.pageTitle
+            });
+            
+            // 遍历所有类型的数据
+            Object.entries(scanData.results).forEach(([category, items]) => {
+                if (!Array.isArray(items)) return;
+                
+                items.forEach(item => {
+                    if (typeof item === 'object' && item !== null && item.sourceUrl) {
+                        // 🔥 关键修复：使用数据项自己的sourceUrl
+                        const itemSourceUrl = item.sourceUrl;
+                        const itemValue = item.value || item.text || item.content;
+                        
+                        if (itemValue && itemSourceUrl) {
+                            try {
+                                const sourceUrlObj = new URL(itemSourceUrl);
+                                // 提取基础路径（去掉文件名）
+                                const basePath = sourceUrlObj.pathname.substring(0, sourceUrlObj.pathname.lastIndexOf('/') + 1);
+                                const fullBasePath = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
+                                
+                                sourceUrlToBasePath.set(itemSourceUrl, fullBasePath);
+                                itemToSourceUrlMap.set(itemValue, itemSourceUrl);
+                                
+                                console.log(`📋 [DEBUG] 映射建立: "${itemValue}" -> "${itemSourceUrl}" -> "${fullBasePath}"`);
+                            } catch (e) {
+                                console.warn('⚠️ 无效的sourceUrl:', itemSourceUrl, e);
+                            }
+                        }
+                    } else if (typeof item === 'string') {
+                        // 对于字符串格式的数据，使用扫描结果的sourceUrl
+                        const fallbackSourceUrl = scanData.sourceUrl || scanData.url;
+                        if (fallbackSourceUrl) {
+                            try {
+                                const sourceUrlObj = new URL(fallbackSourceUrl);
+                                const basePath = sourceUrlObj.pathname.substring(0, sourceUrlObj.pathname.lastIndexOf('/') + 1);
+                                const fullBasePath = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
+                                
+                                sourceUrlToBasePath.set(fallbackSourceUrl, fullBasePath);
+                                itemToSourceUrlMap.set(item, fallbackSourceUrl);
+                                
+                                console.log(`📋 [DEBUG] 备选映射: "${item}" -> "${fallbackSourceUrl}" -> "${fullBasePath}"`);
+                            } catch (e) {
+                                console.warn('⚠️ 无效的备选sourceUrl:', fallbackSourceUrl, e);
+                            }
+                        }
+                    }
+                });
+            });
+        });
+        
+        console.log('📊 [DEBUG] 映射建立完成:', {
+            sourceUrlToBasePath: sourceUrlToBasePath.size,
+            itemToSourceUrlMap: itemToSourceUrlMap.size
+        });
+        
+        // 🔥 修复：严格按照每个相对路径API的来源进行解析
+        const enhancedRelativeApis = [];
+        
+        for (const apiItem of results.relativeApis) {
+            const apiValue = typeof apiItem === 'object' ? apiItem.value : apiItem;
+            let apiSourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : currentSourceUrl;
+            
+            console.log(`🔍 [DEBUG] 处理相对路径API: "${apiValue}", 源URL: "${apiSourceUrl}"`);
+            
+            let resolvedUrl = null;
+            let usedSourceUrl = null;
+            
+            // 🔥 方法1：严格按照数据项的sourceUrl进行解析
+            if (itemToSourceUrlMap.has(apiValue)) {
+                const exactSourceUrl = itemToSourceUrlMap.get(apiValue);
+                if (sourceUrlToBasePath.has(exactSourceUrl)) {
+                    const basePath = sourceUrlToBasePath.get(exactSourceUrl);
+                    resolvedUrl = resolveRelativePath(apiValue, basePath);
+                    usedSourceUrl = exactSourceUrl;
+                    console.log('✅ [精确匹配] 找到数据项的确切来源:', apiValue, '->', resolvedUrl, '(源:', exactSourceUrl, ')');
+                }
+            }
+            
+            // 🔥 方法2：如果精确匹配失败，使用API项目自带的sourceUrl
+            if (!resolvedUrl && apiSourceUrl && sourceUrlToBasePath.has(apiSourceUrl)) {
+                const basePath = sourceUrlToBasePath.get(apiSourceUrl);
+                resolvedUrl = resolveRelativePath(apiValue, basePath);
+                usedSourceUrl = apiSourceUrl;
+                console.log('✅ [直接匹配] 使用API项目的sourceUrl:', apiValue, '->', resolvedUrl, '(源:', apiSourceUrl, ')');
+            }
+            
+            // 🔥 方法3：如果还是失败，尝试查找相似的源URL（域名匹配）
+            if (!resolvedUrl && sourceUrlToBasePath.size > 0) {
+                const targetDomain = baseUrl ? new URL(baseUrl).hostname : null;
+                
+                for (const [sourceUrl, basePath] of sourceUrlToBasePath.entries()) {
+                    try {
+                        const sourceDomain = new URL(sourceUrl).hostname;
+                        if (targetDomain && sourceDomain === targetDomain) {
+                            const testUrl = resolveRelativePath(apiValue, basePath);
+                            if (testUrl) {
+                                resolvedUrl = testUrl;
+                                usedSourceUrl = sourceUrl;
+                                console.log('✅ [域名匹配] 找到同域名的源URL:', apiValue, '->', resolvedUrl, '(源:', sourceUrl, ')');
+                                break;
+                            }
+                        }
+                    } catch (e) {
+                        // 忽略无效URL
+                    }
+                }
+            }
+            
+            // 🔥 方法4：最后的备选方案，使用基础URL拼接
+            if (!resolvedUrl) {
+                try {
+                    if (apiValue.startsWith('./')) {
+                        resolvedUrl = baseUrl + apiValue.substring(1); // 去掉.，保留/
+                    } else if (apiValue.startsWith('../')) {
+                        // 简单处理上级目录
+                        const upLevels = (apiValue.match(/\.\.\//g) || []).length;
+                        const remainingPath = apiValue.replace(/\.\.\//g, '');
+                        const baseUrlObj = new URL(baseUrl);
+                        const pathParts = baseUrlObj.pathname.split('/').filter(p => p);
+                        
+                        // 向上移动指定层级
+                        for (let i = 0; i < upLevels && pathParts.length > 0; i++) {
+                            pathParts.pop();
+                        }
+                        
+                        resolvedUrl = `${baseUrlObj.protocol}//${baseUrlObj.host}/${pathParts.join('/')}${pathParts.length > 0 ? '/' : ''}${remainingPath}`;
+                    } else if (!apiValue.startsWith('/') && !apiValue.startsWith('http')) {
+                        resolvedUrl = baseUrl + '/' + apiValue;
+                    } else {
+                        resolvedUrl = apiValue;
+                    }
+                    
+                    // 清理多余的斜杠
+                    resolvedUrl = resolvedUrl.replace(/\/+/g, '/').replace(':/', '://');
+                    usedSourceUrl = baseUrl;
+                    
+                    console.log('🔄 [备选解析] 使用基础URL拼接:', apiValue, '->', resolvedUrl);
+                } catch (e) {
+                    resolvedUrl = apiValue; // 保持原值
+                    usedSourceUrl = currentSourceUrl;
+                    console.warn('⚠️ [解析失败] 保持原值:', apiValue, e.message);
+                }
+            }
+            
+            // 保持原始格式，添加解析后的 URL 和实际使用的源URL
+            if (typeof apiItem === 'object') {
+                enhancedRelativeApis.push({
+                    ...apiItem,
+                    resolvedUrl: resolvedUrl,
+                    actualSourceUrl: usedSourceUrl || apiItem.sourceUrl // 记录实际使用的源URL
+                });
+            } else {
+                enhancedRelativeApis.push({
+                    value: apiItem,
+                    sourceUrl: usedSourceUrl || currentSourceUrl,
+                    resolvedUrl: resolvedUrl,
+                    actualSourceUrl: usedSourceUrl
+                });
+            }
+        }
+        
+        // 更新结果
+        results.relativeApis = enhancedRelativeApis;
+        
+        console.log('✅ [智能解析] 相对路径解析完成，处理了', enhancedRelativeApis.length, '个相对路径');
+        console.log('📊 [智能解析] 解析统计:', {
+            总数: enhancedRelativeApis.length,
+            成功解析: enhancedRelativeApis.filter(item => item.resolvedUrl && item.resolvedUrl !== item.value).length,
+            使用IndexedDB数据: enhancedRelativeApis.filter(item => item.actualSourceUrl && item.actualSourceUrl !== currentSourceUrl).length
+        });
+        
+    } catch (error) {
+        console.error('❌ 智能相对路径解析失败:', error);
+        // 出错时保持原始数据不变
+    }
+}
+
+// 辅助函数：解析相对路径
+function resolveRelativePath(relativePath, basePath) {
+    try {
+        if (!relativePath || !basePath) {
+            console.warn('⚠️ 相对路径解析参数无效:', { relativePath, basePath });
+            return null;
+        }
+        
+        console.log(`🔧 [解析] 开始解析相对路径: "${relativePath}" 基于 "${basePath}"`);
+        
+        // 确保basePath以/结尾
+        if (!basePath.endsWith('/')) {
+            basePath += '/';
+        }
+        
+        let resolvedPath;
+        
+        if (relativePath.startsWith('./')) {
+            // 当前目录：./file.js -> basePath + file.js
+            resolvedPath = basePath + relativePath.substring(2);
+            console.log(`🔧 [解析] 当前目录解析: "${relativePath}" -> "${resolvedPath}"`);
+        } else if (relativePath.startsWith('../')) {
+            // 上级目录：../file.js -> 需要处理路径层级
+            const upLevels = (relativePath.match(/\.\.\//g) || []).length;
+            const remainingPath = relativePath.replace(/\.\.\//g, '');
+            
+            console.log(`🔧 [解析] 上级目录解析: 向上${upLevels}级, 剩余路径: "${remainingPath}"`);
+            
+            try {
+                const baseUrlObj = new URL(basePath);
+                const pathParts = baseUrlObj.pathname.split('/').filter(p => p);
+                
+                console.log(`🔧 [解析] 基础路径部分:`, pathParts);
+                
+                // 向上移动指定层级
+                for (let i = 0; i < upLevels && pathParts.length > 0; i++) {
+                    pathParts.pop();
+                }
+                
+                console.log(`🔧 [解析] 向上移动后路径部分:`, pathParts);
+                
+                resolvedPath = `${baseUrlObj.protocol}//${baseUrlObj.host}/${pathParts.join('/')}${pathParts.length > 0 ? '/' : ''}${remainingPath}`;
+                console.log(`🔧 [解析] 上级目录最终解析: "${relativePath}" -> "${resolvedPath}"`);
+            } catch (e) {
+                console.warn('⚠️ 上级目录解析失败，使用简单方法:', e);
+                // 简单处理方式
+                const baseUrl = basePath.split('/').slice(0, 3).join('/'); // protocol://host
+                resolvedPath = baseUrl + '/' + remainingPath;
+            }
+        } else if (!relativePath.startsWith('/') && !relativePath.startsWith('http')) {
+            // 相对路径：file.js -> basePath + file.js
+            resolvedPath = basePath + relativePath;
+            console.log(`🔧 [解析] 相对路径解析: "${relativePath}" -> "${resolvedPath}"`);
+        } else {
+            // 已经是绝对路径
+            resolvedPath = relativePath;
+            console.log(`🔧 [解析] 已是绝对路径: "${relativePath}"`);
+        }
+        
+        // 清理多余的斜杠
+        const cleanedPath = resolvedPath.replace(/\/+/g, '/').replace(':/', '://');
+        
+        if (cleanedPath !== resolvedPath) {
+            console.log(`🔧 [解析] 路径清理: "${resolvedPath}" -> "${cleanedPath}"`);
+        }
+        
+        console.log(`✅ [解析] 相对路径解析完成: "${relativePath}" -> "${cleanedPath}"`);
+        return cleanedPath;
+        
+    } catch (error) {
+        console.warn('❌ 相对路径解析失败:', error, { relativePath, basePath });
+        return null;
+    }
+}
+
+// -------------------- 传统结果处理（备用） --------------------
 function convertRelativeApisToAbsolute(results) {
     // 🔥 修复：完全移除自动转换逻辑，保持绝对路径API和相对路径API的独立性
     // 不再将相对路径API自动转换并添加到绝对路径API中
@@ -547,7 +857,8 @@ async function collectInitialUrls() {
             for (const jsFile of initialResults.jsFiles) {
                 // 兼容新格式（对象）和旧格式（字符串）
                 const url = typeof jsFile === 'object' ? jsFile.value : jsFile;
-                const fullUrl = resolveUrl(url, scanConfig.baseUrl);
+                const sourceUrl = typeof urlItem === 'object' ? urlItem.sourceUrl : null;
+                const fullUrl = await resolveUrl(url, scanConfig.baseUrl, sourceUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                     urls.add(fullUrl);
                     //console.log(`✅ [DEBUG] 添加JS文件: ${fullUrl}`);
@@ -561,7 +872,8 @@ async function collectInitialUrls() {
             for (const urlItem of initialResults.urls) {
                 // 兼容新格式（对象）和旧格式（字符串）
                 const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
-                const fullUrl = resolveUrl(url, scanConfig.baseUrl);
+                const sourceUrl = typeof urlItem === 'object' ? urlItem.sourceUrl : null;
+                const fullUrl = await resolveUrl(url, scanConfig.baseUrl, sourceUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl) && isValidPageUrl(fullUrl)) {
                     urls.add(fullUrl);
                     //console.log(`✅ [DEBUG] 添加页面URL: ${fullUrl}`);
@@ -577,7 +889,8 @@ async function collectInitialUrls() {
                 for (const apiItem of initialResults.absoluteApis) {
                     // 兼容新格式（对象）和旧格式（字符串）
                     const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
-                    const fullUrl = resolveUrl(api, scanConfig.baseUrl);
+                    const sourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : null;
+                    const fullUrl = await resolveUrl(api, scanConfig.baseUrl, sourceUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
                         //console.log(`✅ [DEBUG] 添加绝对API: ${fullUrl}`);
@@ -591,7 +904,8 @@ async function collectInitialUrls() {
                 for (const apiItem of initialResults.relativeApis) {
                     // 兼容新格式（对象）和旧格式（字符串）
                     const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
-                    const fullUrl = resolveUrl(api, scanConfig.baseUrl);
+                    const sourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : null;
+                    const fullUrl = await resolveUrl(api, scanConfig.baseUrl, sourceUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
                         //console.log(`✅ [DEBUG] 添加相对API: ${fullUrl}`);
@@ -872,8 +1186,10 @@ async function collectUrlsFromContent(content, baseUrl) {
         
         // 收集JS文件
         if (scanConfig.scanJsFiles && extractedData.jsFiles) {
-            for (const jsFile of extractedData.jsFiles) {
-                const fullUrl = resolveUrl(jsFile, baseUrl);
+            for (const jsFileItem of extractedData.jsFiles) {
+                const jsFile = typeof jsFileItem === 'object' ? jsFileItem.value : jsFileItem;
+                const sourceUrl = typeof jsFileItem === 'object' ? jsFileItem.sourceUrl : null;
+                const fullUrl = await resolveUrl(jsFile, baseUrl, sourceUrl);
                 if (fullUrl && await isSameDomain(fullUrl, baseUrl)) {
                     urls.add(fullUrl);
                 }
@@ -882,19 +1198,23 @@ async function collectUrlsFromContent(content, baseUrl) {
         
         // 收集HTML页面
         if (scanConfig.scanHtmlFiles && extractedData.urls) {
-            for (const url of extractedData.urls) {
-                const fullUrl = resolveUrl(url, baseUrl);
+            for (const urlItem of extractedData.urls) {
+                const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
+                const sourceUrl = typeof urlItem === 'object' ? urlItem.sourceUrl : null;
+                const fullUrl = await resolveUrl(url, baseUrl, sourceUrl);
                 if (fullUrl && await isSameDomain(fullUrl, baseUrl) && isValidPageUrl(fullUrl)) {
                     urls.add(fullUrl);
                 }
             }
         }
         
-        // 收集API接口
+        // 收集API接口 - 使用智能解析
         if (scanConfig.scanApiFiles) {
             if (extractedData.absoluteApis) {
-                for (const api of extractedData.absoluteApis) {
-                    const fullUrl = resolveUrl(api, baseUrl);
+                for (const apiItem of extractedData.absoluteApis) {
+                    const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
+                    const sourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : null;
+                    const fullUrl = await resolveUrl(api, baseUrl, sourceUrl);
                     if (fullUrl && await isSameDomain(fullUrl, baseUrl)) {
                         urls.add(fullUrl);
                     }
@@ -902,8 +1222,19 @@ async function collectUrlsFromContent(content, baseUrl) {
             }
             
             if (extractedData.relativeApis) {
-                for (const api of extractedData.relativeApis) {
-                    const fullUrl = resolveUrl(api, baseUrl);
+                for (const apiItem of extractedData.relativeApis) {
+                    // 🔥 优先使用智能解析的 URL
+                    let fullUrl;
+                    if (typeof apiItem === 'object' && apiItem.resolvedUrl) {
+                        fullUrl = apiItem.resolvedUrl;
+                        //console.log('🎯 [DEBUG] 使用智能解析URL:', apiItem.value, '->', fullUrl);
+                    } else {
+                        const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
+                        const sourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : null;
+                        fullUrl = await resolveUrl(api, baseUrl, sourceUrl);
+                        //console.log('🔄 [DEBUG] 使用传统解析URL:', api, '->', fullUrl);
+                    }
+                    
                     if (fullUrl && await isSameDomain(fullUrl, baseUrl)) {
                         urls.add(fullUrl);
                     }
@@ -1249,17 +1580,25 @@ function updateResultsDisplay() {
                         const li = document.createElement('li');
                         li.className = 'result-item';
                         
-                        // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示
+                        // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示，支持智能解析的URL
                         if (typeof item === 'object' && item !== null) {
                             // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
                             if (item.value !== undefined && item.sourceUrl) {
                                 const itemValue = String(item.value);
                                 const itemSourceUrl = String(item.sourceUrl);
-                                // 只显示值，不直接显示来源URL，仅在悬停时显示
-                                li.innerHTML = `<span class="result-value">${itemValue}</span>`;
+                                
+                                // 🔥 新增：如果是相对路径API且有智能解析的URL，显示额外信息
+                                if (key === 'relativeApis' && item.resolvedUrl) {
+                                    li.innerHTML = `<span class="result-value">${itemValue}</span> <span class="resolved-url" style="color: #666; font-size: 0.9em;">→ ${item.resolvedUrl}</span>`;
+                                    li.title = `原始值: ${itemValue}
+智能解析: ${item.resolvedUrl}
+来源: ${itemSourceUrl}`;
+                                } else {
+                                    // 只显示值，不直接显示来源URL，仅在悬停时显示
+                                    li.innerHTML = `<span class="result-value">${itemValue}</span>`;
+                                    li.title = `来源: ${itemSourceUrl}`;
+                                }
                                 li.style.cssText = 'padding: 5px 0;';
-                                // 悬停提示显示该项目的sourceUrl
-                                li.title = `来源: ${itemSourceUrl}`;
                             } else if (item.url || item.path || item.value || item.content) {
                                 // 兼容其他对象格式
                                 const displayValue = item.url || item.path || item.value || item.content || JSON.stringify(item);
@@ -1343,17 +1682,25 @@ function createCustomResultCategory(key, items) {
             const li = document.createElement('li');
             li.className = 'result-item';
             
-            // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示
+            // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示，支持智能解析的URL
             if (typeof item === 'object' && item !== null) {
                 // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
                 if (item.value !== undefined && item.sourceUrl) {
                     const itemValue = String(item.value);
                     const itemSourceUrl = String(item.sourceUrl);
-                    // 只显示值，不直接显示来源URL，仅在悬停时显示
-                    li.innerHTML = `<span class="result-value">${itemValue}</span>`;
+                    
+                    // 🔥 新增：如果是相对路径API且有智能解析的URL，显示额外信息
+                    if (key === 'relativeApis' && item.resolvedUrl) {
+                        li.innerHTML = `<span class="result-value">${itemValue}</span> <span class="resolved-url" style="color: #666; font-size: 0.9em;">→ ${item.resolvedUrl}</span>`;
+                        li.title = `原始值: ${itemValue}
+智能解析: ${item.resolvedUrl}
+来源: ${itemSourceUrl}`;
+                    } else {
+                        // 只显示值，不直接显示来源URL，仅在悬停时显示
+                        li.innerHTML = `<span class="result-value">${itemValue}</span>`;
+                        li.title = `来源: ${itemSourceUrl}`;
+                    }
                     li.style.cssText = 'padding: 5px 0;';
-                    // 悬停提示显示该项目的sourceUrl
-                    li.title = `来源: ${itemSourceUrl}`;
                 } else {
                     // 兼容其他对象格式
                     const jsonStr = JSON.stringify(item);
@@ -1466,20 +1813,184 @@ function updateLogDisplay() {
 }
 
 // -------------------- 工具函数 --------------------
-function resolveUrl(url, baseUrl) {
+
+// 辅助函数：解析相对路径
+function resolveRelativePath(relativePath, basePath) {
+    try {
+        if (!relativePath || !basePath) return null;
+        
+        // 确保basePath以/结尾
+        if (!basePath.endsWith('/')) {
+            basePath += '/';
+        }
+        
+        // 使用URL构造函数进行标准解析
+        const resolved = new URL(relativePath, basePath);
+        return resolved.href;
+    } catch (error) {
+        console.warn('相对路径解析失败:', error);
+        return null;
+    }
+}
+
+async function resolveUrl(url, baseUrl, sourceUrl = null) {
     try {
         if (!url) return null;
         
+        console.log(`🔍 [URL解析] 开始解析: "${url}", 基础URL: "${baseUrl}", 源URL: "${sourceUrl}"`);
+        
+        // 如果已经是绝对URL，直接返回
         if (url.startsWith('http://') || url.startsWith('https://')) {
+            console.log(`✅ [URL解析] 已是绝对URL: "${url}"`);
             return url;
         }
         
         if (url.startsWith('//')) {
-            return new URL(baseUrl).protocol + url;
+            const result = new URL(baseUrl).protocol + url;
+            console.log(`✅ [URL解析] 协议相对URL: "${url}" -> "${result}"`);
+            return result;
         }
         
-        return new URL(url, baseUrl).href;
+        // 🔥 修复：严格按照IndexedDB数据获取提取来源路径进行相对路径解析
+        if (sourceUrl && (url.startsWith('./') || url.startsWith('../') || !url.startsWith('/'))) {
+            console.log(`🔍 [URL解析] 检测到相对路径，尝试使用IndexedDB数据解析`);
+            
+            try {
+                // 获取所有IndexedDB扫描数据
+                let allScanData = [];
+                
+                // 方法1: 直接从IndexedDBManager获取当前域名数据
+                try {
+                    if (window.IndexedDBManager && window.IndexedDBManager.loadScanResults) {
+                        const currentData = await window.IndexedDBManager.loadScanResults(baseUrl);
+                        if (currentData && currentData.results) {
+                            allScanData.push(currentData);
+                            console.log(`✅ [URL解析] 获取到当前域名数据`);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('获取当前域名IndexedDB数据失败:', error);
+                }
+                
+                // 方法2: 获取所有扫描数据作为备选
+                try {
+                    if (window.IndexedDBManager && window.IndexedDBManager.getAllScanResults) {
+                        const allData = await window.IndexedDBManager.getAllScanResults();
+                        if (Array.isArray(allData)) {
+                            allScanData = allScanData.concat(allData);
+                            console.log(`✅ [URL解析] 获取到所有扫描数据，共 ${allData.length} 个`);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('获取所有IndexedDB数据失败:', error);
+                }
+                
+                if (allScanData.length > 0) {
+                    // 构建sourceUrl到basePath的映射
+                    const sourceUrlToBasePath = new Map();
+                    
+                    console.log(`🔍 [URL解析] 开始分析 ${allScanData.length} 个扫描数据源`);
+                    
+                    // 遍历所有扫描数据，建立映射关系
+                    allScanData.forEach((scanData, dataIndex) => {
+                        if (!scanData.results) return;
+                        
+                        // 遍历所有类型的数据，建立 sourceUrl 映射
+                        Object.values(scanData.results).forEach(items => {
+                            if (Array.isArray(items)) {
+                                items.forEach(item => {
+                                    if (typeof item === 'object' && item.sourceUrl) {
+                                        try {
+                                            const sourceUrlObj = new URL(item.sourceUrl);
+                                            // 提取基础路径（去掉文件名）
+                                            const basePath = sourceUrlObj.pathname.substring(0, sourceUrlObj.pathname.lastIndexOf('/') + 1);
+                                            const correctBaseUrl = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
+                                            sourceUrlToBasePath.set(item.sourceUrl, correctBaseUrl);
+                                            
+                                            console.log(`📋 [URL解析] 映射建立: ${item.sourceUrl} → ${correctBaseUrl}`);
+                                        } catch (e) {
+                                            console.warn('无效的sourceUrl:', item.sourceUrl, e);
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // 也添加扫描数据本身的sourceUrl作为备选
+                        if (scanData.sourceUrl) {
+                            try {
+                                const sourceUrlObj = new URL(scanData.sourceUrl);
+                                const basePath = sourceUrlObj.pathname.substring(0, sourceUrlObj.pathname.lastIndexOf('/') + 1);
+                                const correctBaseUrl = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
+                                sourceUrlToBasePath.set(scanData.sourceUrl, correctBaseUrl);
+                                
+                                console.log(`📋 [URL解析] 备选映射: ${scanData.sourceUrl} → ${correctBaseUrl}`);
+                            } catch (e) {
+                                console.warn('无效的备选sourceUrl:', scanData.sourceUrl, e);
+                            }
+                        }
+                    });
+                    
+                    console.log(`📊 [URL解析] 映射建立完成，共 ${sourceUrlToBasePath.size} 个映射`);
+                    
+                    // 🔥 方法1：精确匹配sourceUrl
+                    if (sourceUrlToBasePath.has(sourceUrl)) {
+                        const correctBasePath = sourceUrlToBasePath.get(sourceUrl);
+                        const resolvedUrl = resolveRelativePath(url, correctBasePath);
+                        if (resolvedUrl) {
+                            console.log(`🎯 [URL解析] 精确匹配成功: ${url} → ${resolvedUrl} (基于源: ${sourceUrl})`);
+                            return resolvedUrl;
+                        }
+                    }
+                    
+                    // 🔥 方法2：域名匹配
+                    const targetDomain = baseUrl ? new URL(baseUrl).hostname : null;
+                    if (targetDomain) {
+                        for (const [storedSourceUrl, basePath] of sourceUrlToBasePath.entries()) {
+                            try {
+                                const sourceDomain = new URL(storedSourceUrl).hostname;
+                                if (sourceDomain === targetDomain) {
+                                    const testUrl = resolveRelativePath(url, basePath);
+                                    if (testUrl) {
+                                        console.log(`🎯 [URL解析] 域名匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
+                                        return testUrl;
+                                    }
+                                }
+                            } catch (e) {
+                                // 忽略无效URL
+                            }
+                        }
+                    }
+                    
+                    // 🔥 方法3：尝试任何可用的源URL
+                    for (const [storedSourceUrl, basePath] of sourceUrlToBasePath.entries()) {
+                        const testUrl = resolveRelativePath(url, basePath);
+                        if (testUrl) {
+                            console.log(`🎯 [URL解析] 通用匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
+                            return testUrl;
+                        }
+                    }
+                }
+                
+                console.log(`⚠️ [URL解析] IndexedDB智能解析未找到匹配，使用默认方法`);
+                
+            } catch (error) {
+                console.warn('IndexedDB智能路径解析失败，使用默认方法:', error);
+            }
+        }
+        
+        // 🔥 默认方法：直接基于baseUrl解析
+        try {
+            const resolvedUrl = new URL(url, baseUrl).href;
+            console.log(`📍 [URL解析] 默认解析: ${url} → ${resolvedUrl} (基于: ${baseUrl})`);
+            return resolvedUrl;
+        } catch (error) {
+            console.warn('默认URL解析失败:', error);
+            return null;
+        }
+        
     } catch (error) {
+        console.warn('URL解析完全失败:', error);
         return null;
     }
 }

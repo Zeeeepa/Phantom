@@ -1,7 +1,7 @@
 # 幻影（Phantom）SRC漏洞挖掘辅助工具
 Tips：由于这个项目刚刚开始，所以可能会有一些bug，师傅们可以提Issues哦，我们都会尽快处理的~
 
-一款面向 SRC 场景的浏览器扩展），自动收集页面及相关资源中的敏感信息与可疑线索，支持基础扫描、深度递归扫描、批量 API 测试及结果导出与自定义正则配置。
+一款面向 SRC 场景的浏览器扩展），自动收集页面及相关资源中的敏感信息与可疑线索，支持基础扫描、深度递归扫描、批量 API 测试及结果导出与自定义正则配置，js脚本注入。
 
 ## 特性概览
 + 一键基础扫描：自动提取页面内的 API、URL、域名、邮箱、手机号、路径、参数、注释、多类 Token/Key 等
@@ -17,12 +17,15 @@ Tips：由于这个项目刚刚开始，所以可能会有一些bug，师傅们�
 ![](https://cdn.nlark.com/yuque/0/2025/png/44105438/1755856359165-db64aed3-d145-4154-ac77-85e3d0320c6c.png)
 + 自定义正则：内置丰富默认规则，可在「设置」中按分类自定义正则并即时生效
 ![](https://cdn.nlark.com/yuque/0/2025/png/44105438/1755856108718-5297beca-ea38-465c-a09b-57866dae115a.png)
-+ Cookie 支持：可一键获取当前站点 Cookie 并保存，便于需要鉴权的请求场景
-![](https://cdn.nlark.com/yuque/0/2025/png/44105438/1755856390631-c3102596-b1d8-431f-86d1-46ea883eacdf.png)
++ 自定义请求头支持：可一键获取当前站点 Cookie 并保存，便于需要鉴权的请求场景,可以自行配置任何请求头
+![](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/refs/heads/master/icon/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-09-18%20193536.png)
 + 去重与过滤：内置增强过滤器（域名/邮箱/手机号/API），减少误报
 + 自动与增量：页面加载、DOM 变化与定时策略触发静默扫描；深度扫描过程中分层/分批实时合并与展示
 + 可添加自定义正则配置，更好的提取你自己想要的内容
 ![](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/refs/heads/master/icon/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-08-26%20120117.png)
++ 内置许多jshook脚本，可以直接注入页面使用，方便进行js逆向操作，并且支持自定义脚本添加
++ 内置了FakeCryptoJS脚本，可以直接提取aes以及rsa的加密iv和ky，并调用进行加密，感谢https://github.com/keecth/FakeCryptoJS?tab=readme-ov-file
+![](https://raw.githubusercontent.com/Team-intN18-SoybeanSeclab/Phantom/refs/heads/master/icon/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-09-18%20193819.png)
 
 ## 安装
 1. 打开 Chrome/Edge 等 Chromium 内核浏览器，访问 扩展程序 
@@ -33,19 +36,6 @@ Tips：由于这个项目刚刚开始，所以可能会有一些bug，师傅们�
 4. 选择本项目文件夹（包含 manifest.json 的目录）
 
 安装完成后，点击工具栏图标打开弹窗界面（popup.html）。
-
-## 权限说明
-manifest_version: 3  
-host_permissions: <all_urls>
-
-+ activeTab / tabs / windows：读取当前页信息、打开深度扫描窗口
-+ storage：保存扫描结果、深度扫描状态与自定义配置
-+ cookies：获取并保存当前站点 Cookie（用于请求鉴权）
-+ offscreen：在需要时使用离屏文档执行任务（offscreen.html/offscreen.js）
-+ declarativeNetRequest / declarativeNetRequestWithHostAccess：保留/扩展能力（规则式网络处理）
-+ content_scripts：注入扫描逻辑（content.js 及扫描模块）
-
-所有数据默认保存在浏览器本地（chrome.storage.local），不对外发送。
 
 ## 快速上手
 + 基础扫描
@@ -100,53 +90,23 @@ host_permissions: <all_urls>
     - 分层递归（最大深度可配），队列+并发 worker 处理，URL 内容经 PatternExtractor 提取
     - 通过 background.js 代发请求（runtime.sendMessage: makeRequest），处理跨域、超时、类型与文本提取
     - 应用增强过滤器（域名/邮箱/手机号与 API），结果实时合并到 deepScanResults，并回显与持久化
-    - 仅同域扫描（same-domain 策略），避免越权和噪音
+    - 支持配置扫描同域名，子域名，以及全部域名扫描
 + 配置建议
     - 最大深度 2~3，避免过度抓取
-    - 并发 5~~16 之间；超时 5~~10 秒
-    - 若目标需要授权访问，请先在设置中保存 Cookie
+    - 并发 5~16 之间；超时 5~10 秒
+    - 若目标需要授权访问，请先在设置中添加 Cookie
 + 已做优化
     - URL 内容缓存、正则缓存、分层显示更新、Set 去重、分批持久化
 
-## 数据持久化与清理
-+ 存储键（以域名为维度）
-    - {hostname}__results：基础/最终结果
-    - {hostname}__deepResults：深度扫描结果
-    - {hostname}__deepBackup：深度结果备份
-    - {hostname}__deepState：深度扫描运行状态（深度、并发、已扫 URL 等）
-    - {hostname}__lastSave：最后保存时间戳
-    - lastScan_{url}：自动扫描节流用
-+ 清理方式
-    - 弹窗「扫描」页的「清空结果」用于当前域数据的清理
-    - 代码包含全量清理逻辑（SettingsManager.clearAllData），默认界面未开启全量清空按钮
-
 ## 自定义正则（Settings）
 + 保存位置与生效链路 
-    - 保存 phantomRegexConfig 与 regexSettings 两份，保证兼容
     - PatternExtractor 在扫描/深度扫描前会 load/update 自定义规则并即时生效
 + 可配置项（示例） 
     - API / 域名 / 邮箱 / 手机号 / 敏感信息 / IP / 路径 / JWT / Bearer / Basic / Authorization / 微信AppID / AWS / Google API Key / GitHub/GitLab Token / Webhook / 加密调用 / GitHub 链接 / Vue 文件 / 公司名称 / 注释 等
 + 校验 
     - 保存前会对每条正则进行语法校验，失败会提示并中断保存
 
-## 目录结构（摘录）
-+ manifest.json：扩展清单（MV3）
-+ background.js：后台脚本（代理请求、结果存储消息处理等）
-+ content.js：页面内容脚本（自动/增量扫描、提取与过滤）
-+ popup.html：扩展弹窗 UI（扫描、深度扫描、API 测试、设置、关于）
-+ src/main.js：应用入口与模块装配（ILoveYouTranslucent7）
-+ src/scanner/ 
-    - PatternExtractor.js / ContentExtractor.js / BasicScanner.js / DeepScanner.js / DeepScanWindow.js
-+ src/api/ 
-    - ApiTester.js / TestWindow.js 等
-+ src/ui/ 
-    - DisplayManager.js（结果展示）
-+ src/utils/ 
-    - ExportManager.js（JSON/XLS 导出）
-    - SettingsManager.js（Cookie/正则配置、全量清理）
-+ filters/ 
-    - domain-phone-filter.js（域名/邮箱/手机号增强过滤）
-    - api-filter.js（API 路径增强过滤）
+
 
 ## 常见问题
 + 扫描无结果或很少 
@@ -163,11 +123,11 @@ host_permissions: <all_urls>
 
 ## 安全与合规
 + 工具仅用于授权范围内的安全测试与 SRC 场景自查，请勿用于非法用途
-+ 结果保存在本地 storage，不会自动对外发送
++ 结果保存在本地IndexedDB，不会自动对外发送
 + 在进行深度扫描与批量请求时，请遵循目标站点策略与相关法律法规
 
 ## 版本与致谢
-+ 版本：1.7.4
++ 版本：1.7.6
 + 作者： 
   - [Phantom](https://github.com/Attack-Phantom)  
   - [Xuan8a1](https://github.com/Xuan8a1)  

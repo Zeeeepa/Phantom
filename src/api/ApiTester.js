@@ -443,7 +443,17 @@ class ApiTester {
                     
                 case 'relativeApis':
                     if (baseUrl && !url.startsWith('http')) {
-                        url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
+                        // 🔥 修复：自动去除相对路径开头的"."
+                        let cleanedUrl = url;
+                        if (cleanedUrl.startsWith('./')) {
+                            cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
+                            console.log(`🔧 [ApiTester] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                        } else if (cleanedUrl.startsWith('.')) {
+                            cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
+                            console.log(`🔧 [ApiTester] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                        }
+                        
+                        url = baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
                     }
                     break;
                     
@@ -648,7 +658,7 @@ class ApiTester {
             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                 <thead>
                     <tr style="background: rgba(0, 212, 170, 0.1);">
-                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #00d4aa;">URL</th>
+                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #00d4aa;">路径</th>
                         <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">状态码</th>
                         <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">大小</th>
                         <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">耗时</th>

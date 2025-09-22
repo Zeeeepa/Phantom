@@ -96,7 +96,22 @@ class PatternExtractor {
             '/slimerjs/i.test',
             '/qupzilla/i.test',
             '/chromium/i.test',
-            '/googlebot/i.test'
+            '/googlebot/i.test',
+            '/Android/i.exec',
+            '/t.getWidth',
+            '/t.getHeight',
+            '/t.get',
+            '/i.exec',
+            '/e.offsetWidth',
+            '/e.offsetHeight',
+            '/e.offset',
+            '/t.ratio/a.value',
+            '/i.exec',
+            '/Mobile/i.exec',
+            '/Win64/.exec',
+            '/d.count',
+            '/Math.LN10',
+            '/2-z-Y-Ie-A.mainAxis'
         ];
         
         // 引入身份证验证过滤器
@@ -756,9 +771,8 @@ class PatternExtractor {
             return;
         }
         
-        // 限制内容大小，避免过大的正则匹配
-        const maxContentSize = 300000; // 约300KB
-        const processContent = content.length > maxContentSize ? content.substring(0, maxContentSize) : content;
+        // 移除内容大小限制，处理完整内容
+        const processContent = content;
         
         //console.log(`📊 [PatternExtractor] 处理内容大小: ${processContent.length} 字符`);
         //console.log(`📊 [PatternExtractor] 内容预览: ${processContent.substring(0, 200)}...`);
@@ -886,9 +900,8 @@ class PatternExtractor {
     extractOtherResources(content, results, sourceUrl = '') {
         //console.log('📁 [PatternExtractor] 开始提取其他资源...');
         
-        // 限制内容大小
-        const maxContentSize = 300000;
-        const processContent = content.length > maxContentSize ? content.substring(0, maxContentSize) : content;
+        // 移除内容大小限制，处理完整内容
+        const processContent = content;
         
         //console.log(`📊 [PatternExtractor] 其他资源处理内容大小: ${processContent.length} 字符`);
         //console.log(`🌐 [PatternExtractor] 当前处理的URL: ${sourceUrl}`);
@@ -1025,9 +1038,8 @@ class PatternExtractor {
                 return;
             }
             
-            // 限制内容大小
-            const maxContentSize = 300000;
-            const processContent = content.length > maxContentSize ? content.substring(0, maxContentSize) : content;
+            // 移除内容大小限制，处理完整内容
+            const processContent = content;
             
             //console.log(`📊 [PatternExtractor] 动态自定义正则处理内容大小: ${processContent.length} 字符`);
             
@@ -1176,9 +1188,8 @@ class PatternExtractor {
             //console.log('📦 [PatternExtractor] 结果对象初始化完成');
             //console.log('📊 [PatternExtractor] 当前可用的正则模式:', Object.keys(this.patterns));
             
-            // 限制内容大小，避免过大的正则匹配
-            const maxContentSize = 300000; // 约300KB
-            const processContent = content.length > maxContentSize ? content.substring(0, maxContentSize) : content;
+            // 移除内容大小限制，处理完整内容
+            const processContent = content;
             
             //console.log(`📊 [PatternExtractor] 实际处理内容大小: ${processContent.length} 字符`);
             
