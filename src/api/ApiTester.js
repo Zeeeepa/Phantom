@@ -1,5 +1,5 @@
 /**
- * API测试器 - 负责API接口的批量测试功能
+ * API test 器 - 负责API interface   batch test feature
  */
 class ApiTester {
     constructor(srcMiner) {
@@ -7,7 +7,7 @@ class ApiTester {
     }
     
     /**
-     * 获取自定义请求头设置
+     * 获取 custom request 头 settings
      */
     async getCustomHeaders() {
         try {
@@ -16,13 +16,13 @@ class ApiTester {
             }
             return [];
         } catch (error) {
-            console.error('获取自定义请求头设置失败:', error);
+            console.error('获取 custom request 头 settings failed:', error);
             return [];
         }
     }
 
     /**
-     * 获取Cookie设置（兼容性方法）
+     * 获取Cookie settings（兼容性 method）
      */
     async getCookieSetting() {
         try {
@@ -31,15 +31,15 @@ class ApiTester {
             }
             return '';
         } catch (error) {
-            console.error('获取Cookie设置失败:', error);
+            console.error('获取Cookie settings failed:', error);
             return '';
         }
     }
     
     /**
-     * 检查和自动添加"/"前缀到baseapi路径
-     * @param {string} baseApiPath - 输入的baseapi路径
-     * @returns {string} - 处理后的baseapi路径
+     * 检查andautomatic add"/"before缀到baseapipath
+     * @param {string} baseApiPath - 输入 baseapi path
+     * @returns {string} - process 后 baseapi path
      */
     normalizeBaseApiPath(baseApiPath) {
         if (!baseApiPath || typeof baseApiPath !== 'string') {
@@ -51,7 +51,7 @@ class ApiTester {
             return '';
         }
         
-        // 如果路径不是以"/"开头，自动添加
+        // 如果pathdo not是以"/"开头，automatic add
         if (!trimmedPath.startsWith('/')) {
             return '/' + trimmedPath;
         }
@@ -60,123 +60,123 @@ class ApiTester {
     }
     
     /**
-     * 处理多个baseapi路径（每行一个）
-     * @param {string} baseApiPaths - 输入的多个baseapi路径，每行一个
-     * @returns {Array<string>} - 处理后的baseapi路径数组
+     * process 多个baseapi path（每行一个）
+     * @param {string} baseApiPaths - 输入 多个baseapi path，每行一个
+     * @returns {Array<string>} - process 后 baseapi path array
      */
     normalizeMultipleBaseApiPaths(baseApiPaths) {
         if (!baseApiPaths || typeof baseApiPaths !== 'string') {
             return [];
         }
         
-        // 按换行符分割，去除空白字符，过滤空字符串
+        // 按换行符分割，去除 empty 白字符，filter empty string
         const paths = baseApiPaths
             .split('\n')
             .map(path => path.trim())
             .filter(path => path.length > 0);
         
-        // 对每个路径进行标准化处理
+        // 对每个 path 进行 standard 化 process
         return paths.map(path => this.normalizeBaseApiPath(path));
     }
     
     /**
-     * 标准化多个自定义域名输入
-     * @param {string} domains - 多行域名字符串
-     * @returns {Array<string>} - 处理后的域名数组
+     * standard 化多个 custom domain 输入
+     * @param {string} domains - 多行 domain string
+     * @returns {Array<string>} - process 后  domain array
      */
     normalizeMultipleDomains(domains) {
         if (!domains || typeof domains !== 'string') {
             return [];
         }
         
-        // 按换行符分割，去除空白字符，过滤空字符串
+        // 按换行符分割，去除 empty 白字符，filter empty string
         return domains
             .split('\n')
             .map(domain => domain.trim())
             .filter(domain => domain.length > 0)
             .map(domain => {
-                // 确保域名包含协议
+                // 确保 domain contains protocol
                 if (!domain.startsWith('http://') && !domain.startsWith('https://')) {
                     domain = 'http://' + domain;
                 }
-                // 移除末尾的斜杠
+                // remove 末尾 斜杠
                 return domain.replace(/\/$/, '');
             });
     }
     
-    // 批量请求测试
+    // batch request test
     async batchRequestTest() {
         const method = document.getElementById('requestMethod').value;
         const selectedCategory = document.getElementById('categorySelect').value;
         
-        // 获取并发数和超时时间配置
+        // 获取 concurrent 数and timeout 时间 configuration
         const concurrencyInput = document.getElementById('apiConcurrency');
         const timeoutInput = document.getElementById('apiTimeout');
 
-        // 获取base API路径配置
+        // 获取base API path configuration
         const baseApiPathInput = document.getElementById('baseApiPath');
         const rawBaseApiPaths = baseApiPathInput ? baseApiPathInput.value.trim() : '';
         const customBaseApiPaths = this.normalizeMultipleBaseApiPaths(rawBaseApiPaths);
         
-        // 获取自定义域名配置
+        // 获取 custom domain configuration
         const customDomainsInput = document.getElementById('customDomains');
         const rawCustomDomains = customDomainsInput ? customDomainsInput.value.trim() : '';
         const customDomains = this.normalizeMultipleDomains(rawCustomDomains);
         
-        // 如果自动添加了"/"前缀，给出提示
+        // 如果automatic add了"/"before缀，给出 prompt
         if (rawBaseApiPaths) {
             const originalPaths = rawBaseApiPaths.split('\n').map(p => p.trim()).filter(p => p);
             const normalizedPaths = customBaseApiPaths;
             
-            // 检查每个路径是否被修改
+            // check 每个 path 是否passive marker modify
             originalPaths.forEach((originalPath, index) => {
                 const normalizedPath = normalizedPaths[index];
                 if (originalPath && originalPath !== normalizedPath) {
-                    //console.log(`🔧 自动为baseapi路径添加"/"前缀: "${originalPath}" -> "${normalizedPath}"`);
+                    //console.log(`🔧 自动tobaseapipathadd"/"before缀: "${originalPath}" -> "${normalizedPath}"`);
                 }
             });
             
             if (customBaseApiPaths.length > 1) {
-                //console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi路径: ${customBaseApiPaths.join(', ')}`);
+                //console.log(`🔧 检测到 ${customBaseApiPaths.length} 个baseapi path: ${customBaseApiPaths.join(', ')}`);
             }
         }
         
-        // 获取自定义API路径配置
+        // 获取 custom API path configuration
         const customApiPathsInput = document.getElementById('customApiPaths');
         const customApiPaths = customApiPathsInput ? customApiPathsInput.value.trim() : '';
         
         const concurrency = concurrencyInput ? parseInt(concurrencyInput.value) : 8;
-        const timeout = timeoutInput ? parseInt(timeoutInput.value) * 1000 : 5000; // 转换为毫秒
+        const timeout = timeoutInput ? parseInt(timeoutInput.value) * 1000 : 5000; // convertto毫秒
         
-        //console.log(`🔧 API测试配置: 并发数=${concurrency}, 超时=${timeout/1000}秒, Base API路径=${customBaseApiPaths.length > 0 ? customBaseApiPaths.join(', ') : '无'}, 自定义API路径=${customApiPaths || '无'}`);
+        //console.log(`🔧 API test configuration: concurrent数=${concurrency}, timeout =${timeout/1000} seconds, Base API path =${customBaseApiPaths.length > 0 ? customBaseApiPaths.join(', ') : '无'}, custom API path =${customApiPaths || '无'}`);
 
         
         if (!selectedCategory) {
-            alert('请先选择要测试的分类');
+            alert('请先 select 要 test  分类');
             return;
         }
         
         let items = this.srcMiner.results[selectedCategory] || [];
         
-        // 如果有自定义API路径，添加到测试列表中
+        // 如果有 custom API path，add 到 test list in
         if (customApiPaths) {
             const customPaths = this.parseCustomApiPaths(customApiPaths);
             items = this.mergeAndDeduplicateItems(items, customPaths);
-            //console.log(`📝 添加了 ${customPaths.length} 个自定义API路径，去重后总计 ${items.length} 个测试项目`);
+            //console.log(`📝 add 了 ${customPaths.length} 个 custom API path，去重后总计 ${items.length} 个 test 项目`);
         }
         
-        // 如果选择了自定义API路径分类，直接使用扫描结果中的自定义API路径
+        // 如果 select 了 custom API path 分类，directlyuse scan result in  custom API path
         if (selectedCategory === 'customApis') {
             items = this.srcMiner.results.customApis || [];
             if (items.length === 0) {
-                alert('自定义API路径分类中没有数据，请先添加自定义API路径');
+                alert('custom API path 分类in没有 data，请先 add custom API path');
                 return;
             }
-            //console.log(`🔧 使用扫描结果中的自定义API路径进行测试，共 ${items.length} 个`);
+            //console.log(`🔧 use scan result in  custom API path 进行 test，共 ${items.length} 个`);
         }
         
         if (items.length === 0) {
-            alert(`选中的分类"${this.getCategoryTitle(selectedCategory)}"中没有数据，请先扫描页面`);
+            alert(`选in 分类"${this.getCategoryTitle(selectedCategory)}"in没有data，请先 scan page`);
             return;
         }
         
@@ -184,27 +184,27 @@ class ApiTester {
             await this.testSelectedCategory(selectedCategory, items, method, concurrency, timeout, customBaseApiPaths, customDomains);
 
         } else {
-            alert(`分类"${this.getCategoryTitle(selectedCategory)}"不支持请求测试`);
+            alert(`分类"${this.getCategoryTitle(selectedCategory)}"do notsupport请求测试`);
         }
     }
     
     // 获取分类标题
     getCategoryTitle(categoryKey) {
         const categoryTitles = {
-            'customApis': '自定义API路径',
-            'absoluteApis': '绝对路径API',
-            'relativeApis': '相对路径API',
-            'jsFiles': 'JS文件',
-            'cssFiles': 'CSS文件',
-            'images': '图片文件',
-            'urls': '完整URL',
-            'domains': '域名',
-            'paths': '路径'
+            'customApis': 'custom API path',
+            'absoluteApis': '绝对 path API',
+            'relativeApis': '相对 path API',
+            'jsFiles': 'JS file',
+            'cssFiles': 'CSS file',
+            'images': 'image file',
+            'urls': 'completeURL',
+            'domains': 'domain',
+            'paths': 'path'
         };
         return categoryTitles[categoryKey] || categoryKey;
     }
     
-    // 检查分类是否可以进行请求测试
+    // check 分类是否可以进行 request test
     isTestableCategory(categoryKey) {
         const testableCategories = [
             'customApis', 'absoluteApis', 'relativeApis', 'jsFiles', 'cssFiles', 
@@ -213,72 +213,72 @@ class ApiTester {
         return testableCategories.includes(categoryKey);
     }
     
-    // 测试选中的分类
+    // test 选in 分类
     async testSelectedCategory(categoryKey, items, method, concurrency = 8, timeout = 5000, customBaseApiPaths = [], customDomains = []) {
 
         try {
-            // 获取自定义请求头设置
+            // 获取 custom request 头 settings
             const customHeaders = await this.getCustomHeaders();
-            //console.log('📋 获取到自定义请求头:', customHeaders);
+            //console.log('📋 获取到 custom request 头:', customHeaders);
             
-            // 使用新的TestWindow类创建测试窗口
+            // use新 TestWindow类创建 test window
             const testWindow = new TestWindow();
 
             await testWindow.createTestWindow(categoryKey, items, method, concurrency, timeout, customHeaders, customBaseApiPaths, customDomains);
 
             
-            // 显示成功提示
+            // display success prompt
             const modal = document.getElementById('requestResultModal');
             const resultsDiv = document.getElementById('requestResults');
             
             modal.style.display = 'block';
             resultsDiv.innerHTML = `
                 <div style="text-align: center; color: #00d4aa; margin-bottom: 20px;">
-                    <h3>✅ 测试窗口已打开</h3>
-                    <p>已在新窗口中启动 ${this.getCategoryTitle(categoryKey)} 的批量测试</p>
-                    <p>测试项目数: ${items.length} | 方法: ${method}</p>
-                    <p>并发数: ${concurrency} | 超时: ${timeout/1000}秒</p>
+                    <h3>✅ 测试窗口already打开</h3>
+                    <p>alreadyin新窗口in启动 ${this.getCategoryTitle(categoryKey)}  批量测试</p>
+                    <p>测试项目数: ${items.length} | method: ${method}</p>
+                    <p>concurrent 数: ${concurrency} | timeout: ${timeout/1000}秒</p>
                     <br>
                     <button onclick="document.getElementById('requestResultModal').style.display='none'" 
                             style="padding: 10px 20px; background: #00d4aa; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                        关闭此提示
+                        close此提示
                     </button>
                 </div>
             `;
             
-            // 3秒后自动关闭提示
+            // 3 seconds后 automatic close prompt
             setTimeout(() => {
                 modal.style.display = 'none';
             }, 3000);
             
         } catch (error) {
-            console.error('创建测试窗口失败:', error);
-            alert('创建测试窗口失败: ' + error.message);
+            console.error('创建 test window failed:', error);
+            alert('创建 test window failed: ' + error.message);
         }
         
-        return; // 直接返回，不再执行原来的测试逻辑
+        return; // directly返回，do not再 execute 原来  test 逻辑
         
         const results = [];
         let successCount = 0;
         let failCount = 0;
         
-        // 真正的并发处理 - 每个请求完成后立即显示结果
+        // 真正  concurrent process - 每个 request complete 后立即 display result
         let completedCount = 0;
         let activeRequests = 0;
         let currentIndex = 0;
         
         const processNextBatch = () => {
-            // 启动新的请求直到达到并发限制或没有更多项目
+            // 启动新  request 直到达到 concurrent limit or没有更多项目
             while (activeRequests < concurrency && currentIndex < items.length) {
                 const item = items[currentIndex];
                 const itemIndex = currentIndex;
                 currentIndex++;
                 activeRequests++;
                 
-                // 异步处理单个请求
+                // async process single request
                 this.processSingleRequest(item, categoryKey, baseUrl, method, timeout, itemIndex)
                     .then(result => {
-                        // 请求完成，更新计数器
+                        // request complete，update 计数器
                         activeRequests--;
                         completedCount++;
                         
@@ -290,22 +290,22 @@ class ApiTester {
                         
                         results.push(result);
                         
-                        // 立即更新显示
+                        // 立即 update display
                         resultsDiv.innerHTML = `
                             <div style="text-align: center; color: #00d4aa; margin-bottom: 10px;">
-                                测试进度: ${completedCount}/${items.length} | 成功: ${successCount} | 失败: ${failCount}
-                                <br>当前并发: ${activeRequests}/${concurrency}
+                                测试进度: ${completedCount}/${items.length} | success: ${successCount} | failed: ${failCount}
+                                <br>current并发: ${activeRequests}/${concurrency}
                             </div>
                             ${this.renderRequestResults(results)}
                         `;
                         
-                        // 如果还有未处理的项目，启动下一个请求
+                        // 如果还有not process  项目，启动下一个 request
                         if (currentIndex < items.length) {
                             processNextBatch();
                         }
                     })
                     .catch(error => {
-                        console.error('请求处理失败:', error);
+                        console.error('request process failed:', error);
                         activeRequests--;
                         completedCount++;
                         failCount++;
@@ -314,22 +314,22 @@ class ApiTester {
                             url: item,
                             fullUrl: item,
                             status: 'Error',
-                            statusText: error.message || '请求失败',
+                            statusText: error.message || 'request failed',
                             size: 'N/A',
                             time: 'N/A',
                             success: false
                         });
                         
-                        // 更新显示
+                        // update display
                         resultsDiv.innerHTML = `
                             <div style="text-align: center; color: #00d4aa; margin-bottom: 10px;">
-                                测试进度: ${completedCount}/${items.length} | 成功: ${successCount} | 失败: ${failCount}
-                                <br>当前并发: ${activeRequests}/${concurrency}
+                                测试进度: ${completedCount}/${items.length} | success: ${successCount} | failed: ${failCount}
+                                <br>current并发: ${activeRequests}/${concurrency}
                             </div>
                             ${this.renderRequestResults(results)}
                         `;
                         
-                        // 继续处理下一个
+                        // 继续 process 下一个
                         if (currentIndex < items.length) {
                             processNextBatch();
                         }
@@ -337,27 +337,27 @@ class ApiTester {
             }
         };
         
-        // 开始处理
+        // start process
         processNextBatch();
         
-        // 等待所有请求完成
+        // wait all request complete
         while (completedCount < items.length) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         const modalTitle = modal.querySelector('h3');
-        modalTitle.textContent = '批量测试结果';
+        modalTitle.textContent = 'batch test result';
         
         resultsDiv.innerHTML = `
             <div style="text-align: center; color: #00d4aa; margin-bottom: 10px;">
-                测试完成: ${successCount} 成功 / ${failCount} 失败 (共 ${items.length} 个)
-                <br>分类: ${this.getCategoryTitle(categoryKey)} | 方法: ${method}
+                test complete: ${successCount} success / ${failCount} failed (共 ${items.length} 个)
+                <br>分类: ${this.getCategoryTitle(categoryKey)} | method: ${method}
             </div>
             ${this.renderRequestResults(results)}
         `;
     }
     
-    // 处理单个请求
+    // process single request
     async processSingleRequest(item, categoryKey, baseUrl, method, timeout, index, cookieSetting = null) {
         try {
             let url = await this.buildTestUrl(item, categoryKey, baseUrl);
@@ -367,7 +367,7 @@ class ApiTester {
                     url: item,
                     fullUrl: 'Invalid URL',
                     status: 'Error',
-                    statusText: '无法构建有效URL',
+                    statusText: '无法构建 valid URL',
                     size: 'N/A',
                     time: 'N/A',
                     success: false,
@@ -386,10 +386,10 @@ class ApiTester {
                     size = this.formatBytes(parseInt(response.headers.get('content-length')));
                 }
             } catch (e) {
-                // 忽略获取大小失败
+                // 忽略获取 size failed
             }
             
-            // 判断成功状态：2xx状态码或者no-cors模式下的200
+            // 判断 success status：2xx status 码or者no-cors mode 下 200
             const isSuccess = response.ok || (response.status >= 200 && response.status < 300);
             
             return {
@@ -403,12 +403,12 @@ class ApiTester {
                 index: index
             };
         } catch (error) {
-            // 这里应该很少执行到，因为makeRequest已经处理了大部分错误
+            // 这里应该很少 execute 到，因tomakeRequestalready经 process 了大 partial error
             return {
                 url: item,
                 fullUrl: item,
                 status: 'Exception',
-                statusText: error.message || '未知异常',
+                statusText: error.message || '未知 abnormal',
                 size: 'N/A',
                 time: 'N/A',
                 success: false,
@@ -417,19 +417,19 @@ class ApiTester {
         }
     }
 
-    // 构建测试URL
+    // 构建 test URL
     async buildTestUrl(item, categoryKey, baseUrl) {
         try {
             let url = item;
             
-            // 修复：如果item是对象，提取value属性
+            // fix：如果item是 object，extract value属性
             if (typeof item === 'object' && item !== null) {
                 url = item.value || item.url || item;
             }
             
-            // 修复：确保url是字符串类型
+            // fix：确保url是 string type
             if (!url || typeof url !== 'string') {
-                console.error('buildTestUrl: url参数无效:', url);
+                console.error('buildTestUrl: url parameter invalid:', url);
                 return null;
             }
             
@@ -443,14 +443,14 @@ class ApiTester {
                     
                 case 'relativeApis':
                     if (baseUrl && !url.startsWith('http')) {
-                        // 🔥 修复：自动去除相对路径开头的"."
+                        // 🔥 fix：自动去除相对 path开头 "."
                         let cleanedUrl = url;
                         if (cleanedUrl.startsWith('./')) {
                             cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
-                            console.log(`🔧 [ApiTester] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                            console.log(`🔧 [ApiTester] 去除相对 path开头 "./": "${url}" -> "${cleanedUrl}"`);
                         } else if (cleanedUrl.startsWith('.')) {
-                            cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
-                            console.log(`🔧 [ApiTester] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                            cleanedUrl = cleanedUrl.substring(1); // 去除单独  "."
+                            console.log(`🔧 [ApiTester] 去除相对 path开头 ".": "${url}" -> "${cleanedUrl}"`);
                         }
                         
                         url = baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
@@ -484,15 +484,15 @@ class ApiTester {
             new URL(url);
             return url;
         } catch (error) {
-            console.error('构建URL失败:', error, item);
+            console.error('构建URL failed:', error, item);
             return null;
         }
     }
     
-    // 发送请求
-    // 发送请求 - 通过后台脚本
+    // 发送 request
+    // 发送 request - 通throughbackground script
     async makeRequest(url, method, timeout = 5000, customCookie = null) {
-        //console.log(`🌐 API测试通过后台脚本请求: ${url}`);
+        //console.log(`🌐 API test 通throughbackground script request: ${url}`);
         
         const requestOptions = {
             method: method,
@@ -510,21 +510,21 @@ class ApiTester {
         }
         
         try {
-            // 通过后台脚本发送请求（会自动使用保存的Cookie）
+            // 通throughbackground script 发送 request（会 automatic use save  Cookie）
             const response = await this.makeRequestViaBackground(url, requestOptions);
             return response;
         } catch (error) {
-            // 返回错误响应对象
+            // 返回 error response object
             return {
                 status: 'Error',
-                statusText: error.message || '请求失败',
+                statusText: error.message || 'request failed',
                 ok: false,
                 headers: new Headers()
             };
         }
     }
     
-    // 通过后台脚本发送请求
+    // 通throughbackground script 发送 request
     async makeRequestViaBackground(url, options = {}) {
         return new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
@@ -535,7 +535,7 @@ class ApiTester {
                 if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));
                 } else if (response && response.success) {
-                    // 模拟fetch响应对象
+                    // 模拟fetch response object
                     resolve({
                         ok: response.data.status >= 200 && response.data.status < 300,
                         status: response.data.status,
@@ -558,18 +558,18 @@ class ApiTester {
         });
     }
     
-    // 批量测试多个API - 供DisplayManager调用
+    // batch test 多个API - 供DisplayManager调用
     async testMultipleApis(items, method, baseUrl) {
         if (!items || items.length === 0) {
             return [];
         }
         
-        //console.log(`🔍 开始批量测试 ${items.length} 个API，方法: ${method}`);
+        //console.log(`🔍 start batch test ${items.length} 个API，method: ${method}`);
         
         const results = [];
-        const concurrencyLimit = 5; // 并发限制
+        const concurrencyLimit = 5; // concurrent limit
         
-        // 分批处理
+        // 分批 process
         const chunks = [];
         for (let i = 0; i < items.length; i += concurrencyLimit) {
             chunks.push(items.slice(i, i + concurrencyLimit));
@@ -588,17 +588,17 @@ class ApiTester {
                             success: false,
                             time: 0,
                             data: null,
-                            error: '无法构建有效URL'
+                            error: '无法构建 valid URL'
                         };
                     }
                     
-                    // 发送请求并计时
+                    // 发送 request 并计时
                     const startTime = performance.now();
-                    const response = await this.makeRequest(url, method, 5000); // 使用默认5秒超时
+                    const response = await this.makeRequest(url, method, 5000); // use default 5 seconds timeout
                     const endTime = performance.now();
                     const time = Math.round(endTime - startTime);
                     
-                    // 尝试获取响应数据
+                    // 尝试获取 response data
                     let data = null;
                     try {
                         if (response.status !== 0) {
@@ -607,13 +607,13 @@ class ApiTester {
                                 data = await response.json();
                             } else if (contentType.includes('text/')) {
                                 const text = await response.text();
-                                data = text.substring(0, 5000); // 限制文本大小
+                                data = text.substring(0, 5000); // limit text size
                             } else {
-                                data = `[${contentType}] 二进制数据`;
+                                data = `[${contentType}] 二进制 data`;
                             }
                         }
                     } catch (e) {
-                        data = `解析响应失败: ${e.message}`;
+                        data = `解析 response failed: ${e.message}`;
                     }
                     
                     return {
@@ -644,23 +644,23 @@ class ApiTester {
             results.push(...chunkResults);
         }
         
-        //console.log(`✅ API测试完成，成功: ${results.filter(r => r.success).length}/${results.length}`);
+        //console.log(`✅ API test complete，success: ${results.filter(r => r.success).length}/${results.length}`);
         return results;
     }
     
-    // 渲染请求结果
+    // 渲染 request result
     renderRequestResults(results) {
         if (!results || results.length === 0) {
-            return '<div style="text-align: center; color: #666;">无结果</div>';
+            return '<div style="text-align: center; color: #666;">无 result</div>';
         }
         
         let html = `
             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                 <thead>
                     <tr style="background: rgba(0, 212, 170, 0.1);">
-                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #00d4aa;">路径</th>
-                        <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">状态码</th>
-                        <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">大小</th>
+                        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #00d4aa;">path</th>
+                        <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">status 码</th>
+                        <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">size</th>
                         <th style="padding: 8px; text-align: center; border-bottom: 1px solid #00d4aa;">耗时</th>
                     </tr>
                 </thead>
@@ -683,20 +683,20 @@ class ApiTester {
         return html;
     }
     
-    // 解析自定义API路径
+    // 解析 custom API path
     parseCustomApiPaths(customApiPaths) {
         if (!customApiPaths || typeof customApiPaths !== 'string') {
             return [];
         }
         
-        // 按换行符分割，去除空白字符，过滤空字符串
+        // 按换行符分割，去除 empty 白字符，filter empty string
         return customApiPaths
             .split('\n')
             .map(path => path.trim())
             .filter(path => path.length > 0);
     }
     
-    // 合并并去重API路径
+    // 合并并去重API path
     mergeAndDeduplicateItems(existingItems, customPaths) {
         if (!Array.isArray(existingItems)) {
             existingItems = [];
@@ -705,28 +705,28 @@ class ApiTester {
             customPaths = [];
         }
         
-        // 创建Set用于去重
+        // 创建Setfor去重
         const uniqueItems = new Set();
         
-        // 添加现有项目
+        // add 现有项目
         existingItems.forEach(item => {
             if (item && typeof item === 'string') {
                 uniqueItems.add(item.trim());
             }
         });
         
-        // 添加自定义路径
+        // add custom path
         customPaths.forEach(path => {
             if (path && typeof path === 'string') {
                 uniqueItems.add(path.trim());
             }
         });
         
-        // 转换回数组
+        // convert回 array
         return Array.from(uniqueItems);
     }
     
-    // 格式化字节大小
+    // format 化字节 size
     formatBytes(bytes, decimals = 2) {
         if (bytes === 0 || bytes === 'N/A') return 'N/A';
         

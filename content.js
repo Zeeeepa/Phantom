@@ -1,7 +1,7 @@
 class SRCMinerContent {
     constructor() {
         if (window !== window.top) {
-            //console.log('SRCMiner: 跳过iframe环境');
+            //console.log('SRCMiner: skipiframe environment');
             return;
         }
         
@@ -10,32 +10,32 @@ class SRCMinerContent {
         this.lastScanTime = 0;
         this.scanCooldown = 3000; 
         this.config = this.getConfig();
-        // 统一化版本：不缓存配置，每次扫描前直接从chrome.storage读取
+        // unified化 version：do not cache configuration，every time scan beforedirectlyfromchrome.storageread
         
-        //console.log('🔍 幻影已加载 -', window.location.href);
+        //console.log('🔍 phantomalready load -', window.location.href);
         this.init();
         this.loadCustomRegexConfig();
     }
     
     init() {
-        //console.log('🔧 Content Script初始化消息监听器...');
+        //console.log('🔧 Content Script initialize message listener ...');
         
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            //console.log('📨 Content Script收到消息:', request.action);
+            //console.log('📨 Content Scriptreceived message:', request.action);
             
             if (window !== window.top) {
-                //console.log('⚠️ Content Script在iframe中，跳过处理');
+                //console.log('⚠️ Content Scriptiniframein，skip process');
                 return false;
             }
             
             switch (request.action) {
                 case 'extractInfo':
-                    //console.log('🔍 Content Script开始处理extractInfo请求...');
+                    //console.log('🔍 Content Script start process extractInfo request ...');
                     this.performScan().then(results => {
-                        //console.log('✅ Content Script扫描完成，发送响应');
+                        //console.log('✅ Content Script scan complete，发送 response');
                         sendResponse(results);
                     }).catch(error => {
-                        console.error('❌ Content Script扫描失败:', error);
+                        console.error('❌ Content Script scan failed:', error);
                         sendResponse(this.getEmptyResults());
                     });
                     return true;
@@ -48,7 +48,7 @@ class SRCMinerContent {
                     });
                     return true;
                 
-                // 处理深度扫描窗口的消息
+                // process deep scan window   message
                 case 'updateScanResults':
                 case 'scanProgress':
                 case 'scanComplete':
@@ -59,45 +59,45 @@ class SRCMinerContent {
                     return true;
                     
                 case 'injectScript':
-                    //console.log('🔧 Content Script收到脚本注入请求');
+                    //console.log('🔧 Content Scriptreceived script inject request');
                     this.injectUserScript(request.code).then(result => {
                         sendResponse(result);
                     }).catch(error => {
-                        console.error('❌ 脚本注入失败:', error);
+                        console.error('❌ script inject failed:', error);
                         sendResponse({ success: false, error: error.message });
                     });
                     return true;
             }
         });
         
-        // 页面加载完成后自动扫描
+        // page load complete 后 automatic scan
         this.autoScan();
         
-        // 监听页面变化
+        // listen page 变化
         this.observePageChanges();
     }
 
     /**
-     * 统一化版本：配置由PatternExtractor统一管理，每次扫描前直接读取
+     * unified化 version：configuration 由PatternExtractorunified manage，every time scan beforedirectlyread
      */
     async loadCustomRegexConfig() {
-        //console.log('📋 Content Script统一化版本：每次扫描前直接从存储读取配置');
+        //console.log('📋 Content Scriptunified化 version：every time scan beforedirectlyfrom storage read configuration');
     }
     
     getConfig() {
         return {
-            // 扫描配置
+            // scan configuration
             scanTimeout: 30000,
             maxResults: 1000,
             
-            // 文件类型配置
+            // file type configuration
             jsExtensions: ['js', 'jsx', 'ts', 'tsx', 'vue'],
             cssExtensions: ['css', 'scss', 'sass', 'less', 'styl'],
             imageExtensions: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'ico', 'bmp'],
             audioExtensions: ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'],
             videoExtensions: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'],
             
-            // 过滤规则
+            // filter 规则
             excludePatterns: [
                 /chrome-extension:\/\//,
                 /moz-extension:\/\//,
@@ -167,7 +167,7 @@ class SRCMinerContent {
         this.lastScanTime = Date.now();
         
         if (!silent) {
-            //console.log('🔍 开始扫描页面:', window.location.href);
+            //console.log('🔍 start scan page:', window.location.href);
         }
         
         try {
@@ -178,7 +178,7 @@ class SRCMinerContent {
                 this.logResults(results);
             }
             
-            // 发送结果到后台
+            // 发送 result 到background
             chrome.runtime.sendMessage({
                 action: 'storeResults',
                 data: results,
@@ -187,7 +187,7 @@ class SRCMinerContent {
             
             return results;
         } catch (error) {
-            console.error('扫描过程出错:', error);
+            console.error('scan through程出错:', error);
             return this.getEmptyResults();
         } finally {
             this.isScanning = false;
@@ -195,45 +195,45 @@ class SRCMinerContent {
     }
     
     async extractAllInfo() {
-        //console.log('🔍 Content Script统一化版本开始提取信息...');
+        //console.log('🔍 Content Scriptunified化 version start extract information ...');
         
-        // 统一化版本：只使用PatternExtractor + ContentExtractor系统
+        // unified化 version：只usePatternExtractor + ContentExtractor system
         if (typeof PatternExtractor !== 'undefined' && typeof ContentExtractor !== 'undefined') {
-            //console.log('🔄 Content Script使用统一化提取系统');
+            //console.log('🔄 Content Scriptuseunified化 extract system');
             
-            // 每次扫描前直接从chrome.storage读取最新配置，不使用缓存
-            //console.log('📥 Content Script直接从存储读取最新配置...');
+            // every time scan beforedirectlyfromchrome.storageread最新 configuration，do notuse cache
+            //console.log('📥 Content Scriptdirectlyfrom storage read最新 configuration ...');
             let latestConfig = null;
             try {
                 const result = await chrome.storage.local.get(['regexSettings']);
                 if (result.regexSettings) {
                     latestConfig = result.regexSettings;
-                    //console.log('✅ Content Script成功读取最新配置:', latestConfig);
+                    //console.log('✅ Content Script success read最新 configuration:', latestConfig);
                 } else {
-                    //console.log('📋 Content Script未找到自定义配置，将使用默认配置');
+                    //console.log('📋 Content Script未找到 custom configuration，将use default configuration');
                 }
             } catch (error) {
-                console.error('❌ Content Script读取配置失败:', error);
+                console.error('❌ Content Scriptread configuration failed:', error);
             }
             
-            // 每次都创建新的PatternExtractor实例，避免缓存
-            //console.log('🔧 Content Script创建新的PatternExtractor实例...');
+            // every time都创建新 PatternExtractor实例，避免 cache
+            //console.log('🔧 Content Script创建新 PatternExtractor实例...');
             const patternExtractor = new PatternExtractor();
             
-            // 如果有最新配置，直接应用到PatternExtractor
+            // 如果有最新 configuration，directly应用到PatternExtractor
             if (latestConfig) {
-                //console.log('🔧 Content Script直接应用最新配置到PatternExtractor...');
+                //console.log('🔧 Content Scriptdirectly应用最新 configuration 到PatternExtractor...');
                 await patternExtractor.updatePatterns(latestConfig);
-                //console.log('✅ Content Script配置应用完成');
+                //console.log('✅ Content Script configuration 应用 complete');
             } else {
-                // 没有自定义配置时，确保默认配置已加载
+                // 没有 custom configuration 时，确保 default configuration already load
                 await patternExtractor.ensureCustomPatternsLoaded();
             }
             
-            // 临时设置到window，供ContentExtractor使用
+            // 临时 settings 到window，供ContentExtractoruse
             window.patternExtractor = patternExtractor;
             
-            //console.log('🔧 Content Script当前PatternExtractor配置状态:', {
+            //console.log('🔧 Content Script current PatternExtractor configuration status:', {
             //    customRegexConfig: patternExtractor.customRegexConfig,
             //    hasAbsoluteApis: !!(latestConfig && latestConfig.absoluteApis),
             //    hasRelativeApis: !!(latestConfig && latestConfig.relativeApis),
@@ -245,7 +245,7 @@ class SRCMinerContent {
             const contentExtractor = new ContentExtractor();
             const results = await contentExtractor.extractSensitiveInfo(window.location.href);
             
-            //console.log('✅ Content Script统一化系统提取完成，结果统计:', {
+            //console.log('✅ Content Scriptunified化 system extract complete，result statistics:', {
             //    absoluteApis: results.absoluteApis?.length || 0,
             //    relativeApis: results.relativeApis?.length || 0,
             //    domains: results.domains?.length || 0,
@@ -255,13 +255,13 @@ class SRCMinerContent {
             
             return results;
         } else {
-            console.error('❌ Content Script统一化版本：PatternExtractor或ContentExtractor不可用');
+            console.error('❌ Content Scriptunified化 version：PatternExtractororContentExtractordo not可用');
             return this.getEmptyResults();
         }
     }
     
     logResults(results) {
-        // 确保所有结果都是数组格式
+        // 确保all result 都是 array format
         let totalItems = 0;
         const summary = {};
         
@@ -281,31 +281,31 @@ class SRCMinerContent {
             totalItems += count;
         });
         
-        //console.log(`🔍 幻影: 扫描完成，发现 ${totalItems} 个项目`);
+        //console.log(`🔍 phantom: scan complete，发现 ${totalItems} 个项目`);
         
         if (totalItems > 0) {
-            //console.log('📊 扫描结果摘要:');
+            //console.log('📊 scan result 摘要:');
             Object.keys(summary).forEach(key => {
                 if (summary[key] > 0) {
                     //console.log(`  ${key}: ${summary[key]} 个`);
                 }
             });
             
-            // 高亮显示重要发现
+            // 高亮 display 重要发现
             if (summary.sensitiveKeywords > 0) {
                 const keywords = Array.isArray(results.sensitiveKeywords) ? 
                     results.sensitiveKeywords : Array.from(results.sensitiveKeywords);
-                //console.warn(`⚠️ 发现敏感关键词:`, keywords.slice(0, 10));
+                //console.warn(`⚠️ 发现敏感关 key 词:`, keywords.slice(0, 10));
             }
             if (summary.emails > 0) {
                 const emails = Array.isArray(results.emails) ? 
                     results.emails : Array.from(results.emails);
-                //console.info(`📧 发现邮箱地址:`, emails.slice(0, 5));
+                //console.info(`📧 发现 email address:`, emails.slice(0, 5));
             }
             if (summary.absoluteApis > 0) {
                 const apis = Array.isArray(results.absoluteApis) ? 
                     results.absoluteApis : Array.from(results.absoluteApis);
-                //console.info(`🔗 发现API接口:`, apis.slice(0, 10));
+                //console.info(`🔗 发现API interface:`, apis.slice(0, 10));
             }
         } else {
             //console.log('📊 未发现任何项目');
@@ -336,7 +336,7 @@ class SRCMinerContent {
             forms: [],
             inputFields: [],
             hiddenFields: [],
-            // 新增的敏感信息类型
+            // 新增 敏感 information type
             credentials: [],
             jwts: [],
             bearerTokens: [],
@@ -357,49 +357,49 @@ class SRCMinerContent {
     }
     
     handleDeepScanMessage(request) {
-        // 处理深度扫描相关消息
-        //console.log('处理深度扫描消息:', request.action);
+        // process deep scan 相关 message
+        //console.log('process deep scan message:', request.action);
     }
     
     /**
-     * 注入用户脚本 - 类似油猴脚本的加载方式
-     * 使用Blob URL + 动态脚本标签，绕过CSP限制
+     * inject user script - 类似油猴 script   load 方式
+     * useBlob URL + dynamic script tab，绕throughCSP limit
      */
     async injectUserScript(code) {
         try {
-            //console.log('🔧 开始注入用户脚本...');
+            //console.log('🔧 start inject user script ...');
             
-            // 获取injector.js的URL
+            // 获取injector.js URL
             const injectorUrl = chrome.runtime.getURL('src/core/injector.js');
             
-            // 创建一个脚本标签加载injector.js
+            // 创建一个 script tab load injector.js
             const injectorScript = document.createElement('script');
             injectorScript.src = injectorUrl;
             
-            // 等待injector.js加载完成
+            // wait injector.js load complete
             await new Promise((resolve, reject) => {
                 injectorScript.onload = resolve;
                 injectorScript.onerror = reject;
                 document.head.appendChild(injectorScript);
             });
             
-            // 使用injector执行用户代码
+            // useinjector execute user code
             if (window.PhantomInjector) {
                 const result = await window.PhantomInjector.executeScript(code);
-                //console.log('✅ 脚本注入成功');
+                //console.log('✅ script inject success');
                 return { success: true, result: result };
             } else {
-                throw new Error('PhantomInjector未加载');
+                throw new Error('PhantomInjectornot load');
             }
             
         } catch (error) {
-            console.error('❌ 脚本注入失败:', error);
+            console.error('❌ script inject failed:', error);
             return { success: false, error: error.message };
         }
     }
 }
 
-// 只在顶层页面初始化
+// 只in顶层 page initialize
 if (window === window.top) {
     new SRCMinerContent();
 }

@@ -1,5 +1,5 @@
 /**
- * 测试窗口管理器 - 负责创建和管理API测试窗口
+ * test window manage 器 - 负责创建and manage API test window
  */
 class TestWindow {
     constructor() {
@@ -13,7 +13,7 @@ class TestWindow {
         this.requestTimeout = 5000;
     }
 
-    // 创建测试窗口
+    // 创建 test window
     async createTestWindow(categoryKey, items, method, concurrency = 8, timeout = 5000, customHeaders = [], customBaseApiPaths = [], customDomains = []) {
 
         let baseUrl = '';
@@ -23,10 +23,10 @@ class TestWindow {
                 baseUrl = new URL(tab.url).origin;
             }
         } catch (error) {
-            console.error('获取当前页面URL失败:', error);
+            console.error('获取 current page URL failed:', error);
         }
 
-        // 准备测试配置数据
+        // 准备 test configuration data
         const testConfig = {
             categoryKey: categoryKey,
             categoryTitle: this.getCategoryTitle(categoryKey),
@@ -40,20 +40,20 @@ class TestWindow {
             customDomains: customDomains
         };
 
-        // 将配置保存到chrome.storage，供测试窗口读取
+        // 将 configuration save 到chrome.storage，供 test window read
         try {
             await chrome.storage.local.set({ 'testConfig': testConfig });
-            //console.log('测试配置已保存到storage:', testConfig);
+            //console.log('test configuration already save 到storage:', testConfig);
         } catch (error) {
-            console.error('保存测试配置失败:', error);
-            throw new Error('保存测试配置失败: ' + error.message);
+            console.error('save test configuration failed:', error);
+            throw new Error('save test configuration failed: ' + error.message);
         }
 
         try {
-            // 使用扩展的真实页面而不是Blob URL
+            // use extension  真实 page 而do not是Blob URL
             const testPageUrl = chrome.runtime.getURL('test-window.html');
             
-            // 打开新窗口
+            // open 新 window
             const newWindow = await chrome.windows.create({
                 url: testPageUrl,
                 type: 'normal',
@@ -62,10 +62,10 @@ class TestWindow {
                 focused: true
             });
 
-            //console.log('测试窗口已创建:', newWindow.id);
+            //console.log('test window already创建:', newWindow.id);
             return newWindow;
         } catch (error) {
-            console.error('创建测试窗口失败:', error);
+            console.error('创建 test window failed:', error);
             throw error;
         }
     }
@@ -73,22 +73,22 @@ class TestWindow {
     // 获取分类标题
     getCategoryTitle(categoryKey) {
         const categoryTitles = {
-            'absoluteApis': '绝对路径API',
-            'relativeApis': '相对路径API',
-            'jsFiles': 'JS文件',
-            'cssFiles': 'CSS文件',
-            'images': '图片文件',
-            'urls': '完整URL',
-            'domains': '域名',
-            'paths': '路径'
+            'absoluteApis': '绝对 path API',
+            'relativeApis': '相对 path API',
+            'jsFiles': 'JS file',
+            'cssFiles': 'CSS file',
+            'images': 'image file',
+            'urls': 'completeURL',
+            'domains': 'domain',
+            'paths': 'path'
         };
         return categoryTitles[categoryKey] || categoryKey;
     }
 
-    // 获取脚本内容 - 直接返回JavaScript代码字符串，避免CSP问题
+    // 获取 script content - directly返回JavaScriptcode string，避免CSPissue
     getScriptContent() {
         return `
-// 测试窗口脚本 - 避免CSP问题
+// test window script - 避免CSPissue
 let testData = null;
 let testResults = [];
 let isTestRunning = false;
@@ -98,23 +98,23 @@ let activeRequests = 0;
 let maxConcurrency = 8;
 let requestTimeout = 5000;
 
-// 页面加载完成后的初始化
+// page load complete 后  initialize
 function initializePage() {
-    //console.log('页面加载完成，准备开始测试');
+    //console.log('page load complete，准备 start test');
     
-    // 从data属性中读取测试配置
+    // fromdata属性inread test configuration
     const configElement = document.getElementById('testConfigData');
     if (!configElement) {
-        console.error('找不到配置数据元素');
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 找不到配置数据</div>';
+        console.error('找do not到 configuration data 元素');
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: 找do not到 configuration data</div>';
         return;
     }
     
     try {
         const configData = configElement.getAttribute('data-config');
         if (!configData) {
-            console.error('配置数据为空');
-            document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 配置数据为空</div>';
+            console.error('configuration data to empty');
+            document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: configuration data to empty</div>';
             return;
         }
         
@@ -122,15 +122,15 @@ function initializePage() {
         maxConcurrency = testData.concurrency || 8;
         requestTimeout = testData.timeout || 5000;
         
-        //console.log('测试配置加载成功:', testData);
+        //console.log('test configuration load success:', testData);
         
     } catch (error) {
-        console.error('解析配置数据失败:', error);
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 解析配置数据失败 - ' + error.message + '</div>';
+        console.error('解析 configuration data failed:', error);
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: 解析 configuration data failed - ' + error.message + '</div>';
         return;
     }
     
-    // 添加事件监听器
+    // add event listener
     document.getElementById('startBtn').addEventListener('click', startTest);
     document.getElementById('pauseBtn').addEventListener('click', pauseTest);
     document.getElementById('exportBtn').addEventListener('click', exportResults);
@@ -139,19 +139,19 @@ function initializePage() {
     document.getElementById('statusCodeFilter').addEventListener('change', filterResults);
     
     if (!testData || !testData.items || testData.items.length === 0) {
-        console.error('测试数据无效');
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 没有要测试的项目</div>';
+        console.error('test data invalid');
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: 没有要 test  项目</div>';
         return;
     }
     
     setTimeout(startTest, 1000);
 }
 
-// 开始测试
+// start test
 async function startTest() {
     if (!testData || isTestRunning) return;
     
-    //console.log('开始测试，项目数:', testData.items.length);
+    //console.log('start test，项目数:', testData.items.length);
     
     isTestRunning = true;
     isPaused = false;
@@ -168,19 +168,19 @@ async function startTest() {
         updateStatusBar();
         processNextBatch();
     } catch (error) {
-        console.error('启动测试时发生错误:', error);
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">启动测试失败: ' + error.message + '</div>';
+        console.error('启动 test 时发生 error:', error);
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">启动 test failed: ' + error.message + '</div>';
     }
 }
 
-// 暂停测试
+// 暂停 test
 function pauseTest() {
     isPaused = !isPaused;
-    document.getElementById('pauseBtn').textContent = isPaused ? '继续测试' : '暂停测试';
+    document.getElementById('pauseBtn').textContent = isPaused ? '继续 test' : '暂停 test';
     if (!isPaused) processNextBatch();
 }
 
-// 处理下一批请求
+// process 下一批 request
 function processNextBatch() {
     if (isPaused || !isTestRunning || currentIndex >= testData.items.length) return;
     
@@ -204,7 +204,7 @@ function processNextBatch() {
                 }
             })
             .catch(error => {
-                console.error('请求处理失败:', error);
+                console.error('request process failed:', error);
                 activeRequests--;
                 const errorResult = {
                     url: item,
@@ -229,7 +229,7 @@ function processNextBatch() {
     }
 }
 
-// 处理单个请求
+// process single request
 async function processSingleRequest(item, index) {
     try {
         let url = buildTestUrl(item, testData.categoryKey, testData.baseUrl);
@@ -239,7 +239,7 @@ async function processSingleRequest(item, index) {
                 url: item,
                 fullUrl: 'Invalid URL',
                 status: 'Error',
-                statusText: '无法构建有效URL',
+                statusText: '无法构建 valid URL',
                 size: 'N/A',
                 time: 'N/A',
                 success: false,
@@ -276,7 +276,7 @@ async function processSingleRequest(item, index) {
             url: item,
             fullUrl: item,
             status: 'Exception',
-            statusText: error.message || '未知异常',
+            statusText: error.message || '未知 abnormal',
             size: 'N/A',
             time: 'N/A',
             success: false,
@@ -285,19 +285,19 @@ async function processSingleRequest(item, index) {
     }
 }
 
-// 构建测试URL
+// 构建 test URL
 function buildTestUrl(item, categoryKey, baseUrl) {
     try {
         let url = item;
         
-        // 修复：如果item是对象，提取value属性
+        // fix：如果item是 object，extract value属性
         if (typeof item === 'object' && item !== null) {
             url = item.value || item.url || item;
         }
         
-        // 修复：确保url是字符串类型
+        // fix：确保url是 string type
         if (!url || typeof url !== 'string') {
-            console.error('processUrl: url参数无效:', url);
+            console.error('processUrl: url parameter invalid:', url);
             return null;
         }
         
@@ -310,12 +310,12 @@ function buildTestUrl(item, categoryKey, baseUrl) {
                 break;
             case 'relativeApis':
                 if (baseUrl && !url.startsWith('http')) {
-                    // 🔥 修复：自动去除相对路径开头的"."
+                    // 🔥 fix：自动去除相对 path开头 "."
                     let cleanedUrl = url;
                     if (cleanedUrl.startsWith('./')) {
                         cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
                     } else if (cleanedUrl.startsWith('.')) {
-                        cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
+                        cleanedUrl = cleanedUrl.substring(1); // 去除单独  "."
                     }
                     
                     url = baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
@@ -346,12 +346,12 @@ function buildTestUrl(item, categoryKey, baseUrl) {
         new URL(url);
         return url;
     } catch (error) {
-        console.error('构建URL失败:', error, item);
+        console.error('构建URL failed:', error, item);
         return null;
     }
 }
 
-// 发送请求
+// 发送 request
 async function makeRequest(url, method, timeout = 5000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -369,7 +369,7 @@ async function makeRequest(url, method, timeout = 5000) {
         signal: controller.signal
     };
     
-    // 添加Cookie支持
+    // add Cookiesupport
     if (testData && testData.cookieSetting) {
         options.headers['Cookie'] = testData.cookieSetting;
         options.credentials = 'include';
@@ -390,7 +390,7 @@ async function makeRequest(url, method, timeout = 5000) {
         if (error.name === 'AbortError') {
             return {
                 status: 'Timeout',
-                statusText: '请求超时 (' + (timeout/1000) + '秒)',
+                statusText: 'request timeout (' + (timeout/1000) + '秒)',
                 ok: false,
                 headers: new Headers()
             };
@@ -426,7 +426,7 @@ async function makeRequest(url, method, timeout = 5000) {
     }
 }
 
-// 添加结果到表格
+// add result 到 table
 function addResultToTable(result) {
     const tbody = document.getElementById('resultsBody');
     const row = document.createElement('tr');
@@ -439,12 +439,12 @@ function addResultToTable(result) {
         '<td class="' + statusClass + '">' + result.status + '</td>' +
         '<td>' + result.size + '</td>' +
         '<td>' + result.time + '</td>' +
-        '<td class="' + statusClass + '">' + (result.success ? '成功' : '失败') + '</td>';
+        '<td class="' + statusClass + '">' + (result.success ? 'success' : 'failed') + '</td>';
     
     tbody.appendChild(row);
 }
 
-// 更新状态栏
+// update status 栏
 function updateStatusBar() {
     const total = testData ? testData.items.length : 0;
     const completed = testResults.length;
@@ -457,21 +457,21 @@ function updateStatusBar() {
     document.getElementById('errorCount').textContent = failed;
 }
 
-// 完成测试
+// complete test
 function completeTest() {
     isTestRunning = false;
     document.getElementById('startBtn').disabled = false;
     document.getElementById('pauseBtn').disabled = true;
-    document.getElementById('pauseBtn').textContent = '暂停测试';
+    document.getElementById('pauseBtn').textContent = '暂停 test';
     
     const successCount = testResults.filter(r => r.success).length;
     const totalCount = testResults.length;
     
     document.getElementById('testInfo').textContent = 
-        '测试完成! 成功: ' + successCount + '/' + totalCount + ' | ' + testData.categoryTitle + ' | ' + testData.method;
+        'test complete! success: ' + successCount + '/' + totalCount + ' | ' + testData.categoryTitle + ' | ' + testData.method;
 }
 
-// 筛选结果
+// filter result
 function filterResults() {
     const statusFilter = document.getElementById('statusFilter').value;
     const statusCodeFilter = document.getElementById('statusCodeFilter').value;
@@ -482,9 +482,9 @@ function filterResults() {
         const statusCell = row.cells[3].textContent;
         const resultCell = row.cells[6].textContent;
         
-        if (statusFilter === 'success' && resultCell !== '成功') {
+        if (statusFilter === 'success' && resultCell !== 'success') {
             show = false;
-        } else if (statusFilter === 'error' && resultCell !== '失败') {
+        } else if (statusFilter === 'error' && resultCell !== 'failed') {
             show = false;
         }
         
@@ -504,14 +504,14 @@ function filterResults() {
     });
 }
 
-// 导出结果
+// export result
 function exportResults() {
     if (testResults.length === 0) {
-        alert('没有测试结果可以导出');
+        alert('没有 test result 可以 export');
         return;
     }
     
-    const format = prompt('选择导出格式:\\n1. JSON\\n2. CSV\\n请输入 1 或 2:', '1');
+    const format = prompt('select export format:\\n1. JSON\\n2. CSV\\n请输入 1 or 2:', '1');
     
     if (format === '1') {
         exportAsJSON();
@@ -520,7 +520,7 @@ function exportResults() {
     }
 }
 
-// 导出为JSON
+// export toJSON
 function exportAsJSON() {
     const data = {
         testInfo: {
@@ -538,9 +538,9 @@ function exportAsJSON() {
     downloadFile(blob, 'api-test-results-' + Date.now() + '.json');
 }
 
-// 导出为CSV
+// export toCSV
 function exportAsCSV() {
-    const headers = ['序号', '路径', '状态码', '状态文本', '大小', '耗时', '结果'];
+    const headers = ['序号', 'path', 'status 码', 'status text', 'size', '耗时', 'result'];
     const csvContent = [
         headers.join(','),
         ...testResults.map(result => [
@@ -550,7 +550,7 @@ function exportAsCSV() {
             '"' + result.statusText + '"',
             result.size,
             result.time,
-            result.success ? '成功' : '失败'
+            result.success ? 'success' : 'failed'
         ].join(','))
     ].join('\\n');
     
@@ -558,7 +558,7 @@ function exportAsCSV() {
     downloadFile(blob, 'api-test-results-' + Date.now() + '.csv');
 }
 
-// 下载文件
+// download file
 function downloadFile(blob, filename) {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -568,17 +568,17 @@ function downloadFile(blob, filename) {
     document.body.removeChild(link);
 }
 
-// 清空结果
+// clear result
 function clearResults() {
-    if (confirm('确定要清空所有测试结果吗？')) {
+    if (confirm('确定要 clear all test result 吗？')) {
         testResults = [];
         document.getElementById('resultsBody').innerHTML = '';
         updateStatusBar();
-        document.getElementById('testInfo').textContent = '结果已清空';
+        document.getElementById('testInfo').textContent = 'result already clear';
     }
 }
 
-// 格式化字节大小
+// format 化字节 size
 function formatBytes(bytes, decimals = 2) {
     if (bytes === 0 || bytes === 'N/A') return 'N/A';
     
@@ -591,12 +591,12 @@ function formatBytes(bytes, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-// 页面加载完成后自动初始化
+// page load complete 后 automatic initialize
 document.addEventListener('DOMContentLoaded', initializePage);
         `;
     }
 
-    // 生成测试窗口的HTML内容
+    // 生成 test window  HTML content
     generateTestWindowHTML(testConfig) {
         return `
 <!DOCTYPE html>
@@ -604,7 +604,7 @@ document.addEventListener('DOMContentLoaded', initializePage);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API批量测试结果</title>
+    <title>API batch test result</title>
     <style>
         * {
             margin: 0;
@@ -807,45 +807,45 @@ document.addEventListener('DOMContentLoaded', initializePage);
 <body>
     <div class="container">
         <div class="header">
-            <h1>API批量测试结果</h1>
+            <h1>API batch test result</h1>
             <p id="testInfo">${testConfig.categoryTitle} | ${testConfig.method} | ${testConfig.items.length} 项</p>
         </div>
 
         <div class="status-bar">
             <div class="status-item">
                 <div class="status-number total" id="totalCount">${testConfig.items.length}</div>
-                <div class="status-label">总数</div>
+                <div class="status-label">total</div>
             </div>
             <div class="status-item">
                 <div class="status-number progress" id="progressCount">0</div>
-                <div class="status-label">已完成</div>
+                <div class="status-label">already complete</div>
             </div>
             <div class="status-item">
                 <div class="status-number success" id="successCount">0</div>
-                <div class="status-label">成功</div>
+                <div class="status-label">success</div>
             </div>
             <div class="status-item">
                 <div class="status-number error" id="errorCount">0</div>
-                <div class="status-label">失败</div>
+                <div class="status-label">failed</div>
             </div>
         </div>
 
         <div class="controls">
-            <button class="btn btn-primary" id="startBtn">开始测试</button>
-            <button class="btn btn-secondary" id="pauseBtn" disabled>暂停测试</button>
-            <button class="btn btn-secondary" id="exportBtn">导出结果</button>
-            <button class="btn btn-secondary" id="clearBtn">清空结果</button>
+            <button class="btn btn-primary" id="startBtn">start test</button>
+            <button class="btn btn-secondary" id="pauseBtn" disabled>暂停 test</button>
+            <button class="btn btn-secondary" id="exportBtn">export result</button>
+            <button class="btn btn-secondary" id="clearBtn">clear result</button>
         </div>
 
         <div class="filter-bar">
-            <label>筛选:</label>
+            <label>filter:</label>
             <select class="filter-select" id="statusFilter">
-                <option value="all">全部</option>
-                <option value="success">仅成功</option>
-                <option value="error">仅失败</option>
+                <option value="all">all</option>
+                <option value="success">仅 success</option>
+                <option value="error">仅 failed</option>
             </select>
             <select class="filter-select" id="statusCodeFilter">
-                <option value="all">全部状态码</option>
+                <option value="all">all status 码</option>
                 <option value="2xx">2xx</option>
                 <option value="3xx">3xx</option>
                 <option value="4xx">4xx</option>
@@ -856,17 +856,17 @@ document.addEventListener('DOMContentLoaded', initializePage);
         <div class="results-container">
             <div class="loading" id="loadingDiv">
                 <div class="spinner"></div>
-                <div>准备开始测试...</div>
+                <div>准备 start test ...</div>
             </div>
             <table class="results-table" id="resultsTable" style="display: none;">
                 <thead>
                     <tr>
                         <th>序号</th>
-                        <th>路径</th>
-                        <th>状态码</th>
-                        <th>大小</th>
+                        <th>path</th>
+                        <th>status 码</th>
+                        <th>size</th>
                         <th>耗时</th>
-                        <th>结果</th>
+                        <th>result</th>
                     </tr>
                 </thead>
                 <tbody id="resultsBody">
@@ -875,10 +875,10 @@ document.addEventListener('DOMContentLoaded', initializePage);
         </div>
     </div>
 
-    <!-- 将测试配置数据存储在data属性中 -->
+    <!-- 将测试configurationdata storage indata属性in -->
     <div id="testConfigData" data-config="${encodeURIComponent(JSON.stringify(testConfig))}" style="display: none;"></div>
     
-    <!-- 使用外部脚本内容，避免chrome-extension://协议 -->
+    <!-- use外部脚本内容，避免chrome-extension://protocol -->
     <script>
         ${this.getScriptContent()}
     </script>

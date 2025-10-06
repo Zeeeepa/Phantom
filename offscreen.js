@@ -1,30 +1,30 @@
-// 离屏文档脚本 - 用于处理需要完整Web API的网络请求
+// offscreen documentation script - for process requirecompleteWeb API network request
 
-//console.log('🔧 离屏文档已加载');
+//console.log('🔧 offscreen documentation already load');
 
-// 监听来自后台脚本的消息
+// listenfrombackground script   message
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    //console.log('🔧 离屏文档收到消息:', request.action);
+    //console.log('🔧 offscreen documentation received message:', request.action);
     
     if (request.action === 'makeRequestWithCookie') {
         handleRequestWithCustomHeaders(request.url, request.options, request.customHeaders)
             .then(response => {
-                //console.log('🔧 离屏文档请求完成:', response.status);
+                //console.log('🔧 offscreen documentation request complete:', response.status);
                 sendResponse({ success: true, data: response });
             })
             .catch(error => {
-                console.error('🔧 离屏文档请求失败:', error);
+                console.error('🔧 offscreen documentation request failed:', error);
                 sendResponse({ success: false, error: error.message });
             });
-        return true; // 保持消息通道开放
+        return true; // 保持 message 通道开放
     }
 });
 
-// 在离屏文档中处理带自定义请求头的请求
+// inoffscreen documentation in process 带 custom request 头  request
 async function handleRequestWithCustomHeaders(url, options = {}, customHeaders = []) {
     try {
-        //console.log(`📋 离屏文档发送请求: ${url}`);
-        //console.log(`📋 使用自定义请求头:`, customHeaders);
+        //console.log(`📋 offscreen documentation 发送 request: ${url}`);
+        //console.log(`📋 use custom request 头:`, customHeaders);
         
         const fetchOptions = {
             method: options.method || 'GET',
@@ -34,42 +34,42 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
                 'Cache-Control': 'no-cache',
                 ...options.headers
             },
-            credentials: 'include', // 重要：包含Cookie
+            credentials: 'include', // 重要：contains Cookie
             ...options
         };
         
-        // 应用自定义请求头
+        // 应用 custom request 头
         if (customHeaders && customHeaders.length > 0) {
             for (const header of customHeaders) {
                 if (header.key && header.value) {
                     fetchOptions.headers[header.key] = header.value;
-                    //console.log(`📋 已设置请求头: ${header.key} = ${header.value.substring(0, 50)}${header.value.length > 50 ? '...' : ''}`);
+                    //console.log(`📋 already settings request 头: ${header.key} = ${header.value.substring(0, 50)}${header.value.length > 50 ? '...' : ''}`);
                     
-                    // 如果是Cookie请求头，尝试通过document.cookie设置（如果是同域请求）
+                    // 如果是Cookie request 头，尝试通throughdocument.cookie settings（如果是同域 request）
                     if (header.key.toLowerCase() === 'cookie') {
                         try {
                             const urlObj = new URL(url);
                             if (urlObj.origin === window.location.origin) {
-                                // 解析Cookie字符串并设置到document.cookie
+                                // 解析Cookie string 并 settings 到document.cookie
                                 const cookies = header.value.split(';').map(c => c.trim());
                                 for (const cookie of cookies) {
                                     if (cookie) {
                                         document.cookie = cookie;
-                                        //console.log(`🍪 已设置document.cookie: ${cookie.substring(0, 30)}...`);
+                                        //console.log(`🍪 already settings document.cookie: ${cookie.substring(0, 30)}...`);
                                     }
                                 }
                             }
                         } catch (e) {
-                            console.warn('🍪 无法设置document.cookie:', e.message);
+                            console.warn('🍪 无法 settings document.cookie:', e.message);
                         }
                     }
                 }
             }
         }
         
-        //console.log(`📋 离屏文档最终请求头:`, fetchOptions.headers);
+        //console.log(`📋 offscreen documentation 最终 request 头:`, fetchOptions.headers);
         
-        // 添加超时控制
+        // add timeout 控制
         const timeout = options.timeout || 10000;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -79,7 +79,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
         const response = await fetch(url, fetchOptions);
         clearTimeout(timeoutId);
         
-        // 使用 clone 读取原始字节长度，更准确统计响应大小
+        // use clone read原始字节 length，更准确 statistics response size
         let sizeBytes = 0;
         try {
             const respClone = response.clone();
@@ -90,7 +90,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
         }
         const text = await response.text();
         
-        //console.log(`✅ 离屏文档请求完成: ${response.status} ${response.statusText}`);
+        //console.log(`✅ offscreen documentation request complete: ${response.status} ${response.statusText}`);
         
         return {
             status: response.status,
@@ -103,9 +103,9 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
         
     } catch (error) {
         if (error.name === 'AbortError') {
-            throw new Error(`请求超时 (${options.timeout || 10000}ms)`);
+            throw new Error(`request timeout (${options.timeout || 10000}ms)`);
         }
-        console.error(`❌ 离屏文档请求失败: ${error.message}`);
+        console.error(`❌ offscreen documentation request failed: ${error.message}`);
         throw error;
     }
 }
