@@ -1,214 +1,148 @@
 /**
  * PackerIntegrationUI.js
- * UI components for Packer-InfoFinder integration
+ * Proper Chrome Extension UI integration for Packer-InfoFinder backend
  */
 
 class PackerIntegrationUI {
-    constructor(srcMiner) {
-        this.srcMiner = srcMiner;
+    constructor() {
         this.packerBridge = new PackerBridge();
         this.analysisInProgress = false;
         this.currentScanId = null;
+        this.connectionCheckInterval = null;
     }
     
     /**
      * Initialize Packer integration UI
      */
     async init() {
-        // Check if Packer is enabled
-        const enabled = await this.packerBridge.isEnabled();
+        console.log('🚀 Initializing Packer Integration UI...');
         
-        if (!enabled) {
-            console.log('Packer integration is disabled');
+        // Get DOM elements
+        this.elements = {
+            statusBar: document.getElementById('packerStatusBar'),
+            statusDot: document.getElementById('packerStatusDot'),
+            statusText: document.getElementById('packerStatusText'),
+            refreshBtn: document.getElementById('packerRefreshBtn'),
+            buttonContainer: document.getElementById('packerButtonContainer'),
+            scanBtn: document.getElementById('packerScanBtn'),
+            progressBar: document.getElementById('packerProgressBar'),
+            progressText: document.getElementById('packerProgressText'),
+            resultsSection: document.getElementById('packerResultsSection'),
+            resultsContent: document.getElementById('packerResultsContent'),
+            closeResults: document.getElementById('closePackerResults')
+        };
+        
+        // Check if elements exist
+        if (!this.elements.statusBar) {
+            console.warn('⚠️ Packer UI elements not found in popup.html');
             return;
         }
         
-        // Add Packer analysis button to UI
-        this.addPackerButton();
+        // Load settings
+        await this.packerBridge.loadSettings();
         
-        // Add Packer settings section
-        this.addPackerSettings();
+        // Show status bar if enabled
+        if (this.packerBridge.enabled) {
+            this.elements.statusBar.style.display = 'flex';
+            this.elements.buttonContainer.style.display = 'block';
+        }
         
-        console.log('✅ Packer integration UI initialized');
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Initial connection check
+        await this.checkConnection();
+        
+        // Start periodic connection checks (every 30 seconds)
+        this.startConnectionMonitoring();
+        
+        console.log('✅ Packer Integration UI initialized');
     }
     
     /**
-     * Add Packer analysis button to scan section
+     * Setup event listeners
      */
-    addPackerButton() {
-        // Find the scan buttons container
-        const scanSection = document.querySelector('.scan-section');
-        if (!scanSection) {
-            console.warn('Scan section not found');
-            return;
-        }
+    setupEventListeners() {
+        // Refresh button
+        this.elements.refreshBtn?.addEventListener('click', () => {
+            this.checkConnection();
+        });
         
-        // Create Packer button
-        const packerBtn = document.createElement('button');
-        packerBtn.id = 'packerAnalysisBtn';
-        packerBtn.className = 'scan-btn packer-btn';
-        packerBtn.innerHTML = `
-            <span class="icon">🚀</span>
-            <span class="text">Packer深度分析</span>
-        `;
+        // Scan button
+        this.elements.scanBtn?.addEventListener('click', () => {
+            this.startPackerAnalysis();
+        });
         
-        // Add click handler
-        packerBtn.addEventListener('click', () => this.startPackerAnalysis());
-        
-        // Insert after the basic scan button
-        const basicScanBtn = document.getElementById('scanBtn');
-        if (basicScanBtn && basicScanBtn.parentNode) {
-            basicScanBtn.parentNode.insertBefore(packerBtn, basicScanBtn.nextSibling);
-        }
+        // Close results button
+        this.elements.closeResults?.addEventListener('click', () => {
+            this.elements.resultsSection.style.display = 'none';
+        });
     }
     
     /**
-     * Add Packer settings to settings panel
+     * Check backend connection status
      */
-    addPackerSettings() {
-        const settingsPanel = document.getElementById('settings');
-        if (!settingsPanel) {
-            console.warn('Settings panel not found');
-            return;
-        }
+    async checkConnection() {
+        console.log('🔍 Checking Packer backend connection...');
         
-        // Create Packer settings section
-        const packerSection = document.createElement('div');
-        packerSection.className = 'settings-section packer-settings';
-        packerSection.innerHTML = `
-            <h3>🚀 Packer-InfoFinder 集成</h3>
-            
-            <div class="setting-item">
-                <label>
-                    <input type="checkbox" id="packerEnabled" checked>
-                    启用Packer深度分析
-                </label>
-                <p class="setting-description">
-                    开启后可使用Webpack chunk重构和AST深度分析
-                </p>
-            </div>
-            
-            <div class="setting-item">
-                <label for="packerEndpoint">API端点:</label>
-                <input 
-                    type="text" 
-                    id="packerEndpoint" 
-                    value="http://localhost:8765"
-                    placeholder="http://localhost:8765"
-                >
-                <p class="setting-description">
-                    Packer-InfoFinder后端服务地址
-                </p>
-            </div>
-            
-            <div class="setting-item">
-                <label for="packerApiKey">API密钥 (可选):</label>
-                <input 
-                    type="password" 
-                    id="packerApiKey" 
-                    placeholder="留空表示无需认证"
-                >
-            </div>
-            
-            <div class="setting-actions">
-                <button id="testPackerConnection" class="btn-secondary">
-                    测试连接
-                </button>
-                <button id="savePackerSettings" class="btn-primary">
-                    保存配置
-                </button>
-            </div>
-            
-            <div id="packerConnectionStatus" class="status-message"></div>
-        `;
-        
-        // Add to settings panel
-        settingsPanel.appendChild(packerSection);
-        
-        // Load current settings
-        this.loadPackerSettings();
-        
-        // Add event listeners
-        document.getElementById('testPackerConnection').addEventListener('click', 
-            () => this.testPackerConnection());
-        document.getElementById('savePackerSettings').addEventListener('click', 
-            () => this.savePackerSettings());
-    }
-    
-    /**
-     * Load Packer settings into UI
-     */
-    async loadPackerSettings() {
-        try {
-            await this.packerBridge.loadSettings();
-            
-            document.getElementById('packerEnabled').checked = this.packerBridge.enabled;
-            document.getElementById('packerEndpoint').value = this.packerBridge.endpoint;
-            if (this.packerBridge.apiKey) {
-                document.getElementById('packerApiKey').value = this.packerBridge.apiKey;
-            }
-            
-        } catch (error) {
-            console.error('Failed to load Packer settings:', error);
-        }
-    }
-    
-    /**
-     * Save Packer settings
-     */
-    async savePackerSettings() {
-        const statusDiv = document.getElementById('packerConnectionStatus');
+        // Update UI to checking state
+        this.updateConnectionStatus('checking', '检查连接中...');
         
         try {
-            const settings = {
-                enabled: document.getElementById('packerEnabled').checked,
-                endpoint: document.getElementById('packerEndpoint').value.trim(),
-                apiKey: document.getElementById('packerApiKey').value.trim() || null
-            };
-            
-            const result = await this.packerBridge.saveSettings(settings);
-            
-            if (result.success) {
-                this.showStatus(statusDiv, '✅ 配置已保存', 'success');
-            } else {
-                this.showStatus(statusDiv, '❌ 保存失败: ' + result.error, 'error');
-            }
-            
-        } catch (error) {
-            this.showStatus(statusDiv, '❌ 保存失败: ' + error.message, 'error');
-        }
-    }
-    
-    /**
-     * Test connection to Packer backend
-     */
-    async testPackerConnection() {
-        const statusDiv = document.getElementById('packerConnectionStatus');
-        const testBtn = document.getElementById('testPackerConnection');
-        
-        testBtn.disabled = true;
-        this.showStatus(statusDiv, '🔄 正在测试连接...', 'info');
-        
-        try {
-            // Update bridge settings first
-            await this.savePackerSettings();
-            
-            // Test connection
             const result = await this.packerBridge.testConnection();
             
             if (result.success) {
-                this.showStatus(statusDiv, 
-                    `✅ 连接成功! 状态: ${result.status}`, 'success');
+                this.updateConnectionStatus('connected', '✅ 后端已连接');
+                this.elements.scanBtn.disabled = false;
+                console.log('✅ Packer backend connected');
             } else {
-                this.showStatus(statusDiv, 
-                    `❌ 连接失败: ${result.error}`, 'error');
+                this.updateConnectionStatus('disconnected', '❌ 连接失败');
+                this.elements.scanBtn.disabled = true;
+                console.error('❌ Packer backend disconnected:', result.error);
             }
-            
         } catch (error) {
-            this.showStatus(statusDiv, 
-                `❌ 连接失败: ${error.message}`, 'error');
-        } finally {
-            testBtn.disabled = false;
+            this.updateConnectionStatus('disconnected', '❌ 连接失败');
+            this.elements.scanBtn.disabled = true;
+            console.error('❌ Connection check error:', error);
+        }
+    }
+    
+    /**
+     * Update connection status UI
+     */
+    updateConnectionStatus(status, text) {
+        // Remove all status classes
+        this.elements.statusDot.classList.remove('connected', 'disconnected', 'checking');
+        
+        // Add appropriate status class
+        this.elements.statusDot.classList.add(status);
+        
+        // Update text
+        this.elements.statusText.textContent = text;
+    }
+    
+    /**
+     * Start periodic connection monitoring
+     */
+    startConnectionMonitoring() {
+        // Clear existing interval
+        if (this.connectionCheckInterval) {
+            clearInterval(this.connectionCheckInterval);
+        }
+        
+        // Check every 30 seconds
+        this.connectionCheckInterval = setInterval(() => {
+            this.checkConnection();
+        }, 30000);
+    }
+    
+    /**
+     * Stop connection monitoring
+     */
+    stopConnectionMonitoring() {
+        if (this.connectionCheckInterval) {
+            clearInterval(this.connectionCheckInterval);
+            this.connectionCheckInterval = null;
         }
     }
     
@@ -229,182 +163,150 @@ class PackerIntegrationUI {
                 throw new Error('无法分析系统页面');
             }
             
-            // Disable button
-            const btn = document.getElementById('packerAnalysisBtn');
-            const btnText = btn.querySelector('.text');
+            console.log('🚀 Starting Packer analysis for:', tab.url);
+            
+            // Update UI
             this.analysisInProgress = true;
-            btn.disabled = true;
-            btnText.textContent = '分析中...';
+            this.elements.scanBtn.disabled = true;
+            this.elements.scanBtn.querySelector('.text').textContent = '分析中...';
+            this.showProgress('正在启动Packer深度分析...');
             
-            // Show progress
-            this.showPackerProgress('正在启动Packer深度分析...');
-            
-            // Get cookies and headers from settings
-            const cookie = await this.srcMiner.settingsManager?.getCookieSetting() || '';
-            const headers = await this.srcMiner.settingsManager?.getHeadersSetting() || [];
-            
-            // Convert headers to object
-            const headersObj = {};
-            headers.forEach(h => {
-                if (h.name && h.value) {
-                    headersObj[h.name] = h.value;
-                }
-            });
+            // Get cookies if needed (from settings)
+            let cookie = '';
+            try {
+                const cookies = await chrome.cookies.getAll({ url: tab.url });
+                cookie = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+            } catch (e) {
+                console.warn('Failed to get cookies:', e);
+            }
             
             // Call Packer backend
             const result = await this.packerBridge.analyze(tab.url, {
                 mode: 'full',
                 cookie: cookie,
-                headers: headersObj
+                headers: {}
             });
             
             if (result.success) {
                 this.currentScanId = result.scanId;
-                this.displayPackerResults(result.result);
-                this.showPackerProgress('✅ 分析完成!', 'success');
+                console.log('✅ Packer analysis completed:', result);
+                this.displayResults(result.result);
+                this.hideProgress();
             } else {
-                throw new Error(result.error);
+                throw new Error(result.error || 'Analysis failed');
             }
             
         } catch (error) {
-            console.error('Packer analysis failed:', error);
-            this.showPackerProgress('❌ 分析失败: ' + error.message, 'error');
+            console.error('❌ Packer analysis failed:', error);
             alert('Packer分析失败: ' + error.message);
+            this.hideProgress();
             
         } finally {
             // Re-enable button
-            const btn = document.getElementById('packerAnalysisBtn');
-            const btnText = btn.querySelector('.text');
             this.analysisInProgress = false;
-            btn.disabled = false;
-            btnText.textContent = 'Packer深度分析';
+            this.elements.scanBtn.disabled = false;
+            this.elements.scanBtn.querySelector('.text').textContent = '🚀 Packer深度分析';
         }
     }
     
     /**
-     * Display Packer analysis results
+     * Show progress indicator
      */
-    displayPackerResults(result) {
-        // Create results section if it doesn't exist
-        let resultsSection = document.getElementById('packerResults');
-        
-        if (!resultsSection) {
-            resultsSection = document.createElement('div');
-            resultsSection.id = 'packerResults';
-            resultsSection.className = 'packer-results-section';
-            
-            // Insert after scan results
-            const scanResults = document.querySelector('.scan-results');
-            if (scanResults && scanResults.parentNode) {
-                scanResults.parentNode.insertBefore(resultsSection, scanResults.nextSibling);
-            }
-        }
+    showProgress(message) {
+        this.elements.progressText.textContent = message;
+        this.elements.progressBar.style.display = 'block';
+        this.elements.resultsSection.style.display = 'none';
+    }
+    
+    /**
+     * Hide progress indicator
+     */
+    hideProgress() {
+        this.elements.progressBar.style.display = 'none';
+    }
+    
+    /**
+     * Display analysis results
+     */
+    displayResults(result) {
+        console.log('📊 Displaying Packer results:', result);
         
         // Build results HTML
-        const html = `
-            <div class="packer-results-header">
-                <h3>🚀 Packer深度分析结果</h3>
-                <button class="close-btn" onclick="document.getElementById('packerResults').style.display='none'">×</button>
+        let html = `
+            <div class="packer-result-item">
+                <span class="result-label">扫描ID:</span>
+                <span class="result-value">${this.currentScanId || 'N/A'}</span>
             </div>
             
-            <div class="packer-results-content">
-                <div class="result-summary">
-                    <div class="summary-item">
-                        <span class="label">扫描ID:</span>
-                        <span class="value">${this.currentScanId}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="label">URL:</span>
-                        <span class="value">${result.url}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span class="label">时间:</span>
-                        <span class="value">${new Date(result.timestamp).toLocaleString('zh-CN')}</span>
-                    </div>
-                </div>
-                
-                <div class="result-details">
-                    ${this.formatPackerResults(result.results)}
-                </div>
-                
-                <div class="result-actions">
-                    <button class="btn-secondary" onclick="packerIntegrationUI.exportPackerResults()">
-                        导出结果
-                    </button>
-                </div>
+            <div class="packer-result-item">
+                <span class="result-label">URL:</span>
+                <span class="result-value">${result.url || 'N/A'}</span>
+            </div>
+            
+            <div class="packer-result-item">
+                <span class="result-label">时间:</span>
+                <span class="result-value">${result.timestamp ? new Date(result.timestamp).toLocaleString('zh-CN') : 'N/A'}</span>
+            </div>
+            
+            <div class="packer-result-item">
+                <span class="result-label">状态:</span>
+                <span class="result-value">${result.success ? '✅ 成功' : '❌ 失败'}</span>
             </div>
         `;
         
-        resultsSection.innerHTML = html;
-        resultsSection.style.display = 'block';
-    }
-    
-    /**
-     * Format Packer results for display
-     */
-    formatPackerResults(results) {
-        if (!results || !results.has_results) {
-            return '<p class="no-results">未发现敏感信息</p>';
-        }
-        
-        return `
-            <div class="findings">
-                <p>✅ 发现敏感信息!</p>
-                <p>详细报告已保存</p>
-                ${results.finder_report ? 
-                    `<p class="report-path">报告路径: ${results.finder_report}</p>` 
-                    : ''}
-            </div>
-        `;
-    }
-    
-    /**
-     * Show progress message
-     */
-    showPackerProgress(message, type = 'info') {
-        // Create progress element if it doesn't exist
-        let progress = document.getElementById('packerProgress');
-        
-        if (!progress) {
-            progress = document.createElement('div');
-            progress.id = 'packerProgress';
-            progress.className = 'packer-progress';
-            
-            const container = document.querySelector('.container');
-            if (container) {
-                container.insertBefore(progress, container.firstChild);
+        // Add results details
+        if (result.results) {
+            if (result.results.has_results) {
+                html += `
+                    <div class="packer-result-item" style="background: rgba(16, 185, 129, 0.1); border-left-color: #10b981;">
+                        <span class="result-label">✅ 发现:</span>
+                        <span class="result-value">检测到敏感信息</span>
+                    </div>
+                `;
+                
+                if (result.results.finder_report) {
+                    html += `
+                        <div class="packer-result-item">
+                            <span class="result-label">报告:</span>
+                            <span class="result-value" style="word-break: break-all; font-size: 12px;">${result.results.finder_report}</span>
+                        </div>
+                    `;
+                }
+            } else {
+                html += `
+                    <div class="packer-result-item" style="background: rgba(245, 158, 11, 0.1); border-left-color: #f59e0b;">
+                        <span class="result-label">ℹ️ 结果:</span>
+                        <span class="result-value">未发现敏感信息</span>
+                    </div>
+                `;
             }
         }
         
-        progress.className = `packer-progress ${type}`;
-        progress.textContent = message;
-        progress.style.display = 'block';
+        // Add export button
+        html += `
+            <div style="margin-top: 15px; text-align: center;">
+                <button id="exportPackerResults" style="padding: 8px 20px; background: #667eea; border: none; border-radius: 6px; color: #fff; cursor: pointer; font-size: 14px;">
+                    导出完整结果
+                </button>
+            </div>
+        `;
         
-        // Auto-hide after 5 seconds for success/error
-        if (type === 'success' || type === 'error') {
-            setTimeout(() => {
-                progress.style.display = 'none';
-            }, 5000);
-        }
+        // Update results content
+        this.elements.resultsContent.innerHTML = html;
+        
+        // Show results section
+        this.elements.resultsSection.style.display = 'block';
+        
+        // Setup export button
+        document.getElementById('exportPackerResults')?.addEventListener('click', () => {
+            this.exportResults();
+        });
     }
     
     /**
-     * Show status message
+     * Export results as JSON
      */
-    showStatus(element, message, type = 'info') {
-        element.className = `status-message ${type}`;
-        element.textContent = message;
-        element.style.display = 'block';
-        
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 5000);
-    }
-    
-    /**
-     * Export Packer results
-     */
-    async exportPackerResults() {
+    async exportResults() {
         if (!this.currentScanId) {
             alert('没有可导出的结果');
             return;
@@ -418,26 +320,63 @@ class PackerIntegrationUI {
                 { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             
+            // Trigger download
             const a = document.createElement('a');
             a.href = url;
-            a.download = `packer_analysis_${this.currentScanId}.json`;
+            a.download = `packer_analysis_${this.currentScanId}_${Date.now()}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            
+            console.log('✅ Results exported');
             
         } catch (error) {
             console.error('Export failed:', error);
             alert('导出失败: ' + error.message);
         }
     }
+    
+    /**
+     * Cleanup on extension unload
+     */
+    destroy() {
+        this.stopConnectionMonitoring();
+    }
 }
 
-// Global instance
-let packerIntegrationUI;
-
 // Initialize when DOM is ready
+let packerUI = null;
+
+// Wait for DOM and other scripts to load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPacker);
+} else {
+    initPacker();
+}
+
+async function initPacker() {
+    // Wait a bit for other scripts to initialize
+    setTimeout(async () => {
+        try {
+            packerUI = new PackerIntegrationUI();
+            await packerUI.init();
+        } catch (error) {
+            console.error('Failed to initialize Packer UI:', error);
+        }
+    }, 500);
+}
+
+// Cleanup on window unload
+window.addEventListener('unload', () => {
+    if (packerUI) {
+        packerUI.destroy();
+    }
+});
+
+// Export for global access
 if (typeof window !== 'undefined') {
     window.PackerIntegrationUI = PackerIntegrationUI;
+    window.packerUI = packerUI;
 }
 
