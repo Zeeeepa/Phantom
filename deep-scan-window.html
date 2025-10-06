@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>深度扫描结果</title>
+    <title>deep scan results</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -184,7 +184,7 @@
         .btn-secondary-modern { border-color: #2c2c2c; background-color: #1a1a1a; color: #e5e7eb; }
         .btn-danger-modern { border-color: #7f1d1d; background: linear-gradient(45deg, #ef4444, #b91c1c); color: #fff; }
 
-        /* 保留 .btn 用于弹窗按钮 */
+        /* 保留 .btn button for 弹窗 */
         .btn {
             padding: 10px 20px;
             border: none;
@@ -228,14 +228,14 @@
         .log-section { background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 15px; max-height: 200px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 11px; }
         .log-entry { margin-bottom: 5px; padding: 2px 0; }
         .log-entry.info { color: #00a8ff; }
-        .log-entry.success { color: #3ba4ff; } /* ✅ 成功信息蓝色 */
+        .log-entry.success { color: #3ba4ff; } /* ✅ success message 蓝色 */
         .log-entry.warning { color: #ffa502; }
         .log-entry.error { color: #ff4757; }
 
-        /* 完成/成功态文本（若脚本赋予类名） */
+        /* success complete text /态（script class 若赋予名） */
         #progressText.success, #progressText.done { color: #3ba4ff; }
 
-        /* 自定义滚动条 */
+        /* custom scroll record(s) */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #1f6feb; border-radius: 4px; transition: background 0.2s ease; }
@@ -254,45 +254,45 @@
 
             <div class="container">
                 <div class="header">
-                    <h1>🔍 深度扫描进行中</h1>
-                    <p id="scanInfo">正在初始化扫描配置...</p>
+                    <h1>🔍 deep scan in progress</h1>
+                    <p id="scanInfo">scan configuration initialize 正在...</p>
                 </div>
 
                 <div class="config-info" id="configInfo">
-                    <span>最大深度: <strong id="maxDepthDisplay">-</strong></span>
+                    <span>maximum 深度: <strong id="maxDepthDisplay">-</strong></span>
                     <span>并发数: <strong id="concurrencyDisplay">-</strong></span>
-                    <span>超时: <strong id="timeoutDisplay">-</strong>秒</span>
-                    <span>扫描类型: <strong id="scanTypesDisplay">-</strong></span>
+                    <span>timeout: <strong id="timeoutDisplay">-</strong> seconds</span>
+                    <span>scan type: <strong id="scanTypesDisplay">-</strong></span>
                 </div>
 
                 <div class="status-bar">
                     <div class="status-item">
                         <div class="status-number depth" id="currentDepth">0</div>
-                        <div class="status-label">当前深度</div>
+                        <div class="status-label">current 深度</div>
                     </div>
                     <div class="status-item">
                         <div class="status-number urls" id="scannedUrls">0</div>
-                        <div class="status-label">已扫描URL</div>
+                        <div class="status-label">URL scan 已</div>
                     </div>
                     <div class="status-item">
                         <div class="status-number progress" id="pendingUrls">0</div>
-                        <div class="status-label">待扫描URL</div>
+                        <div class="status-label">URL scan 待</div>
                     </div>
                     <div class="status-item">
                         <div class="status-number total" id="totalResults">0</div>
-                        <div class="status-label">总结果数</div>
+                        <div class="status-label">results total count</div>
                     </div>
                 </div>
 
                 <div class="controls">
-                    <button class="boton-elegante btn-start" id="startBtn">开始扫描</button>
-                    <button class="boton-elegante btn-secondary-modern" id="pauseBtn" disabled>暂停扫描</button>
-                    <button class="boton-elegante btn-danger-modern" id="stopBtn" disabled>停止扫描</button>
-                    <button class="boton-elegante btn-secondary-modern" id="exportBtn">导出结果</button>
+                    <button class="boton-elegante btn-start" id="startBtn">start scan</button>
+                    <button class="boton-elegante btn-secondary-modern" id="pauseBtn" disabled>pause scan</button>
+                    <button class="boton-elegante btn-danger-modern" id="stopBtn" disabled>stop scan</button>
+                    <button class="boton-elegante btn-secondary-modern" id="exportBtn">export results</button>
                 </div>
 
                 <div class="progress-section">
-                    <div id="progressText">等待开始扫描...</div>
+                    <div id="progressText">start scan waiting ...</div>
                     <div class="progress-bar-container">
                         <div class="progress-bar" id="progressBar"></div>
                     </div>
@@ -301,62 +301,62 @@
                 <div class="results-section" id="resultsSection">
                     <div class="loading" id="loadingDiv">
                         <div class="spinner"></div>
-                        <div>准备开始深度扫描...</div>
+                        <div>deep scan start 准备...</div>
                     </div>
 
-                    <!-- 扫描结果显示区域（保持 ID 不变） -->
+                    <!-- scan results area display（保持 ID 不变） -->
                     <div class="result-category" id="absoluteApisResult" style="display: none;">
-                        <h3>🔗 绝对路径API (<span id="absoluteApisCount">0</span>)</h3>
+                        <h3>🔗 absolute path API (<span id="absoluteApisCount">0</span>)</h3>
                         <ul class="result-list" id="absoluteApisList"></ul>
                         <div class="load-more-container" id="absoluteApisLoadMore" style="display: none;">
                             <button class="load-more-btn" onclick="loadMoreResults('absoluteApis')">
-                                显示更多 (<span class="remaining-count">0</span> 条剩余)
+                                display 更多 (<span class="remaining-count">0</span>  record(s) 剩余)
                             </button>
                         </div>
                     </div>
 
                     <div class="result-category" id="relativeApisResult" style="display: none;">
-                        <h3>🔗 相对路径API (<span id="relativeApisCount">0</span>)</h3>
+                        <h3>🔗 relative path API (<span id="relativeApisCount">0</span>)</h3>
                         <ul class="result-list" id="relativeApisList"></ul>
                     </div>
 
                     <div class="result-category" id="modulePathsResult" style="display: none;">
-                        <h3>📦 模块路径 (<span id="modulePathsCount">0</span>)</h3>
+                        <h3>📦 path module (<span id="modulePathsCount">0</span>)</h3>
                         <ul class="result-list" id="modulePathsList"></ul>
                     </div>
 
                     <div class="result-category" id="domainsResult" style="display: none;">
-                        <h3>🏠 域名 (<span id="domainsCount">0</span>)</h3>
+                        <h3>🏠 domain (<span id="domainsCount">0</span>)</h3>
                         <ul class="result-list" id="domainsList"></ul>
                     </div>
 
                     <div class="result-category" id="urlsResult" style="display: none;">
-                        <h3>🌐 完整URL (<span id="urlsCount">0</span>)</h3>
+                        <h3>🌐 URL 完整 (<span id="urlsCount">0</span>)</h3>
                         <ul class="result-list" id="urlsList"></ul>
                     </div>
 
                     <div class="result-category" id="imagesResult" style="display: none;">
-                        <h3>🖼️ 图片文件 (<span id="imagesCount">0</span>)</h3>
+                        <h3>🖼️ file 图片 (<span id="imagesCount">0</span>)</h3>
                         <ul class="result-list" id="imagesList"></ul>
                     </div>
 
                     <div class="result-category" id="jsFilesResult" style="display: none;">
-                        <h3>📄 JS文件 (<span id="jsFilesCount">0</span>)</h3>
+                        <h3>📄 file JS (<span id="jsFilesCount">0</span>)</h3>
                         <ul class="result-list" id="jsFilesList"></ul>
                     </div>
 
                     <div class="result-category" id="cssFilesResult" style="display: none;">
-                        <h3>🎨 CSS文件 (<span id="cssFilesCount">0</span>)</h3>
+                        <h3>🎨 file CSS (<span id="cssFilesCount">0</span>)</h3>
                         <ul class="result-list" id="cssFilesList"></ul>
                     </div>
 
                     <div class="result-category" id="vueFilesResult" style="display: none;">
-                        <h3>🟢 Vue文件 (<span id="vueFilesCount">0</span>)</h3>
+                        <h3>🟢 file Vue (<span id="vueFilesCount">0</span>)</h3>
                         <ul class="result-list" id="vueFilesList"></ul>
                     </div>
 
                     <div class="result-category" id="emailsResult" style="display: none;">
-                        <h3>📧 邮箱地址 (<span id="emailsCount">0</span>)</h3>
+                        <h3>📧 address 邮箱 (<span id="emailsCount">0</span>)</h3>
                         <ul class="result-list" id="emailsList"></ul>
                     </div>
 
@@ -366,22 +366,22 @@
                     </div>
 
                     <div class="result-category" id="ipAddressesResult" style="display: none;">
-                        <h3>🌍 IP地址 (<span id="ipAddressesCount">0</span>)</h3>
+                        <h3>🌍 address IP (<span id="ipAddressesCount">0</span>)</h3>
                         <ul class="result-list" id="ipAddressesList"></ul>
                     </div>
 
                     <div class="result-category" id="sensitiveKeywordsResult" style="display: none;">
-                        <h3>⚠️ 敏感关键词 (<span id="sensitiveKeywordsCount">0</span>)</h3>
+                        <h3>⚠️ keyword 敏感 (<span id="sensitiveKeywordsCount">0</span>)</h3>
                         <ul class="result-list" id="sensitiveKeywordsList"></ul>
                     </div>
 
                     <div class="result-category" id="commentsResult" style="display: none;">
-                        <h3>💬 注释内容 (<span id="commentsCount">0</span>)</h3>
+                        <h3>💬 content comment (<span id="commentsCount">0</span>)</h3>
                         <ul class="result-list" id="commentsList"></ul>
                     </div>
 
                     <div class="result-category" id="parametersResult" style="display: none;">
-                        <h3>⚙️ 参数名称 (<span id="parametersCount">0</span>)</h3>
+                        <h3>⚙️ parameters name (<span id="parametersCount">0</span>)</h3>
                         <ul class="result-list" id="parametersList"></ul>
                     </div>
 
@@ -391,17 +391,17 @@
                     </div>
 
                     <div class="result-category" id="cookiesResult" style="display: none;">
-                        <h3>🍪 Cookie信息 (<span id="cookiesCount">0</span>)</h3>
+                        <h3>🍪 information Cookie (<span id="cookiesCount">0</span>)</h3>
                         <ul class="result-list" id="cookiesList"></ul>
                     </div>
 
                     <div class="result-category" id="idKeysResult" style="display: none;">
-                        <h3>🆔 ID密钥 (<span id="idKeysCount">0</span>)</h3>
+                        <h3>🆔 key ID (<span id="idKeysCount">0</span>)</h3>
                         <ul class="result-list" id="idKeysList"></ul>
                     </div>
 
                     <div class="result-category" id="companiesResult" style="display: none;">
-                        <h3>🏢 公司名称 (<span id="companiesCount">0</span>)</h3>
+                        <h3>🏢 name 公司 (<span id="companiesCount">0</span>)</h3>
                         <ul class="result-list" id="companiesList"></ul>
                     </div>
 
@@ -411,7 +411,7 @@
                     </div>
 
                     <div class="result-category" id="githubUrlsResult" style="display: none;">
-                        <h3>🐙 GitHub链接 (<span id="githubUrlsCount">0</span>)</h3>
+                        <h3>🐙 link GitHub (<span id="githubUrlsCount">0</span>)</h3>
                         <ul class="result-list" id="githubUrlsList"></ul>
                     </div>
 
@@ -421,7 +421,7 @@
                     </div>
 
                     <div class="result-category" id="basicAuthResult" style="display: none;">
-                        <h3>🔒 基础认证 (<span id="basicAuthCount">0</span>)</h3>
+                        <h3>🔒 basic 认证 (<span id="basicAuthCount">0</span>)</h3>
                         <ul class="result-list" id="basicAuthList"></ul>
                     </div>
 
@@ -436,12 +436,12 @@
                     </div>
 
                     <div class="result-category" id="awsKeysResult" style="display: none;">
-                        <h3>☁️ AWS密钥 (<span id="awsKeysCount">0</span>)</h3>
+                        <h3>☁️ key AWS (<span id="awsKeysCount">0</span>)</h3>
                         <ul class="result-list" id="awsKeysList"></ul>
                     </div>
 
                     <div class="result-category" id="googleApiKeysResult" style="display: none;">
-                        <h3>🔍 Google API密钥 (<span id="googleApiKeysCount">0</span>)</h3>
+                        <h3>🔍 Google API key (<span id="googleApiKeysCount">0</span>)</h3>
                         <ul class="result-list" id="googleApiKeysList"></ul>
                     </div>
 
@@ -461,42 +461,42 @@
                     </div>
 
                     <div class="result-category" id="idCardsResult" style="display: none;">
-                        <h3>🆔 身份证号 (<span id="idCardsCount">0</span>)</h3>
+                        <h3>🆔 ID card 号 (<span id="idCardsCount">0</span>)</h3>
                         <ul class="result-list" id="idCardsList"></ul>
                     </div>
 
                     <div class="result-category" id="cryptoUsageResult" style="display: none;">
-                        <h3>🔐 加密使用 (<span id="cryptoUsageCount">0</span>)</h3>
+                        <h3>🔐 use 加密 (<span id="cryptoUsageCount">0</span>)</h3>
                         <ul class="result-list" id="cryptoUsageList"></ul>
                     </div>
                 </div>
 
                 <div class="log-section" id="logSection">
-                    <div class="log-entry info">深度扫描日志将在这里显示...</div>
+                    <div class="log-entry info">deep scan log display 将在这里...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 导出弹窗（保留原结构与按钮类） -->
+    <!-- export 弹窗（button structure class 保留原与） -->
     <div id="exportModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>选择导出格式</h3>
+                <h3>export select format</h3>
                 <span class="close" id="closeExportModal">&times;</span>
             </div>
             <div class="modal-body">
-                <p>请选择要导出的格式：</p>
+                <p>please select export format of 要：</p>
                 <div class="export-options">
                     <button class="btn btn-primary export-option" id="exportJSON">
                         <span class="icon">📄</span>
-                        <span class="text">导出为 JSON</span>
-                        <span class="desc">完整的结构化数据</span>
+                        <span class="text">export as JSON</span>
+                        <span class="desc">data structure of 完整化</span>
                     </button>
                     <button class="btn btn-secondary export-option" id="exportXLS">
                         <span class="icon">📊</span>
-                        <span class="text">导出为 Excel</span>
-                        <span class="desc">按分类分页的表格数据</span>
+                        <span class="text">export as Excel</span>
+                        <span class="desc">data page(s) class of by 分分表格</span>
                     </button>
                 </div>
             </div>
@@ -504,7 +504,7 @@
     </div>
 
     <style>
-        /* 弹窗样式（保留原有交互） */
+        /* 弹窗样式（has 保留原交互） */
         .modal {
             position: fixed;
             z-index: 10000;
@@ -550,7 +550,7 @@
         .export-option .desc { font-size: 12px; opacity: 0.8; color: #fff; margin-left: auto; }
     </style>
 
-    <!-- 脚本依赖保持不变 -->
+    <!-- script 依赖保持不变 -->
     <script src="src/core/IndexedDBManager.js"></script>
     <script src="filters/id-card-filter.js"></script>
     <script src="src/utils/SettingsManager.js"></script>
@@ -563,7 +563,7 @@
 
     </style>
 
-    <!-- 脚本依赖保持不变 -->
+    <!-- script 依赖保持不变 -->
     <script src="filters/id-card-filter.js"></script>
     <script src="src/utils/SettingsManager.js"></script>
     <script src="src/scanner/PatternExtractor.js"></script>
@@ -575,7 +575,7 @@
 </div>
 
     <style>
-        /* 弹窗样式（保留原有交互） */
+        /* 弹窗样式（has 保留原交互） */
         .modal {
             position: fixed;
             z-index: 10000;
@@ -621,7 +621,7 @@
         .export-option .desc { font-size: 12px; opacity: 0.8; color: #fff; margin-left: auto; }
     </style>
 
-    <!-- 脚本依赖保持不变 -->
+    <!-- script 依赖保持不变 -->
     <script src="filters/id-card-filter.js"></script>
     <script src="src/utils/SettingsManager.js"></script>
     <script src="src/scanner/PatternExtractor.js"></script>

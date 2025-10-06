@@ -1,30 +1,30 @@
-// 离屏文档脚本 - 用于处理需要完整Web API的网络请求
+// documentation script 离屏 - process for 需要完整Web API request network of
 
-//console.log('🔧 离屏文档已加载');
+//console.log('🔧 documentation load 离屏已');
 
-// 监听来自后台脚本的消息
+// script listen background of from 自消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    //console.log('🔧 离屏文档收到消息:', request.action);
+    //console.log('🔧 documentation to 离屏收消息:', request.action);
     
     if (request.action === 'makeRequestWithCookie') {
         handleRequestWithCustomHeaders(request.url, request.options, request.customHeaders)
             .then(response => {
-                //console.log('🔧 离屏文档请求完成:', response.status);
+                //console.log('🔧 complete documentation request 离屏:', response.status);
                 sendResponse({ success: true, data: response });
             })
             .catch(error => {
-                console.error('🔧 离屏文档请求失败:', error);
+                console.error('🔧 failed documentation request 离屏:', error);
                 sendResponse({ success: false, error: error.message });
             });
-        return true; // 保持消息通道开放
+        return true; // on 保持消息通道放
     }
 });
 
-// 在离屏文档中处理带自定义请求头的请求
+// custom documentation process request request in of with 在离屏头
 async function handleRequestWithCustomHeaders(url, options = {}, customHeaders = []) {
     try {
-        //console.log(`📋 离屏文档发送请求: ${url}`);
-        //console.log(`📋 使用自定义请求头:`, customHeaders);
+        //console.log(`📋 documentation request send 离屏: ${url}`);
+        //console.log(`📋 custom request use 头:`, customHeaders);
         
         const fetchOptions = {
             method: options.method || 'GET',
@@ -34,42 +34,42 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
                 'Cache-Control': 'no-cache',
                 ...options.headers
             },
-            credentials: 'include', // 重要：包含Cookie
+            credentials: 'include', // 重要：contains Cookie
             ...options
         };
         
-        // 应用自定义请求头
+        // custom request 应用头
         if (customHeaders && customHeaders.length > 0) {
             for (const header of customHeaders) {
                 if (header.key && header.value) {
                     fetchOptions.headers[header.key] = header.value;
-                    //console.log(`📋 已设置请求头: ${header.key} = ${header.value.substring(0, 50)}${header.value.length > 50 ? '...' : ''}`);
+                    //console.log(`📋 settings request 已头: ${header.key} = ${header.value.substring(0, 50)}${header.value.length > 50 ? '...' : ''}`);
                     
-                    // 如果是Cookie请求头，尝试通过document.cookie设置（如果是同域请求）
+                    // request if yes Cookie头，settings via 尝试document.cookie（request if yes 同域）
                     if (header.key.toLowerCase() === 'cookie') {
                         try {
                             const urlObj = new URL(url);
                             if (urlObj.origin === window.location.origin) {
-                                // 解析Cookie字符串并设置到document.cookie
+                                // parse settings characters to Cookie串并document.cookie
                                 const cookies = header.value.split(';').map(c => c.trim());
                                 for (const cookie of cookies) {
                                     if (cookie) {
                                         document.cookie = cookie;
-                                        //console.log(`🍪 已设置document.cookie: ${cookie.substring(0, 30)}...`);
+                                        //console.log(`🍪 settings 已document.cookie: ${cookie.substring(0, 30)}...`);
                                     }
                                 }
                             }
                         } catch (e) {
-                            console.warn('🍪 无法设置document.cookie:', e.message);
+                            console.warn('🍪 settings 无法document.cookie:', e.message);
                         }
                     }
                 }
             }
         }
         
-        //console.log(`📋 离屏文档最终请求头:`, fetchOptions.headers);
+        //console.log(`📋 documentation request final 离屏头:`, fetchOptions.headers);
         
-        // 添加超时控制
+        // add timeout 控制
         const timeout = options.timeout || 10000;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -79,7 +79,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
         const response = await fetch(url, fetchOptions);
         clearTimeout(timeoutId);
         
-        // 使用 clone 读取原始字节长度，更准确统计响应大小
+        // use clone original length read 字节，statistics response 更准确大小
         let sizeBytes = 0;
         try {
             const respClone = response.clone();
@@ -90,7 +90,7 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
         }
         const text = await response.text();
         
-        //console.log(`✅ 离屏文档请求完成: ${response.status} ${response.statusText}`);
+        //console.log(`✅ complete documentation request 离屏: ${response.status} ${response.statusText}`);
         
         return {
             status: response.status,
@@ -103,9 +103,9 @@ async function handleRequestWithCustomHeaders(url, options = {}, customHeaders =
         
     } catch (error) {
         if (error.name === 'AbortError') {
-            throw new Error(`请求超时 (${options.timeout || 10000}ms)`);
+            throw new Error(`request timeout (${options.timeout || 10000}ms)`);
         }
-        console.error(`❌ 离屏文档请求失败: ${error.message}`);
+        console.error(`❌ failed documentation request 离屏: ${error.message}`);
         throw error;
     }
 }
