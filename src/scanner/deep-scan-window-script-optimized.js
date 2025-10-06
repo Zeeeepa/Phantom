@@ -1,11 +1,11 @@
 // ==========================================================
-// 深度扫描窗口脚本（性能优化版本）
-// 减少日志记录、优化DOM操作、控制并发数
+// 深度Scan窗口Script（性能优化版本）
+// 减少日志Record、优化DOM操作、控制And发数
 // ==========================================================
 
-//console.log('🚀 [DEBUG] 深度扫描窗口脚本（性能优化版本）开始加载...');
+//console.log('🚀 [DEBUG] 深度Scan窗口Script（性能优化版本）StartLoad...');
 
-// -------------------- 全局变量 --------------------
+// -------------------- 全局Variable --------------------
 let scanConfig         = null;
 let scanResults        = {};
 let isScanRunning      = false;
@@ -15,63 +15,63 @@ let scannedUrls        = new Set();
 let pendingUrls        = new Set();
 let urlContentCache    = new Map();
 let activeRequests     = 0;
-let maxConcurrency     = 3; // 🚀 减少并发数
-let requestTimeout     = 3000; // 🚀 减少超时时间
+let maxConcurrency     = 3; // 🚀 减少And发数
+let requestTimeout     = 3000; // 🚀 减少超时Time
 
-// 日志相关变量 - 优化版本
+// 日志RelatedVariable - 优化版本
 let logEntries         = [];
 let maxLogEntries      = 50; // 🚀 大幅减少日志条目
 let logBuffer          = [];
 let logFlushTimer      = null;
-const LOG_FLUSH_INTERVAL = 1000; // 🚀 1秒批量刷新日志
+const LOG_FLUSH_INTERVAL = 1000; // 🚀 1秒Batch刷新日志
 
-// 筛选器实例
+// Filter器实例
 let apiFilter          = null;
 let domainPhoneFilter  = null;
 let filtersLoaded      = false;
 let patternExtractor   = null;
 
-// 性能优化相关变量
+// 性能优化RelatedVariable
 let updateQueue        = [];
 let isUpdating         = false;
 let lastUpdateTime     = 0;
-const UPDATE_THROTTLE  = 500; // 🚀 500ms节流，大幅减少更新频率
+const UPDATE_THROTTLE  = 500; // 🚀 500ms节流，大幅减少Update频率
 let pendingResults     = {};
-let batchSize          = 20; // 🚀 增加批量处理大小
+let batchSize          = 20; // 🚀 增加BatchProcess大小
 let updateTimer        = null;
 let displayUpdateCount = 0;
 
-// 🚀 内存管理相关变量
+// 🚀 内存管理RelatedVariable
 let memoryCleanupTimer = null;
-const MEMORY_CLEANUP_INTERVAL = 30000; // 30秒清理一次内存
+const MEMORY_CLEANUP_INTERVAL = 30000; // 30 secondsClean一次内存
 
-// -------------------- 性能优化工具函数 --------------------
+// -------------------- 性能优化工具Function --------------------
 
-// 🚀 内存清理函数
+// 🚀 内存CleanFunction
 function performMemoryCleanup() {
-    //console.log('🧹 执行内存清理...');
+    //console.log('🧹 Execute内存Clean...');
     
-    // 清理URL内容缓存，只保留最近的30个
+    // CleanURLContent缓存，Only保留最近的30个
     if (urlContentCache.size > 30) {
         const entries = Array.from(urlContentCache.entries());
         const toKeep = entries.slice(-30);
         urlContentCache.clear();
         toKeep.forEach(([key, value]) => urlContentCache.set(key, value));
-        //console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
+        //console.log(`🧹 CleanURL缓存，保留 ${toKeep.length} 个条目`);
     }
     
-    // 清理日志缓冲区
+    // Clean日志缓冲区
     if (logBuffer && logBuffer.length > 0) {
         flushLogBuffer();
     }
     
-    // 强制垃圾回收（如果可用）
+    // 强制垃圾回收（如果Available）
     if (window.gc) {
         window.gc();
     }
 }
 
-// 启动内存清理定时器
+// Start内存Clean定时器
 function startMemoryCleanup() {
     if (memoryCleanupTimer) {
         clearInterval(memoryCleanupTimer);
@@ -79,7 +79,7 @@ function startMemoryCleanup() {
     memoryCleanupTimer = setInterval(performMemoryCleanup, MEMORY_CLEANUP_INTERVAL);
 }
 
-// 停止内存清理定时器
+// 停止内存Clean定时器
 function stopMemoryCleanup() {
     if (memoryCleanupTimer) {
         clearInterval(memoryCleanupTimer);
@@ -87,33 +87,33 @@ function stopMemoryCleanup() {
     }
 }
 
-// 🚀 优化的日志添加函数 - 大幅减少日志记录
+// 🚀 优化的日志AddFunction - 大幅减少日志Record
 function addLogEntry(message, type = 'info') {
-    // 🚀 只记录关键日志，过滤掉大部分信息日志
+    // 🚀 OnlyRecord关Key日志，Filter掉大部分Information日志
     if (type === 'info' && (
-        message.includes('正在扫描:') || 
-        message.includes('成功获取内容') ||
-        message.includes('未发现新数据') ||
-        message.includes('跳过非文本内容') ||
-        message.includes('允许子域名') ||
-        message.includes('允许所有域名') ||
-        message.includes('发现') ||
-        message.includes('提取到')
+        message.includes('In progressScan:') || 
+        message.includes('SuccessGetContent') ||
+        message.includes('NotFound新Data') ||
+        message.includes('跳过非文本Content') ||
+        message.includes('允许子Domain') ||
+        message.includes('允许所有Domain') ||
+        message.includes('Found') ||
+        message.includes('Extract到')
     )) {
-        return; // 跳过这些频繁的信息日志
+        return; // 跳过This些频繁的Information日志
     }
     
     if (!logEntries) {
         logEntries = [];
     }
     
-    // 添加到缓冲区
+    // Add到缓冲区
     if (!logBuffer) {
         logBuffer = [];
     }
     logBuffer.push({ message, type, time: new Date().toLocaleTimeString() });
     
-    // 批量刷新日志
+    // Batch刷新日志
     if (!logFlushTimer) {
         logFlushTimer = setTimeout(() => {
             flushLogBuffer();
@@ -122,11 +122,11 @@ function addLogEntry(message, type = 'info') {
     }
 }
 
-// 批量刷新日志缓冲区
+// Batch刷新日志缓冲区
 function flushLogBuffer() {
     if (!logBuffer || logBuffer.length === 0) return;
     
-    // 将缓冲区内容添加到主日志数组
+    // 将缓冲区ContentAdd到主日志数Group
     logEntries.push(...logBuffer);
     logBuffer = [];
     
@@ -135,25 +135,25 @@ function flushLogBuffer() {
         logEntries = logEntries.slice(-maxLogEntries);
     }
     
-    // 更新显示
+    // UpdateDisplay
     updateLogDisplay();
 }
 
-// 🚀 优化的日志显示函数
+// 🚀 优化的日志DisplayFunction
 function updateLogDisplay() {
     const logSection = document.getElementById('logSection');
     if (!logSection || !logEntries) return;
     
-    // 只显示最近的20条日志
+    // OnlyDisplay最近的20条日志
     const recentLogs = logEntries.slice(-20);
     
-    // 检查是否需要更新
+    // Check是否NeedUpdate
     const currentLogCount = logSection.children.length;
     if (currentLogCount === recentLogs.length) {
         return;
     }
     
-    // 使用requestAnimationFrame优化DOM更新
+    // 使用requestAnimationFrame优化DOMUpdate
     requestAnimationFrame(() => {
         const fragment = document.createDocumentFragment();
         recentLogs.forEach(log => {
@@ -169,7 +169,7 @@ function updateLogDisplay() {
     });
 }
 
-// 🚀 节流的显示更新函数
+// 🚀 节流的DisplayUpdateFunction
 function throttledUpdateDisplay() {
     const now = Date.now();
     if (now - lastUpdateTime < UPDATE_THROTTLE) {
@@ -182,7 +182,7 @@ function throttledUpdateDisplay() {
     });
 }
 
-// -------------------- 工具函数 --------------------
+// -------------------- 工具Function --------------------
 
 function convertRelativeToAbsolute(relativePath) {
     try {
@@ -211,12 +211,12 @@ function resolveUrl(url, baseUrl) {
     }
 }
 
-// -------------------- 主要扫描函数 --------------------
+// -------------------- 主要ScanFunction --------------------
 
-// 🚀 优化的扫描函数
+// 🚀 优化的ScanFunction
 async function startScan() {
     if (isScanRunning) {
-        //console.log('扫描已在运行中');
+        //console.log('ScanAlready在运行中');
         return;
     }
 
@@ -224,15 +224,15 @@ async function startScan() {
     isPaused = false;
     
     try {
-        //console.log('🚀 开始深度扫描...');
-        addLogEntry('🚀 开始深度扫描', 'success');
+        //console.log('🚀 Start深度Scan...');
+        addLogEntry('🚀 Start深度Scan', 'success');
         
-        // 🚀 启动内存清理
+        // 🚀 Start内存Clean
         startMemoryCleanup();
         
         updateButtonStates();
         
-        // 加载配置和初始化
+        // LoadConfigurationAndInitialize
         await loadScanConfig();
         await loadFilters();
         
@@ -240,28 +240,28 @@ async function startScan() {
         const initialUrls = await collectInitialUrls();
         
         if (initialUrls.length === 0) {
-            addLogEntry('⚠️ 没有找到可扫描的URL', 'warning');
+            addLogEntry('⚠️ NoFound可Scan的URL', 'warning');
             return;
         }
         
-        addLogEntry(`📋 收集到 ${initialUrls.length} 个初始扫描URL`, 'success');
+        addLogEntry(`📋 收集到 ${initialUrls.length} 个初始ScanURL`, 'success');
         
-        // 开始分层扫描
+        // Start分层Scan
         let currentUrls = initialUrls;
         
         for (let depth = 1; depth <= scanConfig.maxDepth && isScanRunning; depth++) {
             currentDepth = depth;
-            //console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
-            addLogEntry(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`, 'success');
+            //console.log(`🔍 Start第 ${depth} 层Scan，URL数量: ${currentUrls.length}`);
+            addLogEntry(`🔍 Start第 ${depth} 层Scan，URL数量: ${currentUrls.length}`, 'success');
             
-            // 🚀 优化的批量扫描
+            // 🚀 优化的BatchScan
             const newUrls = await scanUrlBatchOptimized(currentUrls, depth);
             currentUrls = newUrls;
             
-            //console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
-            addLogEntry(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`, 'success');
+            //console.log(`✅ 第 ${depth} 层Scan completed，Found新URL: ${currentUrls.length} 个`);
+            addLogEntry(`✅ 第 ${depth} 层Scan completed，Found新URL: ${currentUrls.length} 个`, 'success');
             
-            // 🚀 每层扫描后强制更新显示
+            // 🚀 Every层ScanAfter强制UpdateDisplay
             displayResults();
             
             if (currentUrls.length === 0) {
@@ -272,17 +272,17 @@ async function startScan() {
         await completeScan();
         
     } catch (error) {
-        console.error('❌ 扫描失败:', error);
-        addLogEntry(`❌ 扫描失败: ${error.message}`, 'error');
+        console.error('❌ ScanFailed:', error);
+        addLogEntry(`❌ ScanFailed: ${error.message}`, 'error');
     } finally {
         isScanRunning = false;
         updateButtonStates();
-        // 🚀 停止内存清理
+        // 🚀 停止内存Clean
         stopMemoryCleanup();
     }
 }
 
-// 🚀 优化的批量扫描函数
+// 🚀 优化的BatchScanFunction
 async function scanUrlBatchOptimized(urls, depth) {
     const newUrls = new Set();
     const activeWorkers = new Set();
@@ -302,15 +302,15 @@ async function scanUrlBatchOptimized(urls, depth) {
             
             const workerPromise = (async () => {
                 try {
-                    // 🚀 移除频繁的扫描日志
+                    // 🚀 Remove频繁的Scan日志
                     const content = await fetchUrlContent(url);
                     
                     if (content) {
-                        // 提取数据
+                        // ExtractData
                         const extractedData = await extractDataFromContent(content, scanConfig.baseUrl);
                         const hasNewData = addToScanResults(extractedData);
                         
-                        // 🚀 减少显示更新频率，每20个URL更新一次
+                        // 🚀 减少DisplayUpdate频率，Every20个URLUpdate一次
                         if (hasNewData && processedCount % 20 === 0) {
                             throttledUpdateDisplay();
                         }
@@ -320,13 +320,13 @@ async function scanUrlBatchOptimized(urls, depth) {
                         discoveredUrls.forEach(newUrl => newUrls.add(newUrl));
                     }
                 } catch (error) {
-                    console.error(`扫描 ${url} 失败:`, error);
-                    addLogEntry(`❌ 扫描失败: ${url} - ${error.message}`, 'error');
+                    console.error(`Scan ${url} Failed:`, error);
+                    addLogEntry(`❌ ScanFailed: ${url} - ${error.message}`, 'error');
                 } finally {
                     processedCount++;
-                    // 🚀 减少进度更新频率，每10个URL更新一次
+                    // 🚀 减少进度Update频率，Every10个URLUpdate一次
                     if (processedCount % 10 === 0 || processedCount === totalUrls) {
-                        updateProgressDisplay(processedCount, totalUrls, `第 ${depth} 层扫描`);
+                        updateProgressDisplay(processedCount, totalUrls, `第 ${depth} 层Scan`);
                     }
                     activeWorkers.delete(workerPromise);
                 }
@@ -334,21 +334,21 @@ async function scanUrlBatchOptimized(urls, depth) {
             
             activeWorkers.add(workerPromise);
             
-            // 🚀 控制并发数并添加延迟
+            // 🚀 控制And发数AndAdd延迟
             if (activeWorkers.size >= maxConcurrency) {
                 await Promise.race(Array.from(activeWorkers));
             }
             
-            // 🚀 添加延迟，避免过快请求
+            // 🚀 Add延迟，避免过快Request
             if (i % maxConcurrency === 0 && i > 0) {
-                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms延迟
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
             }
         }
     };
     
     await processQueue();
     
-    // 等待所有工作完成
+    // 等Pending所有工作Complete
     if (activeWorkers.size > 0) {
         await Promise.all(Array.from(activeWorkers));
     }
@@ -356,7 +356,7 @@ async function scanUrlBatchOptimized(urls, depth) {
     return Array.from(newUrls);
 }
 
-// 其他必要的函数（简化版本）...
-// 这里需要包含其他必要的函数，但都经过性能优化
+// 其他必要的Function（简化版本）...
+// HereNeed包含其他必要的Function，但都经过性能优化
 
-//console.log('✅ 深度扫描窗口脚本（性能优化版本）加载完成');
+//console.log('✅ 深度Scan窗口Script（性能优化版本）Loading complete');

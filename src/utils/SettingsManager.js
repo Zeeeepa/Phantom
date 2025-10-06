@@ -1,31 +1,31 @@
 /**
- * 设置管理器
- * 负责管理Cookie设置和正则表达式配置
+ * Settings管理器
+ * 负责管理CookieSettingsAndRegular expressionConfiguration
  */
 class SettingsManager {
     constructor() {
         this.defaultRegexPatterns = {
-            // 绝对路径API
+            // Absolute pathAPI
             absoluteApi: [
                 '(?<![\\w/\\\\.-])(?:/[\\w.-]+(?:/[\\w.-]+)+|/[\\w.-]+\\.\\w+|[a-zA-Z]:[/\\\\][\\w\\s.-]+(?:[/\\\\][\\w\\s.-]+)+|\\\\\\\\[\\w.-]+(?:[/\\\\][\\w.-]+)+)(?![\\w/\\\\])'
             ].join('|'),
             
-            // 相对路径API
+            // Relative pathAPI
             relativeApi: [
                 '(?<![\\w/\\\\-])(?:\\.{1,2}/)+(?:[^/ \\t\\r\\n<>|"\\\']+/)*[^/ \\t\\r\\n<>|"\\\']*(?![\\w/\\\\])'
             ].join('|'),
             
-            // 域名和URL
+            // DomainAndURL
             domain: [
-                '(?<!\\w)(?:[a-zA-Z0-9-]{2,}\\.)+(?:xin|com|cn|net|com\\.cn|vip|top|cc|shop|club|wang|xyz|luxe|site|news|pub|fun|online|win|red|loan|ren|mom|net\\.cn|org|link|biz|bid|help|tech|date|mobi|so|me|tv|co|vc|pw|video|party|pics|website|store|ltd|ink|trade|live|wiki|space|gift|lol|work|band|info|click|photo|market|tel|social|press|game|kim|org\\.cn|games|pro|men|love|studio|rocks|asia|group|science|design|software|engineer|lawyer|fit|beer|tw|我爱你|中国|公司|网络|在线|网址|网店|集团|中文网)(?=\\b|(?::\\d{1,5})?(?:\\/|$))(?![.\\w])'
+                '(?<!\\w)(?:[a-zA-Z0-9-]{2,}\\.)+(?:xin|com|cn|net|com\\.cn|vip|top|cc|shop|club|wang|xyz|luxe|site|news|pub|fun|online|win|red|loan|ren|mom|net\\.cn|org|link|biz|bid|help|tech|date|mobi|so|me|tv|co|vc|pw|video|party|pics|website|store|ltd|ink|trade|live|wiki|space|gift|lol|work|band|info|click|photo|market|tel|social|press|game|kim|org\\.cn|games|pro|men|love|studio|rocks|asia|group|science|design|software|engineer|lawyer|fit|beer|tw|我爱你|China|公司|Network|在线|网址|网店|集团|中文网)(?=\\b|(?::\\d{1,5})?(?:\\/|$))(?![.\\w])'
             ].join('|'),
             
-            // 邮箱地址（排除静态资源域名）
+            // 邮箱地址（排除静态ResourceDomain）
             email: [
                 '([a-zA-Z0-9\\._\\-]*@[a-zA-Z0-9\\._\\-]{1,63}\\.((?!js|css|jpg|jpeg|png|ico)[a-zA-Z]{2,}))'
             ].join('|'),
             
-            // 中国大陆手机号
+            // China大陆手机号
             phone: [
                 '(?<!\\d)1(?:3\\d{2}|4[14-9]\\d|5\\d{2}|66\\d|7[2-35-8]\\d|8\\d{2}|9[89]\\d)\\d{7}(?!\\d)'
             ].join('|'),
@@ -97,14 +97,14 @@ class SettingsManager {
                 'https:\\/\\/hooks\\.slack\\.com\\/services\\/[a-zA-Z0-9\\-_]{6,12}\\/[a-zA-Z0-9\\-_]{6,12}\\/[a-zA-Z0-9\\-_]{15,24}'
             ].join('|'),
             
-            // 加密算法调用检测
+            // Encryption算法调用Detect
             cryptoUsage: [
                 '\\b(?:CryptoJS\\.(?:AES|DES)|Base64\\.(?:encode|decode)|btoa|atob|JSEncrypt|rsa|KJUR|\\$\\.md5|md5|sha1|sha256|sha512)(?:\\.\\w+)*\\s*\\([^)]*\\)'
             ].join('|'),
             
-            // 敏感信息（综合模式）
+            // 敏感Information（综合Pattern）
             sensitive: [
-                // GitHub 各类 Token
+                // GitHub 各Class Token
                 'github[_-]?token["\']?[^\\S\\r\\n]*[=:][^\\S\\r\\n]*["\']?[\\w-]+["\']?',
                 'github[_-]?oauth[_-]?token["\']?[^\\S\\r\\n]*[=:][^\\S\\r\\n]*["\']?[\\w-]+["\']?',
                 'github[_-]?api[_-]?token["\']?[^\\S\\r\\n]*[=:][^\\S\\r\\n]*["\']?[\\w-]+["\']?',
@@ -144,22 +144,22 @@ class SettingsManager {
                 'https?://github\\.com/[a-zA-Z0-9_\\-\\.]+/[a-zA-Z0-9_\\-\\.]+'
             ].join('|'),
             
-            // Vue文件
+            // VueFile
             vue: [
                 '["\'][^"\']*\\.vue["\']'
             ].join('|'),
             
             // 公司名称
             company: [
-            // 中文公司名称模式
+            // 中文公司名称Pattern
             '(?:[\\u4e00-\\u9fa5\\（\\）]{4,15}(?:公司|中心))',
             '(?:[\\u4e00-\\u9fa5]{2,15}(?:软件|科技|集团))',
     
-            // 英文公司名称模式（新增）
+            // 英文公司名称Pattern（新增）
             '[A-Z][a-zA-Z\\s]{2,30}(?:Inc|Corp|LLC|Ltd|Company|Group|Technology|Systems)',
     
-            // 扩展的中文公司类型（新增）
-            '(?:公司|集团|企业|有限责任公司|股份有限公司|科技|网络|信息|技术)[\\u4e00-\\u9fa5]{2,20}(?:公司|集团|企业|有限责任公司|股份有限公司)'
+            // Extension的中文公司Type（新增）
+            '(?:公司|集团|企业|有限责任公司|股份有限公司|科技|Network|Information|Technical)[\\u4e00-\\u9fa5]{2,20}(?:公司|集团|企业|有限责任公司|股份有限公司)'
             ].join('|'),
             
             // 注释
@@ -174,7 +174,7 @@ class SettingsManager {
     }
 
     /**
-     * 初始化设置管理器
+     * InitializeSettings管理器
      */
     init() {
         this.bindEvents();
@@ -182,42 +182,42 @@ class SettingsManager {
     }
 
     /**
-     * 绑定事件监听器
+     * 绑定事件Listen器
      */
     bindEvents() {
-        // 请求头相关按钮
+        // Request headerRelated按钮
         document.getElementById('addHeaderBtn')?.addEventListener('click', () => this.addHeaderInput());
         document.getElementById('getCookieBtn')?.addEventListener('click', () => this.getCurrentCookie());
         document.getElementById('saveHeadersBtn')?.addEventListener('click', () => this.saveHeaders());
         document.getElementById('clearHeadersBtn')?.addEventListener('click', () => this.clearHeaders());
         
-        // 正则配置相关按钮
+        // 正则ConfigurationRelated按钮
         document.getElementById('saveRegexBtn')?.addEventListener('click', () => this.saveRegexConfig());
         document.getElementById('resetRegexBtn')?.addEventListener('click', () => this.resetRegexConfig());
         
-        // 数据管理按钮
+        // Data管理按钮
         document.getElementById('clearAllDataBtn')?.addEventListener('click', () => this.clearAllData());
         
-        // 域名扫描设置
+        // DomainScanSettings
         document.getElementById('allowSubdomains')?.addEventListener('change', () => this.saveDomainScanSettings());
         document.getElementById('allowAllDomains')?.addEventListener('change', () => this.saveDomainScanSettings());
     }
 
     /**
-     * 加载设置
+     * LoadSettings
      */
     async loadSettings() {
         try {
-            // 加载请求头设置
+            // LoadRequest headerSettings
             const result = await chrome.storage.local.get(['phantomHeaders', 'phantomRegexConfig', 'regexSettings', 'domainScanSettings']);
             
-            // 加载请求头配置
+            // LoadRequest headerConfiguration
             this.loadHeaders(result.phantomHeaders || []);
             
-            // 加载正则配置
+            // Load正则Configuration
             const regexConfig = result.phantomRegexConfig || this.defaultRegexPatterns;
 
-            // 如果 regexSettings 不存在，基于当前配置构建并保存，保证全链路生效
+            // 如果 regexSettings 不存在，基于CurrentConfiguration构建AndSave，保证全链路生效
             if (!result.regexSettings) {
                 const regexSettings = {
                     absoluteApis: regexConfig.absoluteApi || this.defaultRegexPatterns.absoluteApi,
@@ -232,7 +232,7 @@ class SettingsManager {
                     vueFiles: regexConfig.vue || this.defaultRegexPatterns.vue,
                     companies: regexConfig.company || this.defaultRegexPatterns.company,
                     comments: regexConfig.comment || this.defaultRegexPatterns.comment,
-                    // 扩展项
+                    // ExtensionItem
                     idCards: regexConfig.idCard || this.defaultRegexPatterns.idCard,
                     bearerTokens: regexConfig.bearerToken || this.defaultRegexPatterns.bearerToken,
                     basicAuth: regexConfig.basicAuth || this.defaultRegexPatterns.basicAuth,
@@ -246,8 +246,8 @@ class SettingsManager {
                     cryptoUsage: regexConfig.cryptoUsage || this.defaultRegexPatterns.cryptoUsage
                 };
                 await chrome.storage.local.set({ regexSettings });
-                //console.log('✅ 已构建并保存默认 regexSettings（首次初始化）');
-                // 通知其他模块配置已更新
+                //console.log('✅ Already构建AndSaveDefault regexSettings（首次Initialize）');
+                // Notify其他模块ConfigurationAlreadyUpdate
                 this.notifyConfigUpdate(regexSettings);
             }
             document.getElementById('absoluteApiRegex').value = regexConfig.absoluteApi || this.defaultRegexPatterns.absoluteApi;
@@ -263,7 +263,7 @@ class SettingsManager {
             document.getElementById('companyRegex').value = regexConfig.company || this.defaultRegexPatterns.company;
             document.getElementById('commentRegex').value = regexConfig.comment || this.defaultRegexPatterns.comment;
             
-            // 新增的正则表达式输入框
+            // 新增的Regular expressionInput框
             document.getElementById('idCardRegex').value = regexConfig.idCard || this.defaultRegexPatterns.idCard;
             document.getElementById('bearerTokenRegex').value = regexConfig.bearerToken || this.defaultRegexPatterns.bearerToken;
             document.getElementById('basicAuthRegex').value = regexConfig.basicAuth || this.defaultRegexPatterns.basicAuth;
@@ -276,7 +276,7 @@ class SettingsManager {
             document.getElementById('webhookUrlsRegex').value = regexConfig.webhookUrls || this.defaultRegexPatterns.webhookUrls;
             document.getElementById('cryptoUsageRegex').value = regexConfig.cryptoUsage || this.defaultRegexPatterns.cryptoUsage;
             
-            // 加载域名扫描设置
+            // LoadDomainScanSettings
             const domainScanSettings = result.domainScanSettings || {
                 allowSubdomains: false,
                 allowAllDomains: false
@@ -293,12 +293,12 @@ class SettingsManager {
             }
             
         } catch (error) {
-            console.error('加载设置失败:', error);
+            console.error('LoadSettingsFailed:', error);
         }
     }
 
     /**
-     * 保存域名扫描设置
+     * SaveDomainScanSettings
      */
     async saveDomainScanSettings() {
         try {
@@ -310,7 +310,7 @@ class SettingsManager {
                 allowAllDomains: allowAllDomainsEl ? allowAllDomainsEl.checked : false
             };
             
-            // 互斥逻辑：如果选择了"所有域名"，则自动启用"子域名"
+            // 互斥逻辑：如果选择了"所有Domain"，则AutoEnable"子Domain"
             if (domainScanSettings.allowAllDomains && allowSubdomainsEl) {
                 allowSubdomainsEl.checked = true;
                 domainScanSettings.allowSubdomains = true;
@@ -318,36 +318,36 @@ class SettingsManager {
             
             await chrome.storage.local.set({ domainScanSettings });
             
-            let message = '域名扫描设置已保存！';
+            let message = 'DomainScanSettingsSaved！';
             if (domainScanSettings.allowAllDomains) {
-                message += ' 已启用所有域名扫描（包含子域名）';
+                message += ' AlreadyEnable所有DomainScan（包含子Domain）';
             } else if (domainScanSettings.allowSubdomains) {
-                message += ' 已启用子域名扫描';
+                message += ' AlreadyEnable子DomainScan';
             } else {
-                message += ' 已限制为同域名扫描';
+                message += ' Already限制为同DomainScan';
             }
             
             this.showMessage(message, 'success');
             
-            // 触发事件通知其他模块
+            // 触发事件Notify其他模块
             window.dispatchEvent(new CustomEvent('domainScanSettingsUpdated', { 
                 detail: domainScanSettings 
             }));
             
         } catch (error) {
-            console.error('保存域名扫描设置失败:', error);
-            this.showMessage('保存设置失败: ' + error.message, 'error');
+            console.error('SaveDomainScanSettingsFailed:', error);
+            this.showMessage('SaveSettingsFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 获取当前网站的Cookie并添加为请求头
+     * GetCurrent网站的CookieAndAdd为Request header
      */
     async getCurrentCookie() {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                this.showMessage('无法获取当前标签页信息', 'error');
+                this.showMessage('None法GetCurrent标签页Information', 'error');
                 return;
             }
 
@@ -355,30 +355,30 @@ class SettingsManager {
             const cookies = await chrome.cookies.getAll({ domain: url.hostname });
             
             if (cookies.length === 0) {
-                this.showMessage('当前网站没有Cookie', 'warning');
+                this.showMessage('Current网站NoCookie', 'warning');
                 return;
             }
 
             const cookieString = cookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
             
-            // 添加Cookie作为请求头
+            // AddCookie作为Request header
             this.addHeaderInput('Cookie', cookieString);
-            this.showMessage('Cookie已添加为请求头', 'success');
+            this.showMessage('CookieAlreadyAdd为Request header', 'success');
             
         } catch (error) {
-            console.error('获取Cookie失败:', error);
-            this.showMessage('获取Cookie失败: ' + error.message, 'error');
+            console.error('GetCookieFailed:', error);
+            this.showMessage('GetCookieFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 保存正则表达式设置
+     * SaveRegular expressionSettings
      */
     async saveRegexSettings() {
         try {
             const regexSettings = {};
             
-            // 收集所有正则表达式设置
+            // 收集所有Regular expressionSettings
             const regexItems = document.querySelectorAll('.regex-item');
             regexItems.forEach(item => {
                 const textarea = item.querySelector('textarea');
@@ -386,27 +386,27 @@ class SettingsManager {
                 regexSettings[category] = textarea.value.trim();
             });
             
-            // 保存到Chrome存储
+            // Save到Chrome存储
             await chrome.storage.local.set({ regexSettings });
             
-            //console.log('正则表达式设置已保存:', regexSettings);
+            //console.log('Regular expressionSettingsSaved:', regexSettings);
             
-            // 通知PatternExtractor重新加载配置
+            // NotifyPatternExtractorReloadConfiguration
             if (window.patternExtractor) {
                 await window.patternExtractor.loadCustomPatterns();
-                //console.log('✅ PatternExtractor已重新加载配置');
+                //console.log('✅ PatternExtractorAlreadyReloadConfiguration');
             }
             
-            this.showMessage('正则表达式设置保存成功！配置已生效', 'success');
+            this.showMessage('Regular expressionSettingsSaveSuccess！ConfigurationAlready生效', 'success');
             
         } catch (error) {
-            console.error('保存正则表达式设置失败:', error);
-            this.showMessage('保存正则表达式设置失败: ' + error.message, 'error');
+            console.error('SaveRegular expressionSettingsFailed:', error);
+            this.showMessage('SaveRegular expressionSettingsFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 保存正则配置
+     * Save正则Configuration
      */
     async saveRegexConfig() {
         try {
@@ -437,19 +437,19 @@ class SettingsManager {
                 cryptoUsage: document.getElementById('cryptoUsageRegex').value.trim()
             };
 
-            // 验证正则表达式
+            // ValidateRegular expression
             for (const [key, pattern] of Object.entries(regexConfig)) {
                 if (pattern) {
                     try {
                         new RegExp(pattern, 'gi');
                     } catch (e) {
-                        this.showMessage(`${key}正则表达式格式错误: ${e.message}`, 'error');
+                        this.showMessage(`${key} regular expression format is incorrect: ${e.message}`, 'error');
                         return;
                     }
                 }
             }
 
-            // 转换为PatternExtractor期望的格式
+            // Convert为PatternExtractor期望的Format
             const regexSettings = {
                 absoluteApis: regexConfig.absoluteApi || this.defaultRegexPatterns.absoluteApi,
                 relativeApis: regexConfig.relativeApi || this.defaultRegexPatterns.relativeApi,
@@ -463,7 +463,7 @@ class SettingsManager {
                 vueFiles: regexConfig.vue || this.defaultRegexPatterns.vue,
                 companies: regexConfig.company || this.defaultRegexPatterns.company,
                 comments: regexConfig.comment || this.defaultRegexPatterns.comment,
-                // 新增的正则表达式配置映射
+                // 新增的Regular expressionConfiguration映射
                 idCards: regexConfig.idCard || this.defaultRegexPatterns.idCard,
                 bearerTokens: regexConfig.bearerToken || this.defaultRegexPatterns.bearerToken,
                 basicAuth: regexConfig.basicAuth || this.defaultRegexPatterns.basicAuth,
@@ -477,31 +477,31 @@ class SettingsManager {
                 cryptoUsage: regexConfig.cryptoUsage || this.defaultRegexPatterns.cryptoUsage
             };
 
-            // 同时保存两种格式以保持兼容性
+            // 同时Save两种Format以保持兼容性
             await chrome.storage.local.set({ 
                 phantomRegexConfig: regexConfig,
                 regexSettings: regexSettings
             });
             
-            //console.log('✅ 正则配置已保存:', { regexConfig, regexSettings });
+            //console.log('✅ 正则ConfigurationSaved:', { regexConfig, regexSettings });
             
-            this.showMessage('正则配置保存成功', 'success');
+            this.showMessage('正则ConfigurationSaveSuccess', 'success');
             
-            // 通知其他模块配置已更新
+            // Notify其他模块ConfigurationAlreadyUpdate
             this.notifyConfigUpdate(regexSettings);
             
         } catch (error) {
-            console.error('保存正则配置失败:', error);
-            this.showMessage('保存正则配置失败: ' + error.message, 'error');
+            console.error('Save正则ConfigurationFailed:', error);
+            this.showMessage('Save正则ConfigurationFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 重置正则配置为默认值
+     * Reset正则Configuration为Default值
      */
     async resetRegexConfig() {
         try {
-            // 检查并设置绝对路径和相对路径API正则
+            // CheckAndSettingsAbsolute pathAndRelative pathAPI正则
             const absoluteApiRegex = document.getElementById('absoluteApiRegex');
             const relativeApiRegex = document.getElementById('relativeApiRegex');
             
@@ -512,7 +512,7 @@ class SettingsManager {
                 relativeApiRegex.value = this.defaultRegexPatterns.relativeApi;
             }
             
-            // 检查并设置其他正则表达式输入框
+            // CheckAndSettings其他Regular expressionInput框
             const regexElements = [
                 { id: 'domainRegex', pattern: 'domain' },
                 { id: 'emailRegex', pattern: 'email' },
@@ -544,7 +544,7 @@ class SettingsManager {
                 }
             });
             
-            // 转换为PatternExtractor期望的格式
+            // Convert为PatternExtractor期望的Format
             const regexSettings = {
                 absoluteApis: this.defaultRegexPatterns.absoluteApi,
                 relativeApis: this.defaultRegexPatterns.relativeApi,
@@ -558,7 +558,7 @@ class SettingsManager {
                 vueFiles: this.defaultRegexPatterns.vue,
                 companies: this.defaultRegexPatterns.company,
                 comments: this.defaultRegexPatterns.comment,
-                // 新增的正则表达式配置映射
+                // 新增的Regular expressionConfiguration映射
                 idCards: this.defaultRegexPatterns.idCard,
                 bearerTokens: this.defaultRegexPatterns.bearerToken,
                 basicAuth: this.defaultRegexPatterns.basicAuth,
@@ -572,60 +572,60 @@ class SettingsManager {
                 cryptoUsage: this.defaultRegexPatterns.cryptoUsage
             };
             
-            // 同时保存两种格式
+            // 同时Save两种Format
             await chrome.storage.local.set({ 
                 phantomRegexConfig: this.defaultRegexPatterns,
                 regexSettings: regexSettings
             });
             
-            //console.log('✅ 正则配置已重置为默认值:', { regexSettings });
+            //console.log('✅ 正则ConfigurationAlreadyReset为Default值:', { regexSettings });
             
-            this.showMessage('正则配置已重置为默认值', 'success');
+            this.showMessage('正则ConfigurationAlreadyReset为Default值', 'success');
             
-            // 通知其他模块配置已更新
+            // Notify其他模块ConfigurationAlreadyUpdate
             this.notifyConfigUpdate(regexSettings);
             
         } catch (error) {
-            console.error('重置正则配置失败:', error);
-            this.showMessage('重置正则配置失败: ' + error.message, 'error');
+            console.error('Reset正则ConfigurationFailed:', error);
+            this.showMessage('Reset正则ConfigurationFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 通知其他模块配置已更新 - 统一化版本
+     * Notify其他模块ConfigurationAlreadyUpdate - Unified化版本
      */
     notifyConfigUpdate(regexSettings) {
-        //console.log('🔄 [SettingsManager] 开始通知其他模块配置已更新:', regexSettings);
+        //console.log('🔄 [SettingsManager] StartNotify其他模块ConfigurationAlreadyUpdate:', regexSettings);
         
-        // 强制重新加载PatternExtractor配置
+        // 强制ReloadPatternExtractorConfiguration
         if (window.patternExtractor) {
-            //console.log('🔄 [SettingsManager] 强制重新加载PatternExtractor配置...');
+            //console.log('🔄 [SettingsManager] 强制ReloadPatternExtractorConfiguration...');
             
-            // 清除现有配置
+            // 清除现有Configuration
             window.patternExtractor.patterns = {};
             window.patternExtractor.customPatternsLoaded = false;
             
-            // 更新配置
+            // UpdateConfiguration
             if (typeof window.patternExtractor.updatePatterns === 'function') {
                 window.patternExtractor.updatePatterns(regexSettings);
-                //console.log('✅ [SettingsManager] PatternExtractor配置已强制更新');
+                //console.log('✅ [SettingsManager] PatternExtractorConfigurationAlready强制Update');
             } else {
-                console.warn('⚠️ [SettingsManager] PatternExtractor.updatePatterns方法不存在');
+                console.warn('⚠️ [SettingsManager] PatternExtractor.updatePatternsMethod不存在');
             }
         } else {
-            console.warn('⚠️ [SettingsManager] PatternExtractor未找到');
+            console.warn('⚠️ [SettingsManager] PatternExtractorNot found');
         }
         
-        // 触发全局事件，通知其他可能监听的模块
+        // 触发全局事件，Notify其他可能Listen的模块
         window.dispatchEvent(new CustomEvent('regexConfigUpdated', { 
             detail: regexSettings 
         }));
         
-        //console.log('✅ [SettingsManager] 配置更新通知完成');
+        //console.log('✅ [SettingsManager] ConfigurationUpdateNotifyComplete');
     }
 
     /**
-     * 添加请求头输入框
+     * AddRequest headerInput框
      */
     addHeaderInput(key = '', value = '') {
         const container = document.getElementById('headersContainer');
@@ -635,16 +635,16 @@ class SettingsManager {
         headerGroup.className = 'header-input-group';
         
         headerGroup.innerHTML = `
-            <input type="text" class="header-key-input" placeholder="请求头名称 (如: Authorization)" value="${key}">
-            <input type="text" class="header-value-input" placeholder="请求头值 (如: Bearer token123)" value="${value}">
-            <button class="remove-header-btn">删除</button>
+            <input type="text" class="header-key-input" placeholder="Request header名称 (如: Authorization)" value="${key}">
+            <input type="text" class="header-value-input" placeholder="Request header值 (如: Bearer token123)" value="${value}">
+            <button class="remove-header-btn">Delete</button>
         `;
         
-        // 为删除按钮添加事件监听器
+        // 为Delete按钮Add事件Listen器
         const removeBtn = headerGroup.querySelector('.remove-header-btn');
         removeBtn.addEventListener('click', () => {
             headerGroup.remove();
-            // 删除后自动保存
+            // DeleteAfterAutoSave
             this.saveHeaders();
         });
         
@@ -652,29 +652,29 @@ class SettingsManager {
     }
 
     /**
-     * 加载请求头配置
+     * LoadRequest headerConfiguration
      */
     loadHeaders(headers) {
         const container = document.getElementById('headersContainer');
         if (!container) return;
 
-        // 清空现有内容
+        // Clear现有Content
         container.innerHTML = '';
 
-        // 如果没有保存的请求头，添加一个空的输入框
+        // 如果NoSave的Request header，Add一个Empty的Input框
         if (!headers || headers.length === 0) {
             this.addHeaderInput();
             return;
         }
 
-        // 加载保存的请求头
+        // LoadSave的Request header
         headers.forEach(header => {
             this.addHeaderInput(header.key, header.value);
         });
     }
 
     /**
-     * 保存请求头设置
+     * SaveRequest headerSettings
      */
     async saveHeaders() {
         try {
@@ -685,7 +685,7 @@ class SettingsManager {
                 const keyInput = group.querySelector('.header-key-input');
                 const valueInput = group.querySelector('.header-value-input');
                 
-                // 添加空值检查，防止访问 null 对象的属性
+                // AddEmpty值Check，防止访问 null Object的属性
                 if (keyInput && valueInput && keyInput.value && valueInput.value) {
                     const key = keyInput.value.trim();
                     const value = valueInput.value.trim();
@@ -697,53 +697,53 @@ class SettingsManager {
             });
 
             await chrome.storage.local.set({ phantomHeaders: headers });
-            this.showMessage(`已保存 ${headers.length} 个请求头`, 'success');
+            this.showMessage(`Saved ${headers.length} 个Request header`, 'success');
             
         } catch (error) {
-            console.error('保存请求头失败:', error);
-            this.showMessage('保存请求头失败: ' + error.message, 'error');
+            console.error('SaveRequest headerFailed:', error);
+            this.showMessage('SaveRequest headerFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 清空请求头设置
+     * ClearRequest headerSettings
      */
     async clearHeaders() {
         try {
             const container = document.getElementById('headersContainer');
             if (container) {
                 container.innerHTML = '';
-                this.addHeaderInput(); // 添加一个空的输入框
+                this.addHeaderInput(); // Add一个Empty的Input框
             }
             
             await chrome.storage.local.remove('phantomHeaders');
-            this.showMessage('请求头已清空', 'success');
+            this.showMessage('Request headerCleared', 'success');
             
         } catch (error) {
-            console.error('清空请求头失败:', error);
-            this.showMessage('清空请求头失败: ' + error.message, 'error');
+            console.error('ClearRequest headerFailed:', error);
+            this.showMessage('ClearRequest headerFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 获取当前请求头设置
+     * GetCurrentRequest headerSettings
      */
     async getHeadersSetting() {
         try {
             const result = await chrome.storage.local.get('phantomHeaders');
             return result.phantomHeaders || [];
         } catch (error) {
-            console.error('获取请求头设置失败:', error);
+            console.error('GetRequest headerSettingsFailed:', error);
             return [];
         }
     }
 
     /**
-     * 获取当前Cookie设置（兼容性方法）
+     * GetCurrentCookieSettings（兼容性Method）
      */
     async getCookieSetting() {
         try {
-            // 先尝试从新的请求头设置中获取Cookie
+            // First尝试from新的Request headerSettings中GetCookie
             const headers = await this.getHeadersSetting();
             const cookieHeader = headers.find(header => 
                 header.key.toLowerCase() === 'cookie'
@@ -753,98 +753,98 @@ class SettingsManager {
                 return cookieHeader.value;
             }
 
-            // 如果没有找到，尝试从旧的Cookie设置中获取（向后兼容）
+            // 如果NoFound，尝试from旧的CookieSettings中Get（向After兼容）
             const result = await chrome.storage.local.get('phantomCookie');
             return result.phantomCookie || '';
         } catch (error) {
-            console.error('获取Cookie设置失败:', error);
+            console.error('GetCookieSettingsFailed:', error);
             return '';
         }
     }
 
     /**
-     * 获取当前正则配置
+     * GetCurrent正则Configuration
      */
     async getRegexConfig() {
         try {
             const result = await chrome.storage.local.get('phantomRegexConfig');
             return result.phantomRegexConfig || this.defaultRegexPatterns;
         } catch (error) {
-            console.error('获取正则配置失败:', error);
+            console.error('Get正则ConfigurationFailed:', error);
             return this.defaultRegexPatterns;
         }
     }
 
     /**
-     * 清空全部数据 - 真正解决自动保存问题
+     * ClearAllData - 真正解决AutoSave问题
      */
     async clearAllData() {
-        // 确认清空操作
-        if (!confirm('⚠️ 警告：此操作将清空所有页面的扫描数据！\n\n包括：\n• 所有页面的扫描结果\n• 深度扫描数据\n• 扫描状态信息\n\n此操作不可恢复，确定要继续吗？')) {
+        // ConfirmClear操作
+        if (!confirm('⚠️ 警告：此操作将Clear所有Page的ScanData！\n\n包括：\n• 所有Page的Scan results\n• 深度ScanData\n• ScanStatusInformation\n\n此操作不可恢复，Confirm要Continue吗？')) {
             return;
         }
         
-        // 二次确认
-        if (!confirm('请再次确认：真的要清空所有数据吗？')) {
+        // 二次Confirm
+        if (!confirm('请再次Confirm：真的要Clear所有Data吗？')) {
             return;
         }
         
         try {
-            //console.log('🗑️ 开始清空全部数据...');
+            //console.log('🗑️ StartClearAllData...');
             
-            // 第一步：暂时禁用自动保存机制，防止数据被重新写入
+            // 第一步：暂时DisableAutoSave机制，防止DataByReWrite
             let originalSaveResults = null;
             if (window.srcMiner && typeof window.srcMiner.saveResults === 'function') {
-                //console.log('🚫 暂时禁用自动保存机制...');
+                //console.log('🚫 暂时DisableAutoSave机制...');
                 originalSaveResults = window.srcMiner.saveResults;
                 window.srcMiner.saveResults = () => {
-                    //console.log('🚫 自动保存已被暂时禁用');
+                    //console.log('🚫 AutoSaveAlreadyBy暂时Disable');
                 };
             }
             
-            // 第二步：彻底清空 SRCMiner 实例的内存数据
+            // 第二步：彻底Clear SRCMiner 实例的内存Data
             if (window.srcMiner) {
-                //console.log('🧹 清空SRCMiner实例内存数据...');
+                //console.log('🧹 ClearSRCMiner实例内存Data...');
                 
-                // 检查是否有深度扫描正在运行
+                // Check是否有深度ScanIn progress运行
                 const isDeepScanRunning = window.srcMiner.deepScanRunning;
-                //console.log('深度扫描运行状态:', isDeepScanRunning);
+                //console.log('深度Scan运行Status:', isDeepScanRunning);
                 
-                // 清空所有内存中的数据
+                // Clear所有内存中的Data
                 window.srcMiner.results = {};
                 window.srcMiner.deepScanResults = {};
                 window.srcMiner.scannedUrls = new Set();
                 window.srcMiner.pendingUrls = new Set();
                 
-                // 只有在没有深度扫描运行时才重置扫描状态
+                // Only有在No深度Scan运行时才ResetScanStatus
                 if (!isDeepScanRunning) {
                     window.srcMiner.deepScanRunning = false;
                     window.srcMiner.currentDepth = 0;
-                    //console.log('✅ 已重置扫描状态');
+                    //console.log('✅ AlreadyResetScanStatus');
                 } else {
-                    //console.log('⚠️ 检测到深度扫描正在运行，保持扫描状态');
+                    //console.log('⚠️ Detect到深度ScanIn progress运行，保持ScanStatus');
                 }
             }
             
-            // 第三步：获取所有存储的键并识别扫描相关数据
+            // 第三步：Get所有存储的KeyAnd识别ScanRelatedData
             const allData = await chrome.storage.local.get(null);
-            //console.log('📋 当前存储的所有数据键:', Object.keys(allData));
+            //console.log('📋 Current存储的所有DataKey:', Object.keys(allData));
             
             const keysToRemove = [];
             
-            // 找出所有与扫描数据相关的键（包括双下划线格式）
+            // 找出所有与ScanDataRelated的Key（包括双下划线Format）
             for (const key in allData) {
                 if (
-                    // 双下划线格式（实际存储格式）
+                    // 双下划线Format（实际存储Format）
                     key.endsWith('__results') || 
                     key.endsWith('__lastSave') ||
-                    // 单下划线格式（兼容性）
+                    // 单下划线Format（兼容性）
                     key.endsWith('_results') || 
                     key.endsWith('_lastSave') ||
-                    // 旧版本的全局键
+                    // 旧版本的全局Key
                     key === 'srcMinerResults' ||
                     key === 'lastSaveTime' ||
-                    // 其他可能的扫描相关键
+                    // 其他可能的ScanRelatedKey
                     key === 'deepScanComplete' ||
                     key === 'deepScanTimestamp' ||
                     key === 'deepScanUrl' ||
@@ -852,86 +852,86 @@ class SettingsManager {
                     key === 'deepScanResultsCount' ||
                     key === 'lastDeepScanCompleted' ||
                     key === 'deepScanRunning' ||
-                    // lastScan_ 开头的键（自动扫描时间记录）
+                    // lastScan_ 开Header的Key（AutoScanTimeRecord）
                     key.startsWith('lastScan_')
                 ) {
                     keysToRemove.push(key);
                 }
             }
             
-            //console.log(`🔍 找到 ${keysToRemove.length} 个数据键需要清空:`, keysToRemove);
+            //console.log(`🔍 Found ${keysToRemove.length} 个DataKeyNeedClear:`, keysToRemove);
             
-            // 第四步：删除chrome.storage中的相关键（保留非扫描数据）
+            // 第四步：Deletechrome.storage中的RelatedKey（保留非ScanData）
             if (keysToRemove.length > 0) {
                 await chrome.storage.local.remove(keysToRemove);
-                //console.log(`✅ 已删除chrome.storage中的 ${keysToRemove.length} 个数据键`);
+                //console.log(`✅ Deletedchrome.storage中的 ${keysToRemove.length} 个DataKey`);
             }
             
-            // 第五步：清空IndexedDB中的所有扫描数据
+            // 第五步：ClearIndexedDB中的所有ScanData
             try {
                 if (!window.indexedDBManager) {
                     window.indexedDBManager = new IndexedDBManager();
                 }
                 await window.indexedDBManager.clearAllScanResults();
-                //console.log('✅ 已清空IndexedDB中的所有扫描数据');
+                //console.log('✅ ClearedIndexedDB中的所有ScanData');
             } catch (error) {
-                console.error('❌ 清空IndexedDB数据失败:', error);
+                console.error('❌ ClearIndexedDBDataFailed:', error);
             }
             
-            // 第六步：验证chrome.storage删除结果并处理残留数据
+            // 第六步：Validatechrome.storageDeleteResultAndProcess残留Data
             const verifyData = await chrome.storage.local.get(keysToRemove);
             const remainingKeys = Object.keys(verifyData);
             
             if (remainingKeys.length > 0) {
-                console.warn('⚠️ 发现chrome.storage残留数据键，尝试强制删除:', remainingKeys);
-                // 尝试逐个删除剩余的键
+                console.warn('⚠️ Foundchrome.storage残留DataKey，尝试强制Delete:', remainingKeys);
+                // 尝试逐个Delete剩余的Key
                 for (const key of remainingKeys) {
                     try {
                         await chrome.storage.local.remove([key]);
-                        //console.log(`✅ 强制删除成功: ${key}`);
+                        //console.log(`✅ 强制DeleteSuccess: ${key}`);
                     } catch (error) {
-                        console.error(`❌ 强制删除失败: ${key}`, error);
+                        console.error(`❌ 强制DeleteFailed: ${key}`, error);
                     }
                 }
             }
             
-            // 第七步：清空界面显示
+            // 第七步：Clear界面Display
             const resultsDiv = document.getElementById('results');
             const statsDiv = document.getElementById('stats');
             if (resultsDiv) {
                 resultsDiv.innerHTML = '';
-                //console.log('✅ 已清空结果显示区域');
+                //console.log('✅ ClearedResultDisplay区域');
             }
             if (statsDiv) {
                 statsDiv.textContent = '';
-                //console.log('✅ 已清空统计显示区域');
+                //console.log('✅ ClearedStatisticsDisplay区域');
             }
             
-            // 第八步：重置UI状态
+            // 第八步：ResetUIStatus
             if (window.srcMiner) {
-                // 只有在没有深度扫描运行时才重置UI状态
+                // Only有在No深度Scan运行时才ResetUIStatus
                 if (!window.srcMiner.deepScanRunning) {
-                    // 重置深度扫描UI状态
+                    // Reset深度ScanUIStatus
                     if (typeof window.srcMiner.resetDeepScanUI === 'function') {
                         window.srcMiner.resetDeepScanUI();
-                        //console.log('✅ 已重置深度扫描UI状态');
+                        //console.log('✅ AlreadyReset深度ScanUIStatus');
                     }
                 }
                 
-                // 更新分类选择器
+                // UpdateCategory选择器
                 if (typeof window.srcMiner.updateCategorySelect === 'function') {
                     window.srcMiner.updateCategorySelect();
-                    //console.log('✅ 已更新分类选择器');
+                    //console.log('✅ AlreadyUpdateCategory选择器');
                 }
                 
-                // 强制刷新显示
+                // 强制刷新Display
                 if (typeof window.srcMiner.displayResults === 'function') {
                     window.srcMiner.displayResults();
-                    //console.log('✅ 已刷新结果显示');
+                    //console.log('✅ Already刷新ResultDisplay');
                 }
             }
             
-            // 第九步：最终验证chrome.storage（只检查非扫描数据相关键）
+            // 第九步：最终Validatechrome.storage（OnlyCheck非ScanDataRelatedKey）
             const finalCheck = await chrome.storage.local.get(null);
             const remainingDataKeys = Object.keys(finalCheck).filter(key => 
                 key.endsWith('__results') || 
@@ -948,42 +948,42 @@ class SettingsManager {
                 key.startsWith('lastScan_')
             );
             
-            // 第十步：验证IndexedDB清空结果
+            // 第十步：ValidateIndexedDBClearResult
             try {
                 const indexedDBStats = await window.indexedDBManager.getStats();
-                //console.log('📊 IndexedDB清空后统计:', indexedDBStats);
+                //console.log('📊 IndexedDBClearAfterStatistics:', indexedDBStats);
             } catch (error) {
-                console.error('❌ 获取IndexedDB统计失败:', error);
+                console.error('❌ GetIndexedDBStatisticsFailed:', error);
             }
             
-            // 第九步：恢复自动保存机制
+            // 第九步：恢复AutoSave机制
             if (originalSaveResults && window.srcMiner) {
                 setTimeout(() => {
                     window.srcMiner.saveResults = originalSaveResults;
-                    //console.log('✅ 自动保存机制已恢复');
-                }, 1000); // 1秒后恢复，确保清空操作完全完成
+                    //console.log('✅ AutoSave机制Already恢复');
+                }, 1000); // Recover after 1 second，EnsureClear操作完全Complete
             }
             
-            // 显示结果
+            // DisplayResult
             if (remainingDataKeys.length > 0) {
-                console.warn('⚠️ 最终检查发现残留数据键:', remainingDataKeys);
-                this.showMessage(`清空完成，但发现 ${remainingDataKeys.length} 个残留数据键，可能需要手动处理`, 'warning');
+                console.warn('⚠️ 最终CheckFound残留DataKey:', remainingDataKeys);
+                this.showMessage(`ClearComplete，但Found ${remainingDataKeys.length} 个残留DataKey，可能Need手动Process`, 'warning');
             } else {
-                //console.log('✅ 数据清空验证通过，无残留数据');
-                this.showMessage(`已成功清空 ${keysToRemove.length} 个数据项，所有扫描数据已彻底清除`, 'success');
+                //console.log('✅ DataClearValidateThrough，None残留Data');
+                this.showMessage(`AlreadySuccessClear ${keysToRemove.length} 个DataItem，所有ScanDataAlready彻底清除`, 'success');
             }
             
         } catch (error) {
-            console.error('❌ 清空全部数据失败:', error);
-            this.showMessage('清空数据失败: ' + error.message, 'error');
+            console.error('❌ ClearAllDataFailed:', error);
+            this.showMessage('ClearDataFailed: ' + error.message, 'error');
         }
     }
 
     /**
-     * 显示消息提示
+     * Display消息Prompt
      */
     showMessage(message, type = 'info') {
-        // 创建消息提示元素
+        // Create消息PromptElement
         const messageEl = document.createElement('div');
         messageEl.className = `settings-message ${type}`;
         messageEl.textContent = message;
@@ -1002,7 +1002,7 @@ class SettingsManager {
 
         document.body.appendChild(messageEl);
 
-        // 3秒后自动移除
+        // 3 secondsAfterAutoRemove
         setTimeout(() => {
             messageEl.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => {
@@ -1014,7 +1014,7 @@ class SettingsManager {
     }
 
     /**
-     * 获取域名扫描设置
+     * GetDomainScanSettings
      */
     async getDomainScanSettings() {
         try {
@@ -1024,7 +1024,7 @@ class SettingsManager {
                 allowAllDomains: false
             };
         } catch (error) {
-            console.error('获取域名扫描设置失败:', error);
+            console.error('GetDomainScanSettingsFailed:', error);
             return {
                 allowSubdomains: false,
                 allowAllDomains: false
@@ -1033,20 +1033,20 @@ class SettingsManager {
     }
 
     /**
-     * 获取自定义正则配置
+     * GetCustom正则Configuration
      */
     async getCustomRegexConfigs() {
         try {
             const result = await chrome.storage.local.get('customRegexConfigs');
             return result.customRegexConfigs || {};
         } catch (error) {
-            console.error('获取自定义正则配置失败:', error);
+            console.error('GetCustom正则ConfigurationFailed:', error);
             return {};
         }
     }
 
     /**
-     * 保存自定义正则配置
+     * SaveCustom正则Configuration
      */
     async saveCustomRegexConfig(key, config) {
         try {
@@ -1056,15 +1056,15 @@ class SettingsManager {
             customConfigs[key] = config;
             
             await chrome.storage.local.set({ customRegexConfigs: customConfigs });
-            console.log('✅ 自定义正则配置已保存:', { key, config });
+            console.log('✅ Custom正则ConfigurationSaved:', { key, config });
         } catch (error) {
-            console.error('❌ 保存自定义正则配置失败:', error);
+            console.error('❌ SaveCustom正则ConfigurationFailed:', error);
             throw error;
         }
     }
 
     /**
-     * 删除自定义正则配置
+     * DeleteCustom正则Configuration
      */
     async deleteCustomRegexConfig(key) {
         try {
@@ -1074,13 +1074,13 @@ class SettingsManager {
             delete customConfigs[key];
             
             await chrome.storage.local.set({ customRegexConfigs: customConfigs });
-            console.log('✅ 自定义正则配置已删除:', key);
+            console.log('✅ Custom正则ConfigurationDeleted:', key);
         } catch (error) {
-            console.error('❌ 删除自定义正则配置失败:', error);
+            console.error('❌ DeleteCustom正则ConfigurationFailed:', error);
             throw error;
         }
     }
 }
 
-// 导出设置管理器
+// ExportSettings管理器
 window.SettingsManager = SettingsManager;

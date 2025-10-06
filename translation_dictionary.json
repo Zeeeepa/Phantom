@@ -1,0 +1,10 @@
+{
+  "${items.length}个": "${items.length}",
+  "${key}正则表达式格式错误": "${key} regular expression format is incorrect",
+  "${testData.customBaseApiPaths.length}个": "${testData.customBaseApiPaths.length}",
+  "${testData.customDomains.length}个": "${testData.customDomains.length}",
+  "${this.timeout/1000}秒": "${this.timeout/1000} seconds",
+  ".css等": ".css, etc.",
+  "100ms延迟": "100ms delay",
+  "10秒": "10 seconds"
+}

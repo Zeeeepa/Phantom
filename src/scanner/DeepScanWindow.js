@@ -1,5 +1,5 @@
 /**
- * 深度扫描窗口管理器 - 负责创建和管理深度扫描窗口
+ * 深度Scan窗口管理器 - 负责CreateAnd管理深度Scan窗口
  */
 class DeepScanWindow {
     constructor(srcMiner) {
@@ -16,28 +16,28 @@ class DeepScanWindow {
         this.timeout = 5000;
     }
 
-    // 创建深度扫描窗口
+    // Create深度Scan窗口
     async createDeepScanWindow(config) {
-        //console.log('🔍 [DEBUG] 开始创建深度扫描窗口，配置:', config);
+        //console.log('🔍 [DEBUG] StartCreate深度Scan窗口，Configuration:', config);
         
         let baseUrl = '';
         let sourceUrl = '';
         let pageTitle = '';
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            //console.log('🔍 [DEBUG] 当前标签页:', tab);
+            //console.log('🔍 [DEBUG] Current标签页:', tab);
             if (tab && tab.url) {
                 baseUrl = new URL(tab.url).origin;
-                sourceUrl = tab.url; // 完整的源URL
+                sourceUrl = tab.url; // Complete的SourceURL
                 pageTitle = tab.title || '';
-                //console.log('🔍 [DEBUG] 解析得到baseUrl:', baseUrl);
-                //console.log('🔍 [DEBUG] 解析得到sourceUrl:', sourceUrl);
+                //console.log('🔍 [DEBUG] Parse得到baseUrl:', baseUrl);
+                //console.log('🔍 [DEBUG] Parse得到sourceUrl:', sourceUrl);
             }
         } catch (error) {
-            console.error('❌ [DEBUG] 获取当前页面URL失败:', error);
+            console.error('❌ [DEBUG] GetCurrentPageURLFailed:', error);
         }
 
-        // 准备扫描配置数据
+        // PrepareScanConfigurationData
         const scanConfig = {
             maxDepth: config.maxDepth || 2,
             concurrency: config.concurrency || 8,
@@ -46,37 +46,37 @@ class DeepScanWindow {
             scanHtmlFiles: config.scanHtmlFiles !== false,
             scanApiFiles: config.scanApiFiles !== false,
             baseUrl: baseUrl,
-            sourceUrl: sourceUrl, // 添加完整的源URL
-            pageTitle: pageTitle, // 添加页面标题
+            sourceUrl: sourceUrl, // AddComplete的SourceURL
+            pageTitle: pageTitle, // AddPage标题
             initialResults: this.srcMiner.results || {},
             timestamp: Date.now()
         };
 
-        //console.log('🔍 [DEBUG] 准备保存的扫描配置:', scanConfig);
-        console.log('🔍 [DEBUG] 初始结果数量统计:', {
+        //console.log('🔍 [DEBUG] PrepareSave的ScanConfiguration:', scanConfig);
+        console.log('🔍 [DEBUG] 初始Result数量Statistics:', {
             absoluteApis: scanConfig.initialResults.absoluteApis?.length || 0,
             domains: scanConfig.initialResults.domains?.length || 0,
             emails: scanConfig.initialResults.emails?.length || 0,
             jsFiles: scanConfig.initialResults.jsFiles?.length || 0
         });
 
-        // 将配置保存到IndexedDB，供扫描窗口读取
+        // 将ConfigurationSave to IndexedDB，供Scan窗口Read
         try {
-            //console.log('🔍 [DEBUG] 开始保存配置到IndexedDB...');
+            //console.log('🔍 [DEBUG] StartSaveConfiguration到IndexedDB...');
             await window.IndexedDBManager.saveDeepScanState(baseUrl, scanConfig);
-            //console.log('✅ [DEBUG] 深度扫描配置已保存到IndexedDB');
+            //console.log('✅ [DEBUG] 深度ScanConfigurationAlreadySave to IndexedDB');
             
-            // 验证保存是否成功
+            // ValidateSave是否Success
             const verification = await window.IndexedDBManager.loadDeepScanState(baseUrl);
-            //console.log('🔍 [DEBUG] 验证保存结果:', verification ? '成功' : '失败');
+            //console.log('🔍 [DEBUG] ValidateSave results:', verification ? 'Success' : 'Failed');
             
         } catch (error) {
-            console.error('❌ [DEBUG] 保存深度扫描配置失败:', error);
-            throw new Error('保存深度扫描配置失败: ' + error.message);
+            console.error('❌ [DEBUG] Save深度ScanConfigurationFailed:', error);
+            throw new Error('Save深度ScanConfigurationFailed: ' + error.message);
         }
 
         try {
-            // 使用扩展的深度扫描页面
+            // 使用Extension的深度ScanPage
             const scanPageUrl = chrome.runtime.getURL('deep-scan-window.html');
             
             // 打开新窗口
@@ -88,24 +88,24 @@ class DeepScanWindow {
                 focused: true
             });
 
-            //console.log('深度扫描窗口已创建:', newWindow.id);
+            //console.log('深度Scan窗口AlreadyCreate:', newWindow.id);
             return newWindow;
         } catch (error) {
-            console.error('创建深度扫描窗口失败:', error);
+            console.error('Create深度Scan窗口Failed:', error);
             throw error;
         }
     }
 
-    // 开始深度扫描（从扩展页面调用）
+    // Start深度Scan（fromExtensionPage调用）
     async startDeepScan() {
         if (this.srcMiner.deepScanRunning) {
-            //console.log('深度扫描已在运行中');
+            //console.log('深度ScanAlready在运行中');
             return;
         }
 
-        //console.log('启动深度扫描窗口...');
+        //console.log('Start深度Scan窗口...');
 
-        // 获取配置参数
+        // GetConfigurationParameter
         const maxDepthInput = document.getElementById('maxDepth');
         const concurrencyInput = document.getElementById('concurrency');
         const timeoutInput = document.getElementById('timeout');
@@ -123,17 +123,17 @@ class DeepScanWindow {
         };
 
         try {
-            // 标记扫描开始
+            // MarkScanStart
             this.srcMiner.deepScanRunning = true;
             
-            // 更新UI状态
+            // UpdateUIStatus
             const deepScanBtn = document.getElementById('deepScanBtn');
             const configDiv = document.getElementById('deepScanConfig');
             
             if (deepScanBtn) {
                 const deepScanBtnText = deepScanBtn.querySelector('.text');
                 if (deepScanBtnText) {
-                    deepScanBtnText.textContent = '⏹️ 停止扫描';
+                    deepScanBtnText.textContent = '⏹️ Stop scanning';
                 }
                 deepScanBtn.style.background = 'rgba(239, 68, 68, 0.3)';
             }
@@ -142,19 +142,19 @@ class DeepScanWindow {
                 configDiv.style.display = 'none';
             }
 
-            // 创建深度扫描窗口
+            // Create深度Scan窗口
             await this.createDeepScanWindow(config);
 
         } catch (error) {
-            console.error('❌ 启动深度扫描失败:', error);
+            console.error('❌ Start深度ScanFailed:', error);
             this.srcMiner.deepScanRunning = false;
             
-            // 恢复UI状态
+            // 恢复UIStatus
             const deepScanBtn = document.getElementById('deepScanBtn');
             if (deepScanBtn) {
                 const deepScanBtnText = deepScanBtn.querySelector('.text');
                 if (deepScanBtnText) {
-                    deepScanBtnText.textContent = '深度递归扫描';
+                    deepScanBtnText.textContent = '深度递归Scan';
                 }
                 deepScanBtn.style.background = '';
             }
@@ -163,22 +163,22 @@ class DeepScanWindow {
         }
     }
 
-    // 停止深度扫描
+    // 停止深度Scan
     stopDeepScan() {
         this.srcMiner.deepScanRunning = false;
         this.isScanRunning = false;
         
-        // 通知扫描窗口停止
+        // NotifyScan窗口停止
         chrome.runtime.sendMessage({
             action: 'stopDeepScan'
         });
 
-        // 更新UI状态
+        // UpdateUIStatus
         const deepScanBtn = document.getElementById('deepScanBtn');
         if (deepScanBtn) {
             const deepScanBtnText = deepScanBtn.querySelector('.text');
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '深度递归扫描';
+                deepScanBtnText.textContent = '深度递归Scan';
             }
             deepScanBtn.style.background = '';
         }
@@ -189,7 +189,7 @@ class DeepScanWindow {
         }
     }
 
-    // 处理来自扫描窗口的消息
+    // Process来自Scan窗口的消息
     handleScanWindowMessage(message, sender, sendResponse) {
         switch (message.action) {
             case 'updateScanResults':
@@ -217,17 +217,17 @@ class DeepScanWindow {
         }
     }
 
-    // 更新主页面的扫描结果
+    // Update主Page的Scan results
     updateMainPageResults(newResults) {
         if (!newResults) return;
 
-        // 合并结果到主页面
+        // 合AndResult到主Page
         Object.keys(newResults).forEach(key => {
             if (!this.srcMiner.results[key]) {
                 this.srcMiner.results[key] = [];
             }
 
-            // 使用Set进行去重
+            // 使用SetPerform去重
             const existingSet = new Set(this.srcMiner.results[key]);
             newResults[key].forEach(item => {
                 if (item && !existingSet.has(item)) {
@@ -236,15 +236,15 @@ class DeepScanWindow {
             });
         });
 
-        // 实时更新显示
+        // 实时UpdateDisplay
         this.srcMiner.displayResults();
         this.srcMiner.saveResults();
 
-        console.log('🔄 主页面结果已更新，当前结果数量:', 
+        console.log('🔄 主PageResultAlreadyUpdate，CurrentResult数量:', 
             Object.values(this.srcMiner.results).reduce((sum, arr) => sum + (arr?.length || 0), 0));
     }
 
-    // 更新扫描进度
+    // UpdateScan进度
     updateScanProgress(progressData) {
         const progressDiv = document.getElementById('deepScanProgress');
         if (progressDiv && progressData) {
@@ -263,31 +263,31 @@ class DeepScanWindow {
         }
     }
 
-    // 处理扫描完成
+    // ProcessScan completed
     handleScanComplete(finalResults) {
-        //console.log('🎉 深度扫描完成！');
+        //console.log('🎉 深度Scan completed！');
         
-        // 更新最终结果
+        // Update最终Result
         if (finalResults) {
             this.updateMainPageResults(finalResults);
         }
 
-        // 重置状态
+        // ResetStatus
         this.srcMiner.deepScanRunning = false;
         this.isScanRunning = false;
 
-        // 更新UI
+        // UpdateUI
         const deepScanBtn = document.getElementById('deepScanBtn');
         if (deepScanBtn) {
             const deepScanBtnText = deepScanBtn.querySelector('.text');
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '✅ 深度扫描完成';
+                deepScanBtnText.textContent = '✅ 深度Scan completed';
             }
             deepScanBtn.style.background = 'rgba(0, 212, 170, 0.3)';
             
             setTimeout(() => {
                 if (deepScanBtnText) {
-                    deepScanBtnText.textContent = '深度递归扫描';
+                    deepScanBtnText.textContent = '深度递归Scan';
                 }
                 deepScanBtn.style.background = '';
             }, 3000);
@@ -301,14 +301,14 @@ class DeepScanWindow {
             }, 5000);
         }
 
-        // 保存完成状态到IndexedDB
+        // Save completedStatus到IndexedDB
         const completionState = {
             deepScanComplete: true,
             deepScanCompletedAt: Date.now(),
             deepScanResultsCount: Object.values(this.srcMiner.results).reduce((sum, arr) => sum + (arr?.length || 0), 0)
         };
         
-        // 获取当前页面URL用于保存状态
+        // GetCurrentPageURLUsed forSaveStatus
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0] && tabs[0].url) {
                 const baseUrl = new URL(tabs[0].url).origin;
@@ -317,26 +317,26 @@ class DeepScanWindow {
         });
     }
 
-    // 处理扫描错误
+    // ProcessScanError
     handleScanError(errorData) {
-        console.error('❌ 深度扫描出错:', errorData);
+        console.error('❌ 深度Scan出错:', errorData);
         
-        // 重置状态
+        // ResetStatus
         this.srcMiner.deepScanRunning = false;
         this.isScanRunning = false;
 
-        // 更新UI
+        // UpdateUI
         const deepScanBtn = document.getElementById('deepScanBtn');
         if (deepScanBtn) {
             const deepScanBtnText = deepScanBtn.querySelector('.text');
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '❌ 扫描失败';
+                deepScanBtnText.textContent = '❌ ScanFailed';
             }
             deepScanBtn.style.background = 'rgba(239, 68, 68, 0.3)';
             
             setTimeout(() => {
                 if (deepScanBtnText) {
-                    deepScanBtnText.textContent = '深度递归扫描';
+                    deepScanBtnText.textContent = '深度递归Scan';
                 }
                 deepScanBtn.style.background = '';
             }, 3000);
