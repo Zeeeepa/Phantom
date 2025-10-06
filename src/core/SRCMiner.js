@@ -1,5 +1,5 @@
 /**
- * SRCMiner 主类 - 核心控制器
+ * SRCMiner 主Class - 核心控制器
  */
 class SRCMiner {
     constructor() {
@@ -12,72 +12,72 @@ class SRCMiner {
         this.maxDepth = 2;
         this.concurrency = 3;
         
-        // 初始化组件
+        // InitializeGroup件
         this.initComponents();
         this.init();
     }
     
-    // 初始化各个组件
+    // Initialize各个Group件
     initComponents() {
-        // 初始化模式提取器
+        // InitializePatternExtract器
         this.patternExtractor = new PatternExtractor();
-        // 确保加载自定义正则配置（扫描与深度扫描前）
+        // EnsureLoadCustom正则Configuration（Scan与深度ScanBefore）
         try {
             if (this.patternExtractor && typeof this.patternExtractor.loadCustomPatterns === 'function') {
-                // 首次加载
+                // 首次Load
                 this.patternExtractor.loadCustomPatterns().catch(err => {
-                    console.error('加载自定义正则失败:', err);
+                    console.error('LoadCustom正则Failed:', err);
                 });
-                // 监听设置更新，实时刷新
+                // ListenSettingsUpdate，实时刷新
                 window.addEventListener('regexConfigUpdated', () => {
                     try {
                         this.patternExtractor.loadCustomPatterns().catch(err => {
-                            console.error('刷新自定义正则失败:', err);
+                            console.error('刷新Custom正则Failed:', err);
                         });
                     } catch (e) {
-                        console.warn('刷新自定义正则异常:', e);
+                        console.warn('刷新Custom正则异常:', e);
                     }
                 });
             }
         } catch (e) {
-            console.warn('初始化自定义正则时发生异常:', e);
+            console.warn('InitializeCustom正则时发生异常:', e);
         }
         
-        // 初始化内容提取器
+        // InitializeContent extraction器
         this.contentExtractor = new ContentExtractor(this);
         
-        // 初始化深度扫描器
+        // Initialize深度Scan器
         this.deepScanner = new DeepScanner(this);
         
-        // 初始化显示管理器
+        // InitializeDisplay管理器
         this.displayManager = new DisplayManager(this);
         
-        // 初始化API测试器
+        // InitializeAPI Testing器
         this.apiTester = new ApiTester(this);
         
-        //console.log('✅ 所有组件初始化完成');
+        //console.log('✅ 所有Group件InitializeComplete');
     }
     
     init() {
-        // 初始化导航切换
+        // Initialize导航切换
         this.initNavigation();
         
-        // 初始化按钮事件
+        // Initialize按钮事件
         this.initEventListeners();
         
-        // 初始化窗口事件监听
+        // Initialize窗口事件Listen
         this.initWindowEvents();
         
-        // 加载已保存的结果并自动扫描
+        // LoadSaved的ResultAndAutoScan
         this.loadResults();
         this.autoScanIfNeeded();
     }
     
-    // 初始化窗口事件监听
+    // Initialize窗口事件Listen
     initWindowEvents() {
-        // 监听窗口焦点事件
+        // Listen窗口焦点事件
         window.addEventListener('focus', () => {
-            //console.log('🔄 窗口获得焦点，重新加载数据...');
+            //console.log('🔄 窗口获得焦点，ReloadData...');
             this.loadResults().then(() => {
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
@@ -85,10 +85,10 @@ class SRCMiner {
             });
         });
         
-        // 监听页面可见性变化
+        // ListenPage可见性变化
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                //console.log('🔄 页面变为可见，重新加载数据...');
+                //console.log('🔄 Page变为可见，ReloadData...');
                 this.loadResults().then(() => {
                     if (Object.keys(this.results).length > 0) {
                         this.displayResults();
@@ -97,40 +97,40 @@ class SRCMiner {
             }
         });
         
-        // 定期检查数据完整性
+        // 定期CheckDataComplete性
         setInterval(() => {
             this.checkDataIntegrity();
-        }, 5000); // 每5秒检查一次
+        }, 5000); // Every5 secondsCheck一次
     }
     
-    // 检查数据完整性
+    // CheckDataComplete性
     async checkDataIntegrity() {
         try {
-            // 获取当前页面URL
+            // GetCurrentPageURL
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) return;
             
             const urlObj = new URL(tab.url);
             const fullUrl = `https://${urlObj.hostname}`;
             
-            // 从IndexedDB检查数据
+            // fromIndexedDBCheckData
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
             
             const storedData = await window.indexedDBManager.loadScanResults(fullUrl);
             
-            // 如果存储中有数据但内存中没有，重新加载
+            // 如果存储中有Data但内存中No，Reload
             if (storedData && storedData.results && 
                 Object.keys(this.results || {}).length === 0) {
-                //console.log('🔧 检测到数据丢失，正在恢复...');
+                //console.log('🔧 Detect到Data丢失，In progress恢复...');
                 await this.loadResults();
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
                 }
             }
         } catch (error) {
-            console.error('数据完整性检查失败:', error);
+            console.error('DataComplete性CheckFailed:', error);
         }
     }
     
@@ -140,19 +140,19 @@ class SRCMiner {
         document.getElementById('clearBtn').addEventListener('click', () => this.clearResults());
         document.getElementById('exportBtn').addEventListener('click', () => this.exportResults());
         
-        // 批量请求按钮
+        // BatchRequest按钮
         const batchRequestBtn = document.getElementById('batchRequestBtn');
         if (batchRequestBtn) {
             batchRequestBtn.addEventListener('click', () => this.batchRequestTest());
         }
         
-        // 添加自定义API路径按钮
+        // AddCustomAPIPath按钮
         const addCustomApiBtn = document.getElementById('addCustomApiBtn');
         if (addCustomApiBtn) {
             addCustomApiBtn.addEventListener('click', () => this.addCustomApiPaths());
         }
         
-        // 模态框关闭按钮
+        // 模态框Close按钮
         const closeModalBtn = document.getElementById('closeModalBtn');
         if (closeModalBtn) {
             closeModalBtn.addEventListener('click', () => {
@@ -160,7 +160,7 @@ class SRCMiner {
             });
         }
         
-        // 新按钮事件处理
+        // 新按钮事件Process
         const toggleExpandBtn = document.getElementById('toggleExpandBtn');
         if (toggleExpandBtn) {
             toggleExpandBtn.addEventListener('click', () => {
@@ -178,7 +178,7 @@ class SRCMiner {
                 const resultsContainer = document.getElementById('requestResults');
                 resultsContainer.innerHTML = '';
                 
-                // 获取所有扫描结果并添加到模态框
+                // Get所有Scan resultsAndAdd到模态框
                 const resultItems = document.querySelectorAll('.result-item');
                 resultItems.forEach(item => {
                     const clone = item.cloneNode(true);
@@ -190,7 +190,7 @@ class SRCMiner {
             });
         }
         
-        // 复制所有结果按钮
+        // Copy所有Result按钮
         const copyAllResultsBtn = document.getElementById('copyAllResultsBtn');
         if (copyAllResultsBtn) {
             copyAllResultsBtn.addEventListener('click', () => {
@@ -198,9 +198,9 @@ class SRCMiner {
                 navigator.clipboard.writeText(results).then(() => {
                     const textSpan = copyAllResultsBtn.querySelector('.text');
                     if (textSpan) {
-                        textSpan.textContent = '✅ 已复制';
+                        textSpan.textContent = '✅ Copied';
                         setTimeout(() => {
-                            textSpan.textContent = '复制全部结果';
+                            textSpan.textContent = 'CopyAllResult';
                         }, 2000);
                     }
                 });
@@ -208,7 +208,7 @@ class SRCMiner {
         }
     }
     
-    // 初始化导航功能
+    // Initialize导航功能
     initNavigation() {
         const navTabs = document.querySelectorAll('.nav-tab');
         const pages = document.querySelectorAll('.page');
@@ -217,11 +217,11 @@ class SRCMiner {
             tab.addEventListener('click', () => {
                 const targetPage = tab.dataset.page;
                 
-                // 更新导航状态
+                // Update导航Status
                 navTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
-                // 更新页面显示
+                // UpdatePageDisplay
                 pages.forEach(page => {
                     page.classList.remove('active');
                     const pageId = `${targetPage}-page`;
@@ -230,17 +230,17 @@ class SRCMiner {
                     }
                 });
                 
-                // 页面切换后的特殊处理
+                // Page切换After的特殊Process
                 this.handlePageSwitch(targetPage);
             });
         });
     }
     
-    // 处理页面切换后的逻辑
+    // ProcessPage切换After的逻辑
     handlePageSwitch(pageName) {
         switch (pageName) {
             case 'scan':
-                // 切换到扫描页面时，重新加载并显示结果
+                // 切换到ScanPage时，ReloadAndDisplayResult
                 this.loadResults().then(() => {
                     if (Object.keys(this.results).length > 0) {
                         this.displayResults();
@@ -248,24 +248,24 @@ class SRCMiner {
                 });
                 break;
             case 'deep':
-                // 切换到深度扫描页面时，恢复深度扫描状态
+                // 切换到深度ScanPage时，恢复深度ScanStatus
                 this.loadResults().then(() => {
                     this.restoreDeepScanUI();
                 });
                 break;
             case 'test':
-                // 切换到API测试页面时，更新分类选择器
+                // 切换到API TestingPage时，UpdateCategory选择器
                 this.loadResults().then(() => {
                     this.updateCategorySelect();
                 });
                 break;
             case 'about':
-                // 关于页面
+                // 关于Page
                 break;
         }
     }
     
-    // 恢复深度扫描UI状态
+    // 恢复深度ScanUIStatus
     restoreDeepScanUI() {
         if (this.deepScanRunning) {
             const deepScanBtn = document.getElementById('deepScanBtn');
@@ -274,7 +274,7 @@ class SRCMiner {
             const progressDiv = document.getElementById('deepScanProgress');
             
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '⏹️ 停止扫描';
+                deepScanBtnText.textContent = '⏹️ Stop scanning';
             }
             if (deepScanBtn) {
                 deepScanBtn.style.background = 'rgba(239, 68, 68, 0.3)';
@@ -288,41 +288,41 @@ class SRCMiner {
             }
         }
         
-        // 如果有深度扫描结果，确保显示
+        // 如果有深度Scan results，EnsureDisplay
         if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
             this.results = this.deepScanResults;
             this.displayResults();
         }
     }
     
-    // 更新分类选择器
+    // UpdateCategory选择器
     updateCategorySelect() {
         const categorySelect = document.getElementById('categorySelect');
         if (!categorySelect || !this.results) return;
         
-        // 保存当前选中的值
+        // SaveCurrent选中的值
         const currentValue = categorySelect.value;
         
-        // 清空现有选项
+        // Clear现有选Item
         categorySelect.innerHTML = '';
         
-        // 添加默认选项
+        // AddDefault选Item
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
-        defaultOption.textContent = '请选择要测试的分类';
+        defaultOption.textContent = '请选择要Test的Category';
         categorySelect.appendChild(defaultOption);
         
-        // 添加有数据的分类
+        // Add有Data的Category
         const categories = [
-            { key: 'customApis', title: '🔧 自定义API路径' },
-            { key: 'absoluteApis', title: '🔗 绝对路径API' },
-            { key: 'relativeApis', title: '📁 相对路径API' },
-            { key: 'jsFiles', title: '📜 JS文件' },
-            { key: 'cssFiles', title: '🎨 CSS文件' },
-            { key: 'images', title: '🖼️ 图片文件' },
-            { key: 'urls', title: '🔗 完整URL' },
-            { key: 'domains', title: '🌐 域名' },
-            { key: 'paths', title: '📂 路径' }
+            { key: 'customApis', title: '🔧 CustomAPIPath' },
+            { key: 'absoluteApis', title: '🔗 Absolute pathAPI' },
+            { key: 'relativeApis', title: '📁 Relative pathAPI' },
+            { key: 'jsFiles', title: '📜 JSFile' },
+            { key: 'cssFiles', title: '🎨 CSSFile' },
+            { key: 'images', title: '🖼️ 图片File' },
+            { key: 'urls', title: '🔗 CompleteURL' },
+            { key: 'domains', title: '🌐 Domain' },
+            { key: 'paths', title: '📂 Path' }
         ];
         
         categories.forEach(category => {
@@ -335,30 +335,30 @@ class SRCMiner {
             }
         });
         
-        // 恢复之前选中的值（如果仍然存在）
+        // 恢复之Before选中的值（如果仍然存在）
         if (currentValue && categorySelect.querySelector(`option[value="${currentValue}"]`)) {
             categorySelect.value = currentValue;
         }
     }
     
-    // 开始扫描
+    // Start scanning
     async startScan(silent = false) {
         if (!silent) {
-            //console.log('🔍 开始扫描页面...');
+            //console.log('🔍 Start scanningPage...');
         }
         
         try {
-            // 发送消息到content script进行扫描
+            // Send消息到content scriptPerformScan
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
             if (!tab || !tab.url) {
-                throw new Error('无法获取当前页面信息');
+                throw new Error('None法GetCurrentPageInformation');
             }
             
-            // 检查是否是有效的网页URL
+            // Check是否是Valid的网页URL
             if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
                 if (!silent) {
-                    alert('无法扫描系统页面，请在普通网页上使用此功能');
+                    alert('None法ScanSystemPage，请在普通网页上使用此功能');
                 }
                 return;
             }
@@ -366,80 +366,80 @@ class SRCMiner {
             const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractInfo' });
             
             if (response) {
-                //console.log('🔍 [SCAN LOG] 收到原始扫描结果');
-                //console.log('🔍 [SCAN LOG] 原始结果统计:', this.getResultsStats(response));
+                //console.log('🔍 [SCAN LOG] 收到原始Scan results');
+                //console.log('🔍 [SCAN LOG] 原始ResultStatistics:', this.getResultsStats(response));
                 
-                // 在扫描阶段就应用筛选器
-                //console.log('🔍 [SCAN LOG] 开始应用筛选器到扫描结果...');
+                // 在Scan阶段就应用Filter器
+                //console.log('🔍 [SCAN LOG] Start应用Filter器到Scan results...');
                 this.results = await this.applyFiltersToScanResults(response);
-                //console.log('🔍 [SCAN LOG] 筛选后结果统计:', this.getResultsStats(this.results));
-                //console.log('✅ [SCAN LOG] 筛选器应用完成');
+                //console.log('🔍 [SCAN LOG] FilterAfterResultStatistics:', this.getResultsStats(this.results));
+                //console.log('✅ [SCAN LOG] Filter器应用Complete');
                 
-                // 清空深度扫描结果，避免旧数据干扰
+                // Clear深度Scan results，避免旧Data干扰
                 this.deepScanResults = {};
-                //console.log('🔍 [SCAN LOG] 已清空深度扫描结果缓存');
+                //console.log('🔍 [SCAN LOG] Cleared深度Scan results缓存');
                 
                 await this.displayResults();
                 
-                // 确保保存操作被执行
-                //console.log('🔍 [SCAN LOG] 准备调用 saveResults()...');
+                // EnsureSave操作ByExecute
+                //console.log('🔍 [SCAN LOG] Prepare调用 saveResults()...');
                 try {
                     await this.saveResults();
-                    //console.log('✅ [SCAN LOG] saveResults() 调用完成');
+                    //console.log('✅ [SCAN LOG] saveResults() 调用Complete');
                 } catch (saveError) {
-                    console.error('❌ [SCAN LOG] saveResults() 调用失败:', saveError);
+                    console.error('❌ [SCAN LOG] saveResults() 调用Failed:', saveError);
                 }
                 
-                // 更新分类选择器
+                // UpdateCategory选择器
                 this.updateCategorySelect();
                 
                 if (!silent) {
-                    //console.log('✅ [SCAN LOG] 扫描完成');
+                    //console.log('✅ [SCAN LOG] Scan completed');
                 }
             } else {
-                throw new Error('未收到扫描结果');
+                throw new Error('Not收到Scan results');
             }
         } catch (error) {
-            console.error('❌ [SCAN LOG] 扫描失败:', error);
+            console.error('❌ [SCAN LOG] ScanFailed:', error);
             if (!silent) {
-                alert('扫描失败: ' + error.message);
+                alert('ScanFailed: ' + error.message);
             }
         }
     }
     
-    // 在扫描阶段应用筛选器
+    // 在Scan阶段应用Filter器
     async applyFiltersToScanResults(rawResults) {
         try {
-            //console.log('🔍 [FILTER LOG] 开始应用筛选器...');
-            //console.log('🔍 [FILTER LOG] 原始结果统计:', this.getResultsStats(rawResults));
+            //console.log('🔍 [FILTER LOG] Start应用Filter器...');
+            //console.log('🔍 [FILTER LOG] 原始ResultStatistics:', this.getResultsStats(rawResults));
             
-            // 确保筛选器已加载
+            // EnsureFilter器Loaded
             await this.loadFiltersIfNeeded();
             
-            // 如果筛选器不可用，返回原始结果
+            // 如果Filter器不Available，Return原始Result
             if (!window.domainPhoneFilter && !window.apiFilter) {
-                console.warn('⚠️ [FILTER LOG] 筛选器未加载，返回原始扫描结果');
+                console.warn('⚠️ [FILTER LOG] Filter器NotLoad，Return原始Scan results');
                 return rawResults;
             }
             
-            console.log('🔍 [FILTER LOG] 筛选器状态:', {
+            console.log('🔍 [FILTER LOG] Filter器Status:', {
                 domainPhoneFilter: !!window.domainPhoneFilter,
                 apiFilter: !!window.apiFilter
             });
             
-            // 创建筛选后的结果对象
+            // CreateFilterAfter的ResultObject
             const filteredResults = {};
             
-            // 使用API筛选器处理路径类型数据
+            // 使用APIFilter器ProcessPathTypeData
             if (window.apiFilter) {
-                //console.log('🔍 [FILTER LOG] 使用API筛选器处理路径数据...');
+                //console.log('🔍 [FILTER LOG] 使用APIFilter器ProcessPathData...');
                 const resultsSet = window.apiFilter.createEmptyResultSet();
                 
-                // 处理各种路径类型
+                // Process各种PathType
                 const pathCategories = ['absoluteApis', 'relativeApis', 'jsFiles', 'cssFiles', 'images', 'urls', 'paths'];
                 pathCategories.forEach(category => {
                     if (rawResults[category] && Array.isArray(rawResults[category])) {
-                        //console.log(`🔍 [FILTER LOG] 处理 ${category}: ${rawResults[category].length} 个项目`);
+                        //console.log(`🔍 [FILTER LOG] Process ${category}: ${rawResults[category].length} 个Project`);
                         rawResults[category].forEach(item => {
                             if (item && typeof item === 'string') {
                                 window.apiFilter.filterAPI(item, resultsSet);
@@ -448,19 +448,19 @@ class SRCMiner {
                     }
                 });
                 
-                // 将筛选后的Set转换为Array
+                // 将FilterAfter的SetConvert为Array
                 Object.keys(resultsSet).forEach(key => {
                     if (resultsSet[key] instanceof Set) {
                         filteredResults[key] = Array.from(resultsSet[key]);
-                        //console.log(`🔍 [FILTER LOG] API筛选器处理 ${key}: ${filteredResults[key].length} 个项目`);
+                        //console.log(`🔍 [FILTER LOG] APIFilter器Process ${key}: ${filteredResults[key].length} 个Project`);
                     } else if (Array.isArray(resultsSet[key])) {
                         filteredResults[key] = resultsSet[key];
-                        //console.log(`🔍 [FILTER LOG] API筛选器处理 ${key}: ${filteredResults[key].length} 个项目`);
+                        //console.log(`🔍 [FILTER LOG] APIFilter器Process ${key}: ${filteredResults[key].length} 个Project`);
                     }
                 });
             } else {
-                // 如果没有API筛选器，直接复制路径类型数据
-                //console.log('⚠️ [FILTER LOG] API筛选器不可用，直接复制路径数据');
+                // 如果NoAPIFilter器，DirectCopyPathTypeData
+                //console.log('⚠️ [FILTER LOG] APIFilter器不Available，DirectCopyPathData');
                 const pathCategories = ['absoluteApis', 'relativeApis', 'jsFiles', 'cssFiles', 'images', 'urls', 'paths'];
                 pathCategories.forEach(category => {
                     if (rawResults[category] && Array.isArray(rawResults[category])) {
@@ -469,40 +469,40 @@ class SRCMiner {
                 });
             }
             
-            // 使用域名和手机号筛选器处理敏感信息
+            // 使用DomainAnd手机号Filter器Process敏感Information
             if (window.domainPhoneFilter) {
-                //console.log('🔍 [FILTER LOG] 使用域名手机号筛选器处理敏感信息...');
+                //console.log('🔍 [FILTER LOG] 使用Domain手机号Filter器Process敏感Information...');
                 
-                // 筛选域名
+                // FilterDomain
                 if (rawResults.domains && Array.isArray(rawResults.domains)) {
-                    //console.log(`🔍 [FILTER LOG] 筛选域名: ${rawResults.domains.length} -> `, rawResults.domains.slice(0, 5));
+                    //console.log(`🔍 [FILTER LOG] FilterDomain: ${rawResults.domains.length} -> `, rawResults.domains.slice(0, 5));
                     filteredResults.domains = window.domainPhoneFilter.filterDomains(rawResults.domains);
-                    //console.log(`🔍 [FILTER LOG] 域名筛选结果: ${filteredResults.domains.length} 个有效域名`);
+                    //console.log(`🔍 [FILTER LOG] DomainFilterResult: ${filteredResults.domains.length} 个ValidDomain`);
                 }
                 
-                // 筛选子域名
+                // Filter子Domain
                 if (rawResults.subdomains && Array.isArray(rawResults.subdomains)) {
-                    //console.log(`🔍 [FILTER LOG] 筛选子域名: ${rawResults.subdomains.length} 个`);
+                    //console.log(`🔍 [FILTER LOG] Filter子Domain: ${rawResults.subdomains.length} 个`);
                     filteredResults.subdomains = window.domainPhoneFilter.filterDomains(rawResults.subdomains);
-                    //console.log(`🔍 [FILTER LOG] 子域名筛选结果: ${filteredResults.subdomains.length} 个有效子域名`);
+                    //console.log(`🔍 [FILTER LOG] 子DomainFilterResult: ${filteredResults.subdomains.length} 个Valid子Domain`);
                 }
                 
-                // 筛选邮箱
+                // Filter邮箱
                 if (rawResults.emails && Array.isArray(rawResults.emails)) {
-                    //console.log(`🔍 [FILTER LOG] 筛选邮箱: ${rawResults.emails.length} 个`);
+                    //console.log(`🔍 [FILTER LOG] Filter邮箱: ${rawResults.emails.length} 个`);
                     filteredResults.emails = window.domainPhoneFilter.filterEmails(rawResults.emails);
-                    //console.log(`🔍 [FILTER LOG] 邮箱筛选结果: ${filteredResults.emails.length} 个有效邮箱`);
+                    //console.log(`🔍 [FILTER LOG] 邮箱FilterResult: ${filteredResults.emails.length} 个Valid邮箱`);
                 }
                 
-                // 筛选手机号
+                // Filter手机号
                 if (rawResults.phoneNumbers && Array.isArray(rawResults.phoneNumbers)) {
-                    //console.log(`🔍 [FILTER LOG] 筛选手机号: ${rawResults.phoneNumbers.length} 个`);
+                    //console.log(`🔍 [FILTER LOG] Filter手机号: ${rawResults.phoneNumbers.length} 个`);
                     filteredResults.phoneNumbers = window.domainPhoneFilter.filterPhones(rawResults.phoneNumbers, true);
-                    //console.log(`🔍 [FILTER LOG] 手机号筛选结果: ${filteredResults.phoneNumbers.length} 个有效手机号`);
+                    //console.log(`🔍 [FILTER LOG] 手机号FilterResult: ${filteredResults.phoneNumbers.length} 个Valid手机号`);
                 }
             } else {
-                // 如果没有域名手机号筛选器，直接复制敏感信息
-                //console.log('⚠️ [FILTER LOG] 域名手机号筛选器不可用，直接复制敏感信息');
+                // 如果NoDomain手机号Filter器，DirectCopy敏感Information
+                //console.log('⚠️ [FILTER LOG] Domain手机号Filter器不Available，DirectCopy敏感Information');
                 const sensitiveCategories = ['domains', 'subdomains', 'emails', 'phoneNumbers'];
                 sensitiveCategories.forEach(category => {
                     if (rawResults[category] && Array.isArray(rawResults[category])) {
@@ -511,7 +511,7 @@ class SRCMiner {
                 });
             }
             
-            // 保留其他未处理的类别（直接复制）
+            // 保留其他NotProcess的Class别（DirectCopy）
             const otherCategories = [
                 'ipAddresses', 'sensitiveKeywords', 'comments', 'parameters', 
                 'credentials', 'cookies', 'idKeys', 'companies', 'jwts', 'githubUrls',
@@ -524,56 +524,56 @@ class SRCMiner {
                 }
             });
             
-            //console.log('✅ [FILTER LOG] 筛选完成，最终结果统计:', this.getResultsStats(filteredResults));
+            //console.log('✅ [FILTER LOG] FilterComplete，最终ResultStatistics:', this.getResultsStats(filteredResults));
             
-            // 标记结果已筛选
+            // MarkResultAlreadyFilter
             filteredResults._filtered = true;
             
             return filteredResults;
             
         } catch (error) {
-            console.error('❌ [FILTER LOG] 应用筛选器失败:', error);
-            console.error('❌ [FILTER LOG] 错误堆栈:', error.stack);
-            return rawResults; // 出错时返回原始结果
+            console.error('❌ [FILTER LOG] 应用Filter器Failed:', error);
+            console.error('❌ [FILTER LOG] Error堆栈:', error.stack);
+            return rawResults; // 出错时Return原始Result
         }
     }
     
-    // 加载筛选器（如果需要）
+    // LoadFilter器（如果Need）
     async loadFiltersIfNeeded() {
         try {
-            // 检查是否已经加载过滤器
+            // Check是否Already经LoadFilter
             if (window.domainPhoneFilter && window.apiFilter) {
                 return;
             }
             
-            //console.log('🔄 开始加载扫描筛选器...');
+            //console.log('🔄 StartLoadScanFilter器...');
             
-            // 加载域名和手机号筛选器
+            // LoadDomainAnd手机号Filter器
             if (!window.domainPhoneFilter) {
                 await this.loadFilterScript('filters/domain-phone-filter.js');
                 
                 if (typeof DomainPhoneFilter !== 'undefined') {
                     window.domainPhoneFilter = new DomainPhoneFilter();
-                    //console.log('✅ 域名手机号筛选器初始化成功');
+                    //console.log('✅ Domain手机号Filter器InitializeSuccess');
                 }
             }
             
-            // 加载API筛选器
+            // LoadAPIFilter器
             if (!window.apiFilter) {
                 await this.loadFilterScript('filters/api-filter.js');
                 
                 if (typeof APIFilter !== 'undefined') {
                     window.apiFilter = new APIFilter();
-                    //console.log('✅ API筛选器初始化成功');
+                    //console.log('✅ APIFilter器InitializeSuccess');
                 }
             }
             
         } catch (error) {
-            console.error('❌ 筛选器加载失败:', error);
+            console.error('❌ Filter器LoadFailed:', error);
         }
     }
     
-    // 加载筛选器脚本
+    // LoadFilter器Script
     async loadFilterScript(scriptPath) {
         return new Promise((resolve, reject) => {
             try {
@@ -581,29 +581,29 @@ class SRCMiner {
                 script.src = chrome.runtime.getURL(scriptPath);
                 
                 script.onload = () => {
-                    //console.log(`📦 筛选器脚本加载成功: ${scriptPath}`);
+                    //console.log(`📦 Filter器ScriptLoadSuccess: ${scriptPath}`);
                     resolve();
                 };
                 
                 script.onerror = (error) => {
-                    console.error(`❌ 筛选器脚本加载失败: ${scriptPath}`, error);
+                    console.error(`❌ Filter器ScriptLoadFailed: ${scriptPath}`, error);
                     reject(error);
                 };
                 
                 document.head.appendChild(script);
                 
-                // 设置超时保护
+                // Settings超时保护
                 setTimeout(() => {
                     resolve();
                 }, 3000);
             } catch (error) {
-                console.warn(`⚠️ 加载筛选器脚本失败: ${scriptPath}`, error);
+                console.warn(`⚠️ LoadFilter器ScriptFailed: ${scriptPath}`, error);
                 resolve();
             }
         });
     }
     
-    // 获取结果统计信息
+    // GetResultStatisticsInformation
     getResultsStats(results) {
         const stats = {};
         let total = 0;
@@ -622,37 +622,37 @@ class SRCMiner {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
-            // 检查是否是有效的网页URL
+            // Check是否是Valid的网页URL
             if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-                //console.log('跳过系统页面的自动扫描');
+                //console.log('跳过SystemPage的AutoScan');
                 return;
             }
             
-            // 更新当前扫描域名显示
+            // UpdateCurrentScanDomainDisplay
             this.updateCurrentDomain(tab.url);
             
             const urlObj = new URL(tab.url);
             const fullUrl = `https://${urlObj.hostname}`;
             
-            // 从IndexedDB检查上次扫描时间
+            // fromIndexedDBCheck上次ScanTime
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
             
             const scanData = await window.indexedDBManager.loadScanResults(fullUrl);
             
-            // 如果没有扫描过当前页面，或者超过5分钟，则自动扫描
+            // 如果NoScan过CurrentPage，Or者超过5分钟，则AutoScan
             const now = Date.now();
             const lastScanTime = scanData ? scanData.timestamp : 0;
             const fiveMinutes = 5 * 60 * 1000;
             
             if (now - lastScanTime > fiveMinutes) {
                 setTimeout(() => {
-                    this.startScan(true); // 静默扫描
+                    this.startScan(true); // 静默Scan
                 }, 2000);
             }
         } catch (error) {
-            console.error('自动扫描检查失败:', error);
+            console.error('AutoScanCheckFailed:', error);
         }
     }
     
@@ -667,34 +667,34 @@ class SRCMiner {
             if (domainDisplay) {
                 domainDisplay.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 12px; opacity: 0.8;">正在扫描:</span>
+                        <span style="font-size: 12px; opacity: 0.8;">In progressScan:</span>
                         <span style="color: #00d4aa; font-weight: 600;">${protocol}//${domain}${port}</span>
                     </div>
                 `;
             }
         } catch (error) {
-            console.error('更新域名显示失败:', error);
+            console.error('UpdateDomainDisplayFailed:', error);
         }
     }
     
     async clearResults() {
-        // 确认清空操作
-        if (!confirm('确定要清空当前页面的扫描数据吗？此操作不可恢复。')) {
+        // ConfirmClear操作
+        if (!confirm('Confirm要ClearCurrentPage的ScanData吗？此操作不可恢复。')) {
             return;
         }
         
         try {
-            // 获取当前页面URL
+            // GetCurrentPageURL
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                this.showNotification('无法获取当前页面URL', 'error');
+                this.showNotification('None法GetCurrentPageURL', 'error');
                 return;
             }
             
             const urlObj = new URL(tab.url);
             const fullUrl = `https://${urlObj.hostname}`;
             
-            // 清空内存中的数据
+            // Clear内存中的Data
             this.results = {};
             this.deepScanResults = {};
             this.scannedUrls = new Set();
@@ -702,11 +702,11 @@ class SRCMiner {
             this.deepScanRunning = false;
             this.currentDepth = 0;
             
-            // 清空界面显示
+            // Clear界面Display
             document.getElementById('results').innerHTML = '';
             document.getElementById('stats').textContent = '';
             
-            // 从IndexedDB清空当前页面相关的数据
+            // fromIndexedDBClearCurrentPageRelated的Data
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
@@ -715,24 +715,24 @@ class SRCMiner {
             await window.indexedDBManager.deleteDeepScanResults(fullUrl);
             await window.indexedDBManager.deleteDeepScanState(fullUrl);
             
-            // 重置深度扫描UI状态
+            // Reset深度ScanUIStatus
             this.resetDeepScanUI();
             
-            // 重置分类选择器
+            // ResetCategory选择器
             this.updateCategorySelect();
             
-            // 显示清空成功提示
-            this.showNotification(`页面 ${urlObj.hostname} 的扫描数据已清空`, 'success');
+            // DisplayClearSuccessPrompt
+            this.showNotification(`Page ${urlObj.hostname} 的ScanDataCleared`, 'success');
             
-            //console.log(`✅ 页面 ${urlObj.hostname} 的扫描数据已清空`);
+            //console.log(`✅ Page ${urlObj.hostname} 的ScanDataCleared`);
             
         } catch (error) {
-            console.error('❌ 清空数据失败:', error);
-            this.showNotification('清空数据失败: ' + error.message, 'error');
+            console.error('❌ ClearDataFailed:', error);
+            this.showNotification('ClearDataFailed: ' + error.message, 'error');
         }
     }
     
-    // 重置深度扫描UI状态
+    // Reset深度ScanUIStatus
     resetDeepScanUI() {
         const deepScanBtn = document.getElementById('deepScanBtn');
         const deepScanBtnText = deepScanBtn?.querySelector('.text');
@@ -740,7 +740,7 @@ class SRCMiner {
         const progressDiv = document.getElementById('deepScanProgress');
         
         if (deepScanBtnText) {
-            deepScanBtnText.textContent = '🚀 开始深度扫描';
+            deepScanBtnText.textContent = '🚀 Start深度Scan';
         }
         if (deepScanBtn) {
             deepScanBtn.style.background = 'rgba(0, 212, 170, 0.3)';
@@ -754,21 +754,21 @@ class SRCMiner {
             progressDiv.innerHTML = '';
         }
         
-        // 重置深度扫描相关的输入框
+        // Reset深度ScanRelated的Input框
         const maxDepthInput = document.getElementById('maxDepth');
         const concurrencyInput = document.getElementById('concurrency');
         if (maxDepthInput) maxDepthInput.value = '2';
         if (concurrencyInput) concurrencyInput.value = '3';
     }
     
-    // 显示通知
+    // DisplayNotify
     showNotification(message, type = 'info') {
-        // 创建通知元素
+        // CreateNotifyElement
         const notification = document.createElement('div');
         notification.className = 'notification';
         notification.textContent = message;
         
-        // 设置样式
+        // Settings样式
         notification.style.position = 'fixed';
         notification.style.top = '20px';
         notification.style.right = '20px';
@@ -780,7 +780,7 @@ class SRCMiner {
         notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
         notification.style.animation = 'slideIn 0.3s ease';
         
-        // 根据类型设置颜色
+        // 根据TypeSettings颜色
         switch (type) {
             case 'success':
                 notification.style.backgroundColor = '#00d4aa';
@@ -799,10 +799,10 @@ class SRCMiner {
                 notification.style.color = '#fff';
         }
         
-        // 添加到页面
+        // Add到Page
         document.body.appendChild(notification);
         
-        // 3秒后自动移除
+        // 3 secondsAfterAutoRemove
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => {
@@ -815,69 +815,69 @@ class SRCMiner {
     
     async saveResults() {
         try {
-            // 获取当前页面URL作为存储键
+            // GetCurrentPageURL作为存储Key
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                console.warn('⚠️ 无法获取当前页面URL，跳过保存');
+                console.warn('⚠️ None法GetCurrentPageURL，跳过Save');
                 return;
             }
             
             const urlObj = new URL(tab.url);
             const hostname = urlObj.hostname;
             
-            //console.log('💾 [SAVE LOG] 开始保存结果...');
-            //console.log('💾 [SAVE LOG] 当前 this.results 统计:', this.getResultsStats(this.results));
-            //console.log('💾 [SAVE LOG] 当前 this.deepScanResults 统计:', this.getResultsStats(this.deepScanResults));
+            //console.log('💾 [SAVE LOG] StartSave results...');
+            //console.log('💾 [SAVE LOG] Current this.results Statistics:', this.getResultsStats(this.results));
+            //console.log('💾 [SAVE LOG] Current this.deepScanResults Statistics:', this.getResultsStats(this.deepScanResults));
             
-            // 确定要保存的最终结果
+            // Confirm要Save的最终Result
             let finalResults = {};
             
-            // 如果有普通扫描结果，直接使用（已经筛选过）
+            // 如果有普通Scan results，Direct使用（Already经Filter过）
             if (this.results && Object.keys(this.results).length > 0) {
-                //console.log('💾 [SAVE LOG] 使用普通扫描结果作为基础');
+                //console.log('💾 [SAVE LOG] 使用普通Scan results作为Basic');
                 finalResults = { ...this.results };
             }
             
-            // 如果有深度扫描结果，需要先筛选再合并
+            // 如果有深度Scan results，NeedFirstFilter再合And
             if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
-                //console.log('💾 [SAVE LOG] 处理深度扫描结果...');
+                //console.log('💾 [SAVE LOG] Process深度Scan results...');
                 
-                // 先对深度扫描结果应用筛选器
+                // First对深度Scan results应用Filter器
                 const filteredDeepResults = await this.applyFiltersToScanResults(this.deepScanResults);
-                //console.log('💾 [SAVE LOG] 深度扫描结果筛选后统计:', this.getResultsStats(filteredDeepResults));
+                //console.log('💾 [SAVE LOG] 深度Scan resultsFilterAfterStatistics:', this.getResultsStats(filteredDeepResults));
                 
-                // 合并筛选后的结果
+                // 合AndFilterAfter的Result
                 finalResults = this.mergeResults(finalResults, filteredDeepResults);
-                //console.log('💾 [SAVE LOG] 合并后最终结果统计:', this.getResultsStats(finalResults));
+                //console.log('💾 [SAVE LOG] 合AndAfter最终ResultStatistics:', this.getResultsStats(finalResults));
             }
             
-            // 保存最终的筛选后结果到IndexedDB
+            // Save最终的FilterAfterResult到IndexedDB
             if (Object.keys(finalResults).length > 0) {
                 const itemCount = Object.values(finalResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-                //console.log(`💾 [SAVE LOG] 最终保存到 IndexedDB，共 ${itemCount} 条筛选后的记录`);
+                //console.log(`💾 [SAVE LOG] 最终Save到 IndexedDB，共 ${itemCount} 条FilterAfter的Record`);
                 
-                // 验证保存的数据
+                // ValidateSave的Data
                 const domainCount = finalResults.domains ? finalResults.domains.length : 0;
-                //console.log(`💾 [SAVE LOG] 验证：保存的域名数量 = ${domainCount}`);
+                //console.log(`💾 [SAVE LOG] Validate：Save的Domain数量 = ${domainCount}`);
                 
-                // 使用IndexedDB保存普通扫描结果
+                // 使用IndexedDBSave普通Scan results
                 if (!window.indexedDBManager) {
                     window.indexedDBManager = new IndexedDBManager();
                 }
-                // 构造完整的URL用于保存
+                // 构造Complete的URLUsed forSave
                 const fullUrl = `https://${hostname}`;
                 
-                // 获取页面标题用于URL位置跟踪
+                // GetPage标题Used forURL位置跟踪
                 const pageTitle = document.title || tab.title || 'Unknown Page';
                 
-                // 保存结果时包含URL位置信息
+                // Save results时包含URL位置Information
                 await window.indexedDBManager.saveScanResults(fullUrl, finalResults, tab.url, pageTitle);
-                //console.log(`✅ [SAVE LOG] IndexedDB 保存完成: ${hostname}，包含URL位置信息`);
+                //console.log(`✅ [SAVE LOG] IndexedDB Save completed: ${hostname}，包含URL位置Information`);
             } else {
-                //console.log('💾 [SAVE LOG] 没有有效结果需要保存');
+                //console.log('💾 [SAVE LOG] NoValidResultNeedSave');
             }
             
-            // 使用IndexedDB保存深度扫描状态
+            // 使用IndexedDBSave深度ScanStatus
             const deepState = {
                 running: this.deepScanRunning,
                 scannedUrls: Array.from(this.scannedUrls || []),
@@ -887,34 +887,34 @@ class SRCMiner {
             };
             
             await window.indexedDBManager.saveDeepScanState(fullUrl, deepState);
-            //console.log(`✅ [SAVE LOG] 深度扫描状态保存到IndexedDB完成: ${hostname}`);
+            //console.log(`✅ [SAVE LOG] 深度ScanStatusSave to IndexedDBComplete: ${hostname}`);
             
-            // 如果有深度扫描结果，也保存到IndexedDB
+            // 如果有深度Scan results，也Save to IndexedDB
             if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
                 await window.indexedDBManager.saveDeepScanResults(fullUrl, this.deepScanResults);
-                //console.log(`✅ [SAVE LOG] 深度扫描结果保存到IndexedDB完成: ${hostname}`);
+                //console.log(`✅ [SAVE LOG] 深度Scan resultsSave to IndexedDBComplete: ${hostname}`);
             }
             
         } catch (error) {
-            console.error('❌ [SAVE LOG] 数据保存失败:', error);
+            console.error('❌ [SAVE LOG] DataSaveFailed:', error);
         }
     }
     
-    // 合并筛选后的扫描结果（确保合并的数据也是筛选过的）
+    // 合AndFilterAfter的Scan results（Ensure合And的Data也是Filter过的）
     async mergeFilteredResults(existingResults, newResults) {
-        //console.log('🔍 [MERGE LOG] 开始合并筛选后的结果...');
-        //console.log('🔍 [MERGE LOG] 现有结果统计:', this.getResultsStats(existingResults));
-        //console.log('🔍 [MERGE LOG] 新结果统计:', this.getResultsStats(newResults));
+        //console.log('🔍 [MERGE LOG] Start合AndFilterAfter的Result...');
+        //console.log('🔍 [MERGE LOG] 现有ResultStatistics:', this.getResultsStats(existingResults));
+        //console.log('🔍 [MERGE LOG] 新ResultStatistics:', this.getResultsStats(newResults));
         
-        // 如果新结果还没有经过筛选，先筛选
+        // 如果新Result还No经过Filter，FirstFilter
         let filteredNewResults = newResults;
         if (newResults && !newResults._filtered) {
-            //console.log('⚠️ [MERGE LOG] 新结果未筛选，正在应用筛选器...');
+            //console.log('⚠️ [MERGE LOG] 新ResultNotFilter，In progress应用Filter器...');
             filteredNewResults = await this.applyFiltersToScanResults(newResults);
-            filteredNewResults._filtered = true; // 标记已筛选
-            //console.log('✅ [MERGE LOG] 新结果筛选完成:', this.getResultsStats(filteredNewResults));
+            filteredNewResults._filtered = true; // MarkAlreadyFilter
+            //console.log('✅ [MERGE LOG] 新ResultFilterComplete:', this.getResultsStats(filteredNewResults));
         } else {
-            //console.log('✅ [MERGE LOG] 新结果已筛选，直接合并');
+            //console.log('✅ [MERGE LOG] 新ResultAlreadyFilter，Direct合And');
         }
         
         const mergedResults = {};
@@ -931,7 +931,7 @@ class SRCMiner {
             const existingItems = existingResults[category] || [];
             const newItems = filteredNewResults[category] || [];
             
-            // 使用Set去重，然后合并
+            // 使用Set去重，Then合And
             const combinedSet = new Set([...existingItems, ...newItems]);
             mergedResults[category] = Array.from(combinedSet);
             
@@ -940,18 +940,18 @@ class SRCMiner {
             }
         });
         
-        // 标记合并后的结果已筛选
+        // Mark合AndAfter的ResultAlreadyFilter
         mergedResults._filtered = true;
         
-        //console.log('✅ [MERGE LOG] 筛选后结果合并完成，最终统计:', this.getResultsStats(mergedResults));
+        //console.log('✅ [MERGE LOG] FilterAfterResult合AndComplete，最终Statistics:', this.getResultsStats(mergedResults));
         return mergedResults;
     }
     
-    // 合并扫描结果的辅助方法
+    // 合AndScan results的辅助Method
     mergeResults(existingResults, newResults) {
-        //console.log('🔍 [MERGE-SIMPLE LOG] 开始简单合并结果...');
-        //console.log('🔍 [MERGE-SIMPLE LOG] 现有结果统计:', this.getResultsStats(existingResults));
-        //console.log('🔍 [MERGE-SIMPLE LOG] 新结果统计:', this.getResultsStats(newResults));
+        //console.log('🔍 [MERGE-SIMPLE LOG] Start简单合AndResult...');
+        //console.log('🔍 [MERGE-SIMPLE LOG] 现有ResultStatistics:', this.getResultsStats(existingResults));
+        //console.log('🔍 [MERGE-SIMPLE LOG] 新ResultStatistics:', this.getResultsStats(newResults));
         
         const mergedResults = {};
         const categories = [
@@ -966,7 +966,7 @@ class SRCMiner {
             const existingItems = existingResults[category] || [];
             const newItems = newResults[category] || [];
             
-            // 使用Set去重，然后合并
+            // 使用Set去重，Then合And
             const combinedSet = new Set([...existingItems, ...newItems]);
             mergedResults[category] = Array.from(combinedSet);
             
@@ -975,43 +975,43 @@ class SRCMiner {
             }
         });
         
-        //console.log('✅ [MERGE-SIMPLE LOG] 简单合并完成，最终统计:', this.getResultsStats(mergedResults));
-        console.warn('⚠️ [MERGE-SIMPLE LOG] 注意：此方法未应用筛选器，可能包含未筛选数据');
+        //console.log('✅ [MERGE-SIMPLE LOG] 简单合AndComplete，最终Statistics:', this.getResultsStats(mergedResults));
+        console.warn('⚠️ [MERGE-SIMPLE LOG] 注意：此MethodNot应用Filter器，可能包含NotFilterData');
         
         return mergedResults;
     }
     
     async loadResults() {
         try {
-            // 获取当前页面URL作为存储键
+            // GetCurrentPageURL作为存储Key
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                console.warn('⚠️ 无法获取当前页面URL，跳过加载');
+                console.warn('⚠️ None法GetCurrentPageURL，跳过Load');
                 return;
             }
             
             const urlObj = new URL(tab.url);
             const hostname = urlObj.hostname;
             
-            console.log(`🔄 [LOAD LOG] 正在加载页面数据: ${hostname}`);
+            console.log(`🔄 [LOAD LOG] In progressLoadPageData: ${hostname}`);
             
-            // 从IndexedDB加载普通扫描结果
+            // Load from IndexedDB普通Scan results
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
             
-            // 构造完整的URL用于加载
+            // 构造Complete的URLUsed forLoad
             const fullUrl = `https://${hostname}`;
             const loadedDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
-            // 修复：正确处理新的数据结构，数据存储在 results 属性中
+            // Fix：正确Process新的Data结构，Data存储在 results 属性中
             let loadedData = null;
             if (loadedDataWrapper && loadedDataWrapper.results) {
-                // 检查是否是新的嵌套结构
+                // Check是否是新的嵌套结构
                 if (loadedDataWrapper.results.results) {
-                    // 新格式：数据在 results.results 中
+                    // 新Format：Data在 results.results 中
                     loadedData = loadedDataWrapper.results.results;
                 } else {
-                    // 旧格式：数据直接在 results 中
+                    // 旧Format：DataDirect在 results 中
                     loadedData = loadedDataWrapper.results;
                 }
             }
@@ -1020,32 +1020,32 @@ class SRCMiner {
                 const itemCount = Object.values(loadedData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
                 const domainCount = loadedData.domains ? loadedData.domains.length : 0;
                 
-                //console.log(`🔄 [LOAD LOG] 从IndexedDB加载数据统计:`, this.getResultsStats(loadedData));
-                //console.log(`🔄 [LOAD LOG] 存储中域名数量: ${domainCount}`);
+                //console.log(`🔄 [LOAD LOG] Load from IndexedDBDataStatistics:`, this.getResultsStats(loadedData));
+                //console.log(`🔄 [LOAD LOG] 存储中Domain数量: ${domainCount}`);
                 
-                // 检查数据是否已经筛选过
+                // CheckData是否Already经Filter过
                 if (loadedData._filtered) {
-                    //console.log(`✅ [LOAD LOG] 数据已筛选，直接使用`);
+                    //console.log(`✅ [LOAD LOG] DataAlreadyFilter，Direct使用`);
                     this.results = loadedData;
                     this.deepScanResults = loadedData;
                 } else {
-                    //console.log(`⚠️ [LOAD LOG] 数据未筛选，重新应用筛选器...`);
-                    // 对加载的数据重新应用筛选器
+                    //console.log(`⚠️ [LOAD LOG] DataNotFilter，Re应用Filter器...`);
+                    // 对Load的DataRe应用Filter器
                     this.results = await this.applyFiltersToScanResults(loadedData);
                     this.deepScanResults = this.results;
                     
-                    // 重新保存筛选后的数据
+                    // ReSaveFilterAfter的Data
                     await this.saveResults();
-                    //console.log(`✅ [LOAD LOG] 已重新筛选并保存数据`);
+                    //console.log(`✅ [LOAD LOG] AlreadyReFilterAndSaveData`);
                 }
                 
-                //console.log(`✅ [LOAD LOG] 最终加载数据统计:`, this.getResultsStats(this.results));
+                //console.log(`✅ [LOAD LOG] 最终LoadDataStatistics:`, this.getResultsStats(this.results));
                 this.displayResults();
             } else {
-                //console.log(`⚠️ [LOAD LOG] 页面 ${hostname} 未找到有效的扫描数据`);
+                //console.log(`⚠️ [LOAD LOG] Page ${hostname} Not foundValid的ScanData`);
             }
             
-            // 从IndexedDB恢复深度扫描状态
+            // fromIndexedDB恢复深度ScanStatus
             const deepState = await window.indexedDBManager.loadDeepScanState(fullUrl);
             
             if (deepState) {
@@ -1055,96 +1055,96 @@ class SRCMiner {
                 this.maxDepth = deepState.maxDepth || 2;
                 this.concurrency = deepState.concurrency || 3;
                 
-                console.log('🔄 [LOAD LOG] 从IndexedDB恢复深度扫描状态:', {
+                console.log('🔄 [LOAD LOG] fromIndexedDB恢复深度ScanStatus:', {
                     running: this.deepScanRunning,
                     scannedCount: this.scannedUrls.size,
                     depth: this.currentDepth
                 });
             }
             
-            // 尝试从IndexedDB加载深度扫描结果
+            // 尝试Load from IndexedDB深度Scan results
             const deepScanDataWrapper = await window.indexedDBManager.loadDeepScanResults(fullUrl);
             if (deepScanDataWrapper && deepScanDataWrapper.results) {
                 const deepScanData = deepScanDataWrapper.results;
                 const deepItemCount = Object.values(deepScanData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
                 
-                // 如果深度扫描结果比普通扫描结果更完整，使用深度扫描结果
+                // 如果深度Scan results比普通Scan results更Complete，使用深度Scan results
                 if (deepItemCount > 0) {
                     const currentItemCount = loadedData ? Object.values(loadedData).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0) : 0;
                     if (deepItemCount > currentItemCount) {
                         this.results = deepScanData;
                         this.deepScanResults = deepScanData;
-                        console.log(`🔄 [LOAD LOG] 使用IndexedDB深度扫描结果，共 ${deepItemCount} 条记录`);
+                        console.log(`🔄 [LOAD LOG] 使用IndexedDB深度Scan results，共 ${deepItemCount} 条Record`);
                         this.displayResults();
                     }
                 }
             }
         } catch (error) {
-            console.error('❌ [LOAD LOG] 加载结果失败:', error);
+            console.error('❌ [LOAD LOG] LoadResultFailed:', error);
         }
     }
     
-    // 生成页面存储键 - 统一使用域名作为键
+    // GeneratePage存储Key - Unified使用Domain作为Key
     getPageStorageKey(url) {
         try {
             const urlObj = new URL(url);
-            // 只使用域名作为键，不包含路径，确保同一域名下的所有页面共享存储
+            // Only使用Domain作为Key，Does not include path，Ensure同一Domain下的所有Page共享存储
             const key = urlObj.hostname;
-            // 替换特殊字符，确保键的有效性
+            // Replace特殊字符，EnsureKey的Valid性
             return key.replace(/[^a-zA-Z0-9._-]/g, '_');
         } catch (error) {
-            console.error('生成存储键失败:', error);
-            // 如果URL解析失败，使用简化的键
+            console.error('Generate存储KeyFailed:', error);
+            // 如果URLParseFailed，使用简化的Key
             return url.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
         }
     }
     
-    // 显示结果 - 使用DisplayManager
+    // DisplayResult - 使用DisplayManager
     async displayResults() {
         if (this.displayManager) {
             await this.displayManager.displayResults();
         } else {
-            console.error('DisplayManager未初始化');
+            console.error('DisplayManagerNotInitialize');
         }
     }
     
-    // 批量请求测试 - 使用ApiTester
+    // BatchRequestTest - 使用ApiTester
     async batchRequestTest() {
         if (this.apiTester) {
             await this.apiTester.batchRequestTest();
         } else {
-            console.error('ApiTester未初始化');
-            alert('API测试器未初始化，无法执行测试');
+            console.error('ApiTesterNotInitialize');
+            alert('API Testing器NotInitialize，None法ExecuteTest');
         }
     }
     
-        // 添加自定义API路径
+        // AddCustomAPIPath
     addCustomApiPaths() {
         const customApiPathsInput = document.getElementById('customApiPaths');
         if (!customApiPathsInput) {
-            console.error('找不到自定义API路径输入框');
+            console.error('找不到CustomAPIPathInput框');
             return;
         }
         
         const customApiPaths = customApiPathsInput.value.trim();
         if (!customApiPaths) {
-            alert('请输入自定义API路径，每行一个路径');
+            alert('请InputCustomAPIPath，Every行一个Path');
             return;
         }
         
-        // 解析自定义API路径
+        // ParseCustomAPIPath
         const paths = this.apiTester.parseCustomApiPaths(customApiPaths);
         if (paths.length === 0) {
-            alert('请输入有效的API路径');
+            alert('请InputValid的APIPath');
             return;
         }
         
-        // 将自定义API路径添加到扫描结果中
+        // 将CustomAPIPathAdd到Scan results中
         if (!this.results.customApis) {
             this.results.customApis = [];
         }
         
-        // 使用Set进行去重
+        // 使用SetPerform去重
         const existingSet = new Set(this.results.customApis);
         let addedCount = 0;
         
@@ -1156,29 +1156,29 @@ class SRCMiner {
             }
         });
         
-        // 保存结果到存储
+        // Save results到存储
         this.saveResults();
         
-        // 重新显示结果
+        // ReDisplayResult
         this.displayResults();
         
-        // 显示添加成功的提示
-        const message = `成功添加 ${addedCount} 个自定义API路径到扫描结果中:\n${paths.join('\n')}`;
+        // DisplayAddSuccess的Prompt
+        const message = `SuccessAdd ${addedCount} 个CustomAPIPath到Scan results中:\n${paths.join('\n')}`;
         alert(message);
         
-        // 清空输入框
+        // ClearInput框
         customApiPathsInput.value = '';
         
-        //console.log(`✅ 添加了 ${addedCount} 个自定义API路径到扫描结果:`, paths);
+        //console.log(`✅ Add了 ${addedCount} 个CustomAPIPath到Scan results:`, paths);
     }
     
-    // 切换深度扫描 - 使用DeepScanner
+    // 切换深度Scan - 使用DeepScanner
     toggleDeepScan() {
         if (this.deepScanner) {
             this.deepScanner.toggleDeepScan();
         } else {
-            console.error('DeepScanner未初始化');
-            alert('深度扫描器未初始化，无法执行扫描');
+            console.error('DeepScannerNotInitialize');
+            alert('深度Scan器NotInitialize，None法ExecuteScan');
         }
     }
 }

@@ -1,6 +1,6 @@
-// 修复content.js中的正则配置问题的补丁
+// Fixcontent.js中的正则Configuration问题的补丁
 
-// 在SRCMinerContent类中添加自定义正则配置支持
+// 在SRCMinerContentClass中AddCustom正则Configuration支持
 class SRCMinerContentRegexFix {
     constructor() {
         this.customRegexConfig = null;
@@ -8,7 +8,7 @@ class SRCMinerContentRegexFix {
     }
 
     /**
-     * 加载自定义正则表达式配置
+     * LoadCustomRegular expressionConfiguration
      */
     async loadCustomRegexConfig() {
         try {
@@ -18,9 +18,9 @@ class SRCMinerContentRegexFix {
             
             if (result.regexSettings) {
                 customSettings = result.regexSettings;
-                //console.log('🔄 Content Script加载regexSettings配置:', customSettings);
+                //console.log('🔄 Content ScriptLoadregexSettingsConfiguration:', customSettings);
             } else if (result.phantomRegexConfig) {
-                // 转换phantomRegexConfig格式为regexSettings格式
+                // ConvertphantomRegexConfigFormat为regexSettingsFormat
                 const phantomConfig = result.phantomRegexConfig;
                 customSettings = {
                     absoluteApis: phantomConfig.api || '',
@@ -30,25 +30,25 @@ class SRCMinerContentRegexFix {
                     phoneNumbers: phantomConfig.phone || '',
                     credentials: phantomConfig.sensitive || ''
                 };
-                //console.log('🔄 Content Script从phantomRegexConfig转换配置:', customSettings);
+                //console.log('🔄 Content ScriptfromphantomRegexConfigConvertConfiguration:', customSettings);
             }
             
             if (customSettings) {
                 this.customRegexConfig = customSettings;
-                //console.log('✅ Content Script正则表达式配置已更新');
+                //console.log('✅ Content ScriptRegular expressionConfigurationAlreadyUpdate');
                 return true;
             } else {
-                //console.log('📋 Content Script使用默认正则表达式配置');
+                //console.log('📋 Content Script使用DefaultRegular expressionConfiguration');
                 return false;
             }
         } catch (error) {
-            console.error('❌ Content Script加载自定义正则表达式配置失败:', error);
+            console.error('❌ Content ScriptLoadCustomRegular expressionConfigurationFailed:', error);
             return false;
         }
     }
 
     /**
-     * 使用自定义正则提取邮箱
+     * 使用Custom正则Extract邮箱
      */
     extractEmailsWithCustomRegex(content, results) {
         if (this.customRegexConfig && this.customRegexConfig.emails && this.customRegexConfig.emails.trim()) {
@@ -60,10 +60,10 @@ class SRCMinerContentRegexFix {
                         results.emails.add(email);
                     }
                 });
-                //console.log('🔧 使用自定义邮箱正则表达式，匹配到', emails.length, '个邮箱');
+                //console.log('🔧 使用Custom邮箱Regular expression，Match到', emails.length, '个邮箱');
                 return true;
             } catch (error) {
-                console.error('自定义邮箱正则表达式格式错误:', error);
+                console.error('Custom邮箱Regular expressionFormatError:', error);
                 return false;
             }
         }
@@ -71,7 +71,7 @@ class SRCMinerContentRegexFix {
     }
 
     /**
-     * 使用自定义正则提取手机号
+     * 使用Custom正则Extract手机号
      */
     extractPhonesWithCustomRegex(content, results) {
         if (this.customRegexConfig && this.customRegexConfig.phoneNumbers && this.customRegexConfig.phoneNumbers.trim()) {
@@ -81,16 +81,16 @@ class SRCMinerContentRegexFix {
                 phones.forEach(phone => {
                     if (phone && phone.length > 3 && phone.length < 50) {
                         results.phoneNumbers.add(phone);
-                        //console.log(`🌐 [DEBUG] 自定义正则手机号发现 - URL: ${window.location.href}, 手机号: ${phone}`);
+                        //console.log(`🌐 [DEBUG] Custom正则手机号Found - URL: ${window.location.href}, 手机号: ${phone}`);
                     }
                 });
-                //console.log('🔧 使用自定义手机号正则表达式，匹配到', phones.length, '个手机号');
+                //console.log('🔧 使用Custom手机号Regular expression，Match到', phones.length, '个手机号');
                 if (phones.length > 0) {
-                    //console.log(`🔍 [DEBUG] 自定义正则手机号提取汇总 - 来源URL: ${window.location.href}, 总数: ${phones.length}`);
+                    //console.log(`🔍 [DEBUG] Custom正则手机号Extract汇总 - 来SourceURL: ${window.location.href}, 总数: ${phones.length}`);
                 }
                 return true;
             } catch (error) {
-                console.error('自定义手机号正则表达式格式错误:', error);
+                console.error('Custom手机号Regular expressionFormatError:', error);
                 return false;
             }
         }
@@ -98,7 +98,7 @@ class SRCMinerContentRegexFix {
     }
 
     /**
-     * 使用自定义正则提取域名
+     * 使用Custom正则ExtractDomain
      */
     extractDomainsWithCustomRegex(content, results) {
         if (this.customRegexConfig && this.customRegexConfig.domains && this.customRegexConfig.domains.trim()) {
@@ -110,10 +110,10 @@ class SRCMinerContentRegexFix {
                         results.domains.add(domain);
                     }
                 });
-                //console.log('🔧 使用自定义域名正则表达式，匹配到', domains.length, '个域名');
+                //console.log('🔧 使用CustomDomainRegular expression，Match到', domains.length, '个Domain');
                 return true;
             } catch (error) {
-                console.error('自定义域名正则表达式格式错误:', error);
+                console.error('CustomDomainRegular expressionFormatError:', error);
                 return false;
             }
         }
@@ -121,12 +121,12 @@ class SRCMinerContentRegexFix {
     }
 
     /**
-     * 使用自定义正则提取API
+     * 使用Custom正则ExtractAPI
      */
     extractApisWithCustomRegex(content, results) {
         let hasCustomApi = false;
         
-        // 绝对路径API
+        // Absolute pathAPI
         if (this.customRegexConfig && this.customRegexConfig.absoluteApis && this.customRegexConfig.absoluteApis.trim()) {
             try {
                 const customAbsolutePattern = new RegExp(this.customRegexConfig.absoluteApis, 'g');
@@ -136,14 +136,14 @@ class SRCMinerContentRegexFix {
                         results.absoluteApis.add(api);
                     }
                 });
-                //console.log('🔧 使用自定义绝对路径API正则表达式，匹配到', absoluteApis.length, '个API');
+                //console.log('🔧 使用CustomAbsolute pathAPIRegular expression，Match到', absoluteApis.length, '个API');
                 hasCustomApi = true;
             } catch (error) {
-                console.error('自定义绝对路径API正则表达式格式错误:', error);
+                console.error('CustomAbsolute pathAPIRegular expressionFormatError:', error);
             }
         }
         
-        // 相对路径API
+        // Relative pathAPI
         if (this.customRegexConfig && this.customRegexConfig.relativeApis && this.customRegexConfig.relativeApis.trim()) {
             try {
                 const customRelativePattern = new RegExp(this.customRegexConfig.relativeApis, 'g');
@@ -153,10 +153,10 @@ class SRCMinerContentRegexFix {
                         results.relativeApis.add(api);
                     }
                 });
-                //console.log('🔧 使用自定义相对路径API正则表达式，匹配到', relativeApis.length, '个API');
+                //console.log('🔧 使用CustomRelative pathAPIRegular expression，Match到', relativeApis.length, '个API');
                 hasCustomApi = true;
             } catch (error) {
-                console.error('自定义相对路径API正则表达式格式错误:', error);
+                console.error('CustomRelative pathAPIRegular expressionFormatError:', error);
             }
         }
         
@@ -164,7 +164,7 @@ class SRCMinerContentRegexFix {
     }
 
     /**
-     * 使用自定义正则提取敏感信息
+     * 使用Custom正则Extract敏感Information
      */
     extractCredentialsWithCustomRegex(content, results) {
         if (this.customRegexConfig && this.customRegexConfig.credentials && this.customRegexConfig.credentials.trim()) {
@@ -176,10 +176,10 @@ class SRCMinerContentRegexFix {
                         results.sensitiveKeywords.add(credential);
                     }
                 });
-                //console.log('🔧 使用自定义敏感信息正则表达式，匹配到', credentials.length, '个敏感信息');
+                //console.log('🔧 使用Custom敏感InformationRegular expression，Match到', credentials.length, '个敏感Information');
                 return true;
             } catch (error) {
-                console.error('自定义敏感信息正则表达式格式错误:', error);
+                console.error('Custom敏感InformationRegular expressionFormatError:', error);
                 return false;
             }
         }
@@ -187,5 +187,5 @@ class SRCMinerContentRegexFix {
     }
 }
 
-// 导出修复类
+// ExportFixClass
 window.SRCMinerContentRegexFix = SRCMinerContentRegexFix;

@@ -9,9 +9,9 @@ class ILoveYouTranslucent7 {
         this.maxDepth = 2;
         this.concurrency = 3;
         
-        // 初始化功能模块 - 先初始化SettingsManager
+        // Initialize功能模块 - FirstInitializeSettingsManager
         this.settingsManager = new SettingsManager();
-        window.SettingsManager = this.settingsManager; // 确保全局可访问
+        window.SettingsManager = this.settingsManager; // Ensure全局可访问
         
         this.basicScanner = new BasicScanner(this);
         this.deepScanner = new DeepScanner(this);
@@ -26,33 +26,33 @@ class ILoveYouTranslucent7 {
     }
     
     init() {
-        // 初始化导航切换
+        // Initialize导航切换
         this.initNavigation();
         
-        // 初始化按钮事件
+        // Initialize按钮事件
         this.initEventListeners();
         
-        // 初始化数据同步机制
+        // InitializeData同步机制
         this.initDataSync();
         
-        // 初始化消息监听器
+        // Initialize消息Listen器
         this.initMessageListeners();
         
-        // 加载已保存的结果并自动扫描
+        // LoadSaved的ResultAndAutoScan
         this.loadResults();
         this.autoScanIfNeeded();
     }
     
-    // 初始化消息监听器
+    // Initialize消息Listen器
     initMessageListeners() {
-        // 监听来自深度扫描窗口的消息
+        // Listen来自深度Scan窗口的消息
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             if (message.action === 'updateScanResults' || 
                 message.action === 'scanProgress' || 
                 message.action === 'scanComplete' || 
                 message.action === 'scanError') {
                 
-                // 处理深度扫描窗口的消息
+                // Process深度Scan窗口的消息
                 if (this.deepScanner) {
                     return this.deepScanner.handleScanWindowMessage(message, sender, sendResponse);
                 }
@@ -60,11 +60,11 @@ class ILoveYouTranslucent7 {
         });
     }
     
-    // 初始化数据同步机制
+    // InitializeData同步机制
     initDataSync() {
-        // 监听窗口焦点事件
+        // Listen窗口焦点事件
         window.addEventListener('focus', () => {
-            //console.log('🔄 窗口获得焦点，重新加载数据...');
+            //console.log('🔄 窗口获得焦点，ReloadData...');
             this.loadResults().then(() => {
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
@@ -72,10 +72,10 @@ class ILoveYouTranslucent7 {
             });
         });
         
-        // 监听页面可见性变化
+        // ListenPage可见性变化
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-                //console.log('🔄 页面变为可见，重新加载数据...');
+                //console.log('🔄 Page变为可见，ReloadData...');
                 this.loadResults().then(() => {
                     if (Object.keys(this.results).length > 0) {
                         this.displayResults();
@@ -84,16 +84,16 @@ class ILoveYouTranslucent7 {
             }
         });
         
-        // 定期检查数据完整性
+        // 定期CheckDataComplete性
         setInterval(() => {
             this.checkDataIntegrity();
-        }, 5000); // 每5秒检查一次
+        }, 5000); // Every5 secondsCheck一次
     }
     
-    // 检查数据完整性
+    // CheckDataComplete性
     async checkDataIntegrity() {
         try {
-            // 获取当前页面URL
+            // GetCurrentPageURL
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
                 return;
@@ -103,29 +103,29 @@ class ILoveYouTranslucent7 {
             const hostname = urlObj.hostname;
             const fullUrl = `https://${hostname}`;
             
-            // 从IndexedDB检查数据完整性
+            // fromIndexedDBCheckDataComplete性
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
             
-            // 检查普通扫描结果
+            // Check普通Scan results
             const scanDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
             const scanData = scanDataWrapper ? scanDataWrapper.results : null;
             
-            // 检查深度扫描结果
+            // Check深度Scan results
             const deepScanDataWrapper = await window.indexedDBManager.loadDeepScanResults(fullUrl);
             const deepScanData = deepScanDataWrapper ? deepScanDataWrapper.results : null;
             
-            // 如果IndexedDB中有当前页面的数据但内存中没有，重新加载
+            // 如果IndexedDB中有CurrentPage的Data但内存中No，Reload
             if ((scanData || deepScanData) && Object.keys(this.results || {}).length === 0) {
-                //console.log(`🔧 检测到页面 ${hostname} IndexedDB数据丢失，正在恢复...`);
+                //console.log(`🔧 Detect到Page ${hostname} IndexedDBData丢失，In progress恢复...`);
                 await this.loadResults();
                 if (Object.keys(this.results).length > 0) {
                     this.displayResults();
                 }
             }
         } catch (error) {
-            console.error('数据完整性检查失败:', error);
+            console.error('DataComplete性CheckFailed:', error);
         }
     }
     
@@ -141,19 +141,19 @@ class ILoveYouTranslucent7 {
             toggleButtonsBtn.addEventListener('click', () => this.toggleScanButtons());
         }
         
-        // 批量请求按钮
+        // BatchRequest按钮
         const batchRequestBtn = document.getElementById('batchRequestBtn');
         if (batchRequestBtn) {
             batchRequestBtn.addEventListener('click', () => this.batchRequestTest());
         }
         
-        // 添加自定义API路径按钮
+        // AddCustomAPIPath按钮
         const addCustomApiBtn = document.getElementById('addCustomApiBtn');
         if (addCustomApiBtn) {
             addCustomApiBtn.addEventListener('click', () => this.addCustomApiPaths());
         }
         
-        // 模态框关闭按钮
+        // 模态框Close按钮
         const closeModalBtn = document.getElementById('closeModalBtn');
         if (closeModalBtn) {
             closeModalBtn.addEventListener('click', () => {
@@ -161,7 +161,7 @@ class ILoveYouTranslucent7 {
             });
         }
         
-        // 新按钮事件处理
+        // 新按钮事件Process
         const toggleExpandBtn = document.getElementById('toggleExpandBtn');
         if (toggleExpandBtn) {
             toggleExpandBtn.addEventListener('click', () => {
@@ -179,7 +179,7 @@ class ILoveYouTranslucent7 {
                 const resultsContainer = document.getElementById('requestResults');
                 resultsContainer.innerHTML = '';
                 
-                // 获取所有扫描结果并添加到模态框
+                // Get所有Scan resultsAndAdd到模态框
                 const resultItems = document.querySelectorAll('.result-item');
                 resultItems.forEach(item => {
                     const clone = item.cloneNode(true);
@@ -191,7 +191,7 @@ class ILoveYouTranslucent7 {
             });
         }
         
-        // 复制所有结果按钮
+        // Copy所有Result按钮
         const copyAllResultsBtn = document.getElementById('copyAllResultsBtn');
         if (copyAllResultsBtn) {
             copyAllResultsBtn.addEventListener('click', () => {
@@ -199,9 +199,9 @@ class ILoveYouTranslucent7 {
                 navigator.clipboard.writeText(results).then(() => {
                     const textSpan = copyAllResultsBtn.querySelector('.text');
                     if (textSpan) {
-                        textSpan.textContent = '✅ 已复制';
+                        textSpan.textContent = '✅ Copied';
                         setTimeout(() => {
-                            textSpan.textContent = '复制全部结果';
+                            textSpan.textContent = 'CopyAllResult';
                         }, 2000);
                     }
                 });
@@ -209,7 +209,7 @@ class ILoveYouTranslucent7 {
         }
     }
     
-    // 初始化导航功能
+    // Initialize导航功能
     initNavigation() {
         const navTabs = document.querySelectorAll('.nav-tab');
         const pages = document.querySelectorAll('.page');
@@ -218,11 +218,11 @@ class ILoveYouTranslucent7 {
             tab.addEventListener('click', () => {
                 const targetPage = tab.dataset.page;
                 
-                // 更新导航状态
+                // Update导航Status
                 navTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
-                // 更新页面显示
+                // UpdatePageDisplay
                 pages.forEach(page => {
                     page.classList.remove('active');
                     const pageId = `${targetPage}-page`;
@@ -231,17 +231,17 @@ class ILoveYouTranslucent7 {
                     }
                 });
                 
-                // 页面切换后的特殊处理
+                // Page切换After的特殊Process
                 this.handlePageSwitch(targetPage);
             });
         });
     }
     
-    // 处理页面切换后的逻辑
+    // ProcessPage切换After的逻辑
     handlePageSwitch(pageName) {
         switch (pageName) {
             case 'scan':
-                // 切换到扫描页面时，重新加载并显示结果
+                // 切换到ScanPage时，ReloadAndDisplayResult
                 this.loadResults().then(() => {
                     if (Object.keys(this.results).length > 0) {
                         this.displayResults();
@@ -249,38 +249,38 @@ class ILoveYouTranslucent7 {
                 });
                 break;
             case 'deep':
-                // 切换到深度扫描页面时，恢复深度扫描状态
+                // 切换到深度ScanPage时，恢复深度ScanStatus
                 this.loadResults().then(() => {
                     this.restoreDeepScanUI();
                 });
                 break;
             case 'test':
-                // 切换到API测试页面时，更新分类选择器
+                // 切换到API TestingPage时，UpdateCategory选择器
                 this.loadResults().then(() => {
                     this.updateCategorySelect();
                 });
                 break;
             case 'settings':
-                // 切换到设置页面时，加载设置
+                // 切换到SettingsPage时，LoadSettings
                 if (this.settingsManager) {
                     this.settingsManager.loadSettings();
                 }
-                // 初始化自定义正则弹窗事件
+                // InitializeCustom正则弹窗事件
                 this.initCustomRegexModal();
-                // 加载并显示自定义正则配置列表
+                // LoadAndDisplayCustom正则Configuration列Table
                 this.loadCustomRegexList();
                 break;
             case 'js-injection':
-                // 切换到JS注入页面时，初始化JS注入功能
+                // 切换到JS注入Page时，InitializeJS注入功能
                 this.initJSInjectPage();
                 break;
             case 'about':
-                // 关于页面
+                // 关于Page
                 break;
         }
     }
     
-    // 恢复深度扫描UI状态
+    // 恢复深度ScanUIStatus
     restoreDeepScanUI() {
         if (this.deepScanRunning) {
             const deepScanBtn = document.getElementById('deepScanBtn');
@@ -289,7 +289,7 @@ class ILoveYouTranslucent7 {
             const progressDiv = document.getElementById('deepScanProgress');
             
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '⏹️ 停止扫描';
+                deepScanBtnText.textContent = '⏹️ Stop scanning';
             }
             if (deepScanBtn) {
                 deepScanBtn.style.background = 'rgba(239, 68, 68, 0.3)';
@@ -303,36 +303,36 @@ class ILoveYouTranslucent7 {
             }
         }
         
-        // 如果有深度扫描结果，确保显示
+        // 如果有深度Scan results，EnsureDisplay
         if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
             this.results = this.deepScanResults;
             this.displayResults();
         }
     }
     
-    // 更新分类选择器
+    // UpdateCategory选择器
     updateCategorySelect() {
         const categorySelect = document.getElementById('categorySelect');
         if (!categorySelect || !this.results) return;
         
-        // 清空现有选项（保留默认选项）
+        // Clear现有选Item（保留Default选Item）
         const defaultOption = categorySelect.querySelector('option[value=""]');
         categorySelect.innerHTML = '';
         if (defaultOption) {
             categorySelect.appendChild(defaultOption);
         }
         
-        // 添加有数据的分类
+        // Add有Data的Category
         const categories = [
-            { key: 'customApis', title: '🔧 自定义API路径' },
-            { key: 'absoluteApis', title: '🔗 绝对路径API' },
-            { key: 'relativeApis', title: '📁 相对路径API' },
-            { key: 'jsFiles', title: '📜 JS文件' },
-            { key: 'cssFiles', title: '🎨 CSS文件' },
-            { key: 'images', title: '🖼️ 图片文件' },
-            { key: 'urls', title: '🔗 完整URL' },
-            { key: 'domains', title: '🌐 域名' },
-            { key: 'paths', title: '📂 路径' }
+            { key: 'customApis', title: '🔧 CustomAPIPath' },
+            { key: 'absoluteApis', title: '🔗 Absolute pathAPI' },
+            { key: 'relativeApis', title: '📁 Relative pathAPI' },
+            { key: 'jsFiles', title: '📜 JSFile' },
+            { key: 'cssFiles', title: '🎨 CSSFile' },
+            { key: 'images', title: '🖼️ 图片File' },
+            { key: 'urls', title: '🔗 CompleteURL' },
+            { key: 'domains', title: '🌐 Domain' },
+            { key: 'paths', title: '📂 Path' }
         ];
         
         categories.forEach(category => {
@@ -346,7 +346,7 @@ class ILoveYouTranslucent7 {
         });
     }
     
-    // 重置深度扫描UI状态
+    // Reset深度ScanUIStatus
     resetDeepScanUI() {
         const deepScanBtn = document.getElementById('deepScanBtn');
         const deepScanBtnText = deepScanBtn?.querySelector('.text');
@@ -354,7 +354,7 @@ class ILoveYouTranslucent7 {
         const progressDiv = document.getElementById('deepScanProgress');
         
         if (deepScanBtnText) {
-            deepScanBtnText.textContent = '🚀 开始深度扫描';
+            deepScanBtnText.textContent = '🚀 Start深度Scan';
         }
         if (deepScanBtn) {
             deepScanBtn.style.background = 'rgba(0, 212, 170, 0.3)';
@@ -368,21 +368,21 @@ class ILoveYouTranslucent7 {
             progressDiv.innerHTML = '';
         }
         
-        // 重置深度扫描相关的输入框
+        // Reset深度ScanRelated的Input框
         const maxDepthInput = document.getElementById('maxDepth');
         const concurrencyInput = document.getElementById('concurrency');
         if (maxDepthInput) maxDepthInput.value = '2';
         if (concurrencyInput) concurrencyInput.value = '3';
     }
     
-    // 显示通知
+    // DisplayNotify
     showNotification(message, type = 'info') {
-        // 创建通知元素
+        // CreateNotifyElement
         const notification = document.createElement('div');
         notification.className = 'notification';
         notification.textContent = message;
         
-        // 设置样式
+        // Settings样式
         notification.style.position = 'fixed';
         notification.style.top = '20px';
         notification.style.right = '20px';
@@ -394,7 +394,7 @@ class ILoveYouTranslucent7 {
         notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
         notification.style.animation = 'slideIn 0.3s ease';
         
-        // 根据类型设置颜色
+        // 根据TypeSettings颜色
         switch (type) {
             case 'success':
                 notification.style.backgroundColor = '#00d4aa';
@@ -413,10 +413,10 @@ class ILoveYouTranslucent7 {
                 notification.style.color = '#fff';
         }
         
-        // 添加到页面
+        // Add到Page
         document.body.appendChild(notification);
         
-        // 3秒后自动移除
+        // 3 secondsAfterAutoRemove
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => {
@@ -427,12 +427,12 @@ class ILoveYouTranslucent7 {
         }, 3000);
     }
     
-    // 委托方法 - 将功能委托给相应的模块
+    // 委托Method - 将功能委托给相应的模块
     async startScan(silent = false) {
-        // 重新加载正则表达式配置
+        // ReloadRegular expressionConfiguration
         if (this.patternExtractor) {
             await this.patternExtractor.loadCustomPatterns();
-            //console.log('🔄 已重新加载正则表达式配置');
+            //console.log('🔄 AlreadyReloadRegular expressionConfiguration');
         }
         return await this.basicScanner.startScan(silent);
     }
@@ -449,33 +449,33 @@ class ILoveYouTranslucent7 {
         return await this.apiTester.batchRequestTest();
     }
     
-    // 添加自定义API路径
+    // AddCustomAPIPath
     addCustomApiPaths() {
         const customApiPathsInput = document.getElementById('customApiPaths');
         if (!customApiPathsInput) {
-            console.error('找不到自定义API路径输入框');
+            console.error('找不到CustomAPIPathInput框');
             return;
         }
         
         const customApiPaths = customApiPathsInput.value.trim();
         if (!customApiPaths) {
-            alert('请输入自定义API路径，每行一个路径');
+            alert('请InputCustomAPIPath，Every行一个Path');
             return;
         }
         
-        // 解析自定义API路径
+        // ParseCustomAPIPath
         const paths = this.apiTester.parseCustomApiPaths(customApiPaths);
         if (paths.length === 0) {
-            alert('请输入有效的API路径');
+            alert('请InputValid的APIPath');
             return;
         }
         
-        // 将自定义API路径添加到扫描结果中
+        // 将CustomAPIPathAdd到Scan results中
         if (!this.results.customApis) {
             this.results.customApis = [];
         }
         
-        // 使用Set进行去重
+        // 使用SetPerform去重
         const existingSet = new Set(this.results.customApis);
         let addedCount = 0;
         
@@ -487,20 +487,20 @@ class ILoveYouTranslucent7 {
             }
         });
         
-        // 保存结果到存储
+        // Save results到存储
         this.saveResults();
         
-        // 重新显示结果
+        // ReDisplayResult
         this.displayResults();
         
-        // 显示添加成功的提示
-        const message = `成功添加 ${addedCount} 个自定义API路径到扫描结果中:\n${paths.join('\n')}`;
+        // DisplayAddSuccess的Prompt
+        const message = `SuccessAdd ${addedCount} 个CustomAPIPath到Scan results中:\n${paths.join('\n')}`;
         alert(message);
         
-        // 清空输入框
+        // ClearInput框
         customApiPathsInput.value = '';
         
-        //console.log(`✅ 添加了 ${addedCount} 个自定义API路径到扫描结果:`, paths);
+        //console.log(`✅ Add了 ${addedCount} 个CustomAPIPath到Scan results:`, paths);
     }
     
     exportResults() {
@@ -526,7 +526,7 @@ class ILoveYouTranslucent7 {
                 toggleText.textContent = '收起按钮';
                 toggleButton.classList.remove('collapsed');
                 
-                // 恢复结果容器的原始高度
+                // 恢复Result容器的原始高度
                 if (resultsContainer) {
                     resultsContainer.classList.remove('expanded');
                 }
@@ -537,7 +537,7 @@ class ILoveYouTranslucent7 {
                 toggleText.textContent = '展开按钮';
                 toggleButton.classList.add('collapsed');
                 
-                // 扩展结果容器高度，占用原来按钮的空间
+                // ExtensionResult容器高度，占用原来按钮的Empty间
                 if (resultsContainer) {
                     resultsContainer.classList.add('expanded');
                 }
@@ -545,7 +545,7 @@ class ILoveYouTranslucent7 {
         }
     }
 
-    // 初始化自定义正则弹窗
+    // InitializeCustom正则弹窗
     initCustomRegexModal() {
         const addCustomRegexBtn = document.getElementById('addCustomRegexBtn');
         const customRegexModal = document.getElementById('customRegexModal');
@@ -558,7 +558,7 @@ class ILoveYouTranslucent7 {
             addCustomRegexBtn.addEventListener('click', () => {
                 if (customRegexModal) {
                     customRegexModal.style.display = 'block';
-                    // 清空输入框
+                    // ClearInput框
                     document.getElementById('customRegexName').value = '';
                     document.getElementById('customRegexKey').value = '';
                     document.getElementById('customRegexPattern').value = '';
@@ -566,7 +566,7 @@ class ILoveYouTranslucent7 {
             });
         }
 
-        // 关闭弹窗
+        // Close弹窗
         if (closeCustomRegexModal) {
             closeCustomRegexModal.addEventListener('click', () => {
                 if (customRegexModal) {
@@ -575,7 +575,7 @@ class ILoveYouTranslucent7 {
             });
         }
 
-        // 取消按钮
+        // Cancel按钮
         if (cancelCustomRegexBtn) {
             cancelCustomRegexBtn.addEventListener('click', () => {
                 if (customRegexModal) {
@@ -584,14 +584,14 @@ class ILoveYouTranslucent7 {
             });
         }
 
-        // 确认添加按钮
+        // ConfirmAdd按钮
         if (confirmCustomRegexBtn) {
             confirmCustomRegexBtn.addEventListener('click', () => {
                 this.handleCustomRegexSubmit();
             });
         }
 
-        // 点击弹窗外部关闭
+        // Click弹窗外部Close
         if (customRegexModal) {
             customRegexModal.addEventListener('click', (e) => {
                 if (e.target === customRegexModal) {
@@ -601,8 +601,8 @@ class ILoveYouTranslucent7 {
         }
     }
 
-    // 处理自定义正则提交
-    // 处理自定义正则提交
+    // ProcessCustom正则提交
+    // ProcessCustom正则提交
     async handleCustomRegexSubmit() {
         const nameInput = document.getElementById('customRegexName');
         const keyInput = document.getElementById('customRegexKey');
@@ -610,7 +610,7 @@ class ILoveYouTranslucent7 {
         const modal = document.getElementById('customRegexModal');
 
         if (!nameInput || !keyInput || !patternInput) {
-            this.showNotification('输入框元素未找到', 'error');
+            this.showNotification('Input框ElementNot found', 'error');
             return;
         }
 
@@ -618,118 +618,118 @@ class ILoveYouTranslucent7 {
         const key = keyInput.value.trim();
         const pattern = patternInput.value.trim();
 
-        // 验证输入
+        // ValidateInput
         if (!name) {
-            this.showNotification('请输入显示名称', 'warning');
+            this.showNotification('请InputDisplay名称', 'warning');
             nameInput.focus();
             return;
         }
 
         if (!key) {
-            this.showNotification('请输入存储键名', 'warning');
+            this.showNotification('请Input存储Key名', 'warning');
             keyInput.focus();
             return;
         }
 
         if (!pattern) {
-            this.showNotification('请输入正则表达式', 'warning');
+            this.showNotification('请InputRegular expression', 'warning');
             patternInput.focus();
             return;
         }
 
-        // 验证键名格式（只允许字母、数字、下划线）
+        // ValidateKey名Format（Only允许字母、数字、下划线）
         if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(key)) {
-            this.showNotification('存储键名只能包含字母、数字和下划线，且必须以字母开头', 'warning');
+            this.showNotification('存储Key名Only能包含字母、数字And下划线，且必须以字母开Header', 'warning');
             keyInput.focus();
             return;
         }
 
-        // 验证正则表达式
+        // ValidateRegular expression
         try {
             new RegExp(pattern);
         } catch (error) {
-            this.showNotification('正则表达式格式错误: ' + error.message, 'error');
+            this.showNotification('Regular expressionFormatError: ' + error.message, 'error');
             patternInput.focus();
             return;
         }
 
-        // 检查名称和键名是否重复
+        // Check名称AndKey名是否重复
         try {
-            // 从SettingsManager获取自定义正则配置
+            // fromSettingsManagerGetCustom正则Configuration
             const customConfigs = await this.settingsManager.getCustomRegexConfigs();
 
-            // 检查键名是否重复
+            // CheckKey名是否重复
             if (customConfigs[key]) {
-                this.showNotification(`存储键名 "${key}" 已存在，请使用其他键名`, 'warning');
+                this.showNotification(`存储Key名 "${key}" Already存在，请使用其他Key名`, 'warning');
                 keyInput.focus();
-                return; // 不关闭弹窗
+                return; // 不Close弹窗
             }
 
-            // 检查名称是否重复
+            // Check名称是否重复
             const existingNames = Object.values(customConfigs).map(config => config.name);
             if (existingNames.includes(name)) {
-                this.showNotification(`显示名称 "${name}" 已存在，请使用其他名称`, 'warning');
+                this.showNotification(`Display名称 "${name}" Already存在，请使用其他名称`, 'warning');
                 nameInput.focus();
-                return; // 不关闭弹窗
+                return; // 不Close弹窗
             }
 
-            // 如果没有重复，保存配置
+            // 如果No重复，SaveConfiguration
             await this.saveCustomRegexConfig(name, key, pattern);
             
-            // 关闭弹窗
+            // Close弹窗
             if (modal) {
                 modal.style.display = 'none';
             }
-            this.showNotification(`自定义正则 "${name}" 添加成功`, 'success');
+            this.showNotification(`Custom正则 "${name}" AddSuccess`, 'success');
 
         } catch (error) {
-            console.error('检查重复或保存配置失败:', error);
-            this.showNotification('操作失败: ' + error.message, 'error');
+            console.error('Check重复OrSaveConfigurationFailed:', error);
+            this.showNotification('操作Failed: ' + error.message, 'error');
         }
     }
 
-    // 保存自定义正则配置
+    // SaveCustom正则Configuration
     async saveCustomRegexConfig(name, key, pattern) {
         try {
-            // 通过SettingsManager保存自定义正则配置
+            // ThroughSettingsManagerSaveCustom正则Configuration
             await this.settingsManager.saveCustomRegexConfig(key, {
                 name: name,
                 pattern: pattern,
                 createdAt: Date.now()
             });
 
-            //console.log('✅ 自定义正则配置已保存:', { name, key, pattern });
+            //console.log('✅ Custom正则ConfigurationSaved:', { name, key, pattern });
 
-            // 通知PatternExtractor重新加载配置
+            // NotifyPatternExtractorReloadConfiguration
             if (this.patternExtractor) {
                 await this.patternExtractor.loadCustomPatterns();
             }
 
-            // 刷新自定义正则配置列表显示
+            // 刷新Custom正则Configuration列TableDisplay
             this.loadCustomRegexList();
 
         } catch (error) {
-            console.error('❌ 保存自定义正则配置失败:', error);
+            console.error('❌ SaveCustom正则ConfigurationFailed:', error);
             throw error;
         }
     }
 
-    // 加载并显示自定义正则配置列表
+    // LoadAndDisplayCustom正则Configuration列Table
     async loadCustomRegexList() {
         try {
             const customConfigs = await this.settingsManager.getCustomRegexConfigs();
             
-            // 查找或创建自定义正则配置列表容器
+            // FindOrCreateCustom正则Configuration列Table容器
             let listContainer = document.getElementById('customRegexList');
             if (!listContainer) {
-                // 如果容器不存在，创建它并插入到"添加自定义正则"按钮后面
+                // 如果容器不存在，Create它And插入到"AddCustom正则"按钮After面
                 const addRegexBtn = document.getElementById('addCustomRegexBtn');
                 if (addRegexBtn) {
                     listContainer = document.createElement('div');
                     listContainer.id = 'customRegexList';
                     listContainer.className = 'api-test-section';
                     listContainer.innerHTML = `
-                        <div class="config-title">已添加的自定义正则配置</div>
+                        <div class="config-title">AlreadyAdd的Custom正则Configuration</div>
                         <div id="customRegexItems"></div>
                     `;
                     addRegexBtn.parentNode.insertBefore(listContainer, addRegexBtn);
@@ -739,21 +739,21 @@ class ILoveYouTranslucent7 {
             const itemsContainer = document.getElementById('customRegexItems');
             if (!itemsContainer) return;
             
-            // 清空现有内容
+            // Clear现有Content
             itemsContainer.innerHTML = '';
             
-            // 如果没有自定义配置，显示提示信息
+            // 如果NoCustomConfiguration，DisplayPromptInformation
             if (Object.keys(customConfigs).length === 0) {
                 itemsContainer.innerHTML = `
                     <div style="text-align: center; color: #888; padding: 20px; font-size: 12px;">
-                        暂无自定义正则配置<br>
-                        点击上方"添加自定义正则"按钮来添加配置
+                        暂NoneCustom正则Configuration<br>
+                        Click上方"AddCustom正则"按钮来AddConfiguration
                     </div>
                 `;
                 return;
             }
             
-            // 显示每个自定义配置
+            // DisplayEvery个CustomConfiguration
             Object.entries(customConfigs).forEach(([key, config]) => {
                 const configItem = document.createElement('div');
                 configItem.className = 'custom-regex-item';
@@ -766,7 +766,7 @@ class ILoveYouTranslucent7 {
                     transition: all 0.3s;
                 `;
                 
-                const createdDate = config.createdAt ? new Date(config.createdAt).toLocaleString() : '未知';
+                const createdDate = config.createdAt ? new Date(config.createdAt).toLocaleString() : 'Not知';
                 
                 configItem.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
@@ -785,10 +785,10 @@ class ILoveYouTranslucent7 {
                                 " readonly>
                             </div>
                             <div style="font-size: 12px; color: #888; margin-bottom: 4px;">
-                                键名: <span style="color: #ccc; font-family: monospace;">${key}</span>
+                                Key名: <span style="color: #ccc; font-family: monospace;">${key}</span>
                             </div>
                             <div style="font-size: 12px; color: #888; margin-bottom: 8px;">
-                                创建时间: ${createdDate}
+                                CreateTime: ${createdDate}
                             </div>
                             <div style="position: relative;">
                                 <textarea class="edit-pattern-textarea" style="
@@ -819,7 +819,7 @@ class ILoveYouTranslucent7 {
                                 cursor: pointer;
                                 transition: all 0.2s;
                                 white-space: nowrap;
-                            ">编辑</button>
+                            ">Edit</button>
                             <button class="save-custom-regex-btn" data-key="${key}" style="
                                 background: rgba(52, 152, 219, 0.3);
                                 border: 1px solid rgba(52, 152, 219, 0.5);
@@ -831,7 +831,7 @@ class ILoveYouTranslucent7 {
                                 transition: all 0.2s;
                                 white-space: nowrap;
                                 display: none;
-                            ">保存</button>
+                            ">Save</button>
                             <button class="cancel-edit-regex-btn" data-key="${key}" style="
                                 background: rgba(149, 165, 166, 0.3);
                                 border: 1px solid rgba(149, 165, 166, 0.5);
@@ -843,7 +843,7 @@ class ILoveYouTranslucent7 {
                                 transition: all 0.2s;
                                 white-space: nowrap;
                                 display: none;
-                            ">取消</button>
+                            ">Cancel</button>
                             <button class="delete-custom-regex-btn" data-key="${key}" style="
                                 background: rgba(231, 76, 60, 0.3);
                                 border: 1px solid rgba(231, 76, 60, 0.5);
@@ -854,12 +854,12 @@ class ILoveYouTranslucent7 {
                                 cursor: pointer;
                                 transition: all 0.2s;
                                 white-space: nowrap;
-                            ">删除</button>
+                            ">Delete</button>
                         </div>
                     </div>
                 `;
                 
-                // 添加悬停效果
+                // Add悬停效果
                 configItem.addEventListener('mouseenter', () => {
                     configItem.style.transform = 'translateY(-2px)';
                     configItem.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.4)';
@@ -872,7 +872,7 @@ class ILoveYouTranslucent7 {
                     configItem.style.borderColor = 'rgba(90, 90, 90, 0.3)';
                 });
                 
-                // 获取各个按钮和输入框元素
+                // Get各个按钮AndInput框Element
                 const editBtn = configItem.querySelector('.edit-custom-regex-btn');
                 const saveBtn = configItem.querySelector('.save-custom-regex-btn');
                 const cancelBtn = configItem.querySelector('.cancel-edit-regex-btn');
@@ -880,69 +880,69 @@ class ILoveYouTranslucent7 {
                 const nameInput = configItem.querySelector('.edit-name-input');
                 const patternTextarea = configItem.querySelector('.edit-pattern-textarea');
                 
-                // 存储原始值用于取消编辑
+                // 存储原始值Used forCancelEdit
                 let originalName = config.name;
                 let originalPattern = config.pattern;
                 
-                // 编辑按钮事件
+                // Edit按钮事件
                 editBtn.addEventListener('click', () => {
-                    // 进入编辑模式
+                    // 进入EditPattern
                     nameInput.removeAttribute('readonly');
                     patternTextarea.removeAttribute('readonly');
                     nameInput.style.borderBottom = '1px solid #00d4aa';
                     patternTextarea.style.border = '1px solid #00d4aa';
                     patternTextarea.style.background = 'rgba(0,0,0,0.5)';
                     
-                    // 切换按钮显示状态
+                    // 切换按钮DisplayStatus
                     editBtn.style.display = 'none';
                     saveBtn.style.display = 'block';
                     cancelBtn.style.display = 'block';
                     
-                    // 聚焦到名称输入框
+                    // 聚焦到名称Input框
                     nameInput.focus();
                 });
                 
-                // 保存按钮事件
+                // Save按钮事件
                 saveBtn.addEventListener('click', async () => {
                     const newName = nameInput.value.trim();
                     const newPattern = patternTextarea.value.trim();
                     
-                    // 验证输入
+                    // ValidateInput
                     if (!newName) {
-                        this.showNotification('请输入显示名称', 'warning');
+                        this.showNotification('请InputDisplay名称', 'warning');
                         nameInput.focus();
                         return;
                     }
                     
                     if (!newPattern) {
-                        this.showNotification('请输入正则表达式', 'warning');
+                        this.showNotification('请InputRegular expression', 'warning');
                         patternTextarea.focus();
                         return;
                     }
                     
-                    // 验证正则表达式
+                    // ValidateRegular expression
                     try {
                         new RegExp(newPattern);
                     } catch (error) {
-                        this.showNotification('正则表达式格式错误: ' + error.message, 'error');
+                        this.showNotification('Regular expressionFormatError: ' + error.message, 'error');
                         patternTextarea.focus();
                         return;
                     }
                     
-                    // 检查名称是否与其他配置重复（排除当前配置）
+                    // Check名称是否与其他Configuration重复（排除CurrentConfiguration）
                     const customConfigs = await this.settingsManager.getCustomRegexConfigs();
                     const existingNames = Object.entries(customConfigs)
                         .filter(([k, v]) => k !== key)
                         .map(([k, v]) => v.name);
                     
                     if (existingNames.includes(newName)) {
-                        this.showNotification(`显示名称 "${newName}" 已存在，请使用其他名称`, 'warning');
+                        this.showNotification(`Display名称 "${newName}" Already存在，请使用其他名称`, 'warning');
                         nameInput.focus();
                         return;
                     }
                     
                     try {
-                        // 更新配置
+                        // UpdateConfiguration
                         await this.settingsManager.saveCustomRegexConfig(key, {
                             name: newName,
                             pattern: newPattern,
@@ -950,43 +950,43 @@ class ILoveYouTranslucent7 {
                             updatedAt: Date.now()
                         });
                         
-                        //console.log(`✅ 已更新自定义正则配置: ${newName} (${key})`);
-                        this.showNotification(`自定义正则配置 "${newName}" 已更新`, 'success');
+                        //console.log(`✅ AlreadyUpdateCustom正则Configuration: ${newName} (${key})`);
+                        this.showNotification(`Custom正则Configuration "${newName}" AlreadyUpdate`, 'success');
                         
-                        // 通知PatternExtractor重新加载配置
+                        // NotifyPatternExtractorReloadConfiguration
                         if (this.patternExtractor) {
                             await this.patternExtractor.loadCustomPatterns();
                         }
                         
-                        // 刷新配置列表显示
+                        // 刷新Configuration列TableDisplay
                         this.loadCustomRegexList();
                         
                     } catch (error) {
-                        console.error('❌ 更新自定义正则配置失败:', error);
-                        this.showNotification('更新配置失败: ' + error.message, 'error');
+                        console.error('❌ UpdateCustom正则ConfigurationFailed:', error);
+                        this.showNotification('UpdateConfigurationFailed: ' + error.message, 'error');
                     }
                 });
                 
-                // 取消编辑按钮事件
+                // CancelEdit按钮事件
                 cancelBtn.addEventListener('click', () => {
                     // 恢复原始值
                     nameInput.value = originalName;
                     patternTextarea.value = originalPattern;
                     
-                    // 退出编辑模式
+                    // 退出EditPattern
                     nameInput.setAttribute('readonly', true);
                     patternTextarea.setAttribute('readonly', true);
                     nameInput.style.borderBottom = '1px solid transparent';
                     patternTextarea.style.border = '1px solid transparent';
                     patternTextarea.style.background = 'rgba(0,0,0,0.3)';
                     
-                    // 切换按钮显示状态
+                    // 切换按钮DisplayStatus
                     editBtn.style.display = 'block';
                     saveBtn.style.display = 'none';
                     cancelBtn.style.display = 'none';
                 });
                 
-                // 删除按钮事件
+                // Delete按钮事件
                 deleteBtn.addEventListener('click', () => this.deleteCustomRegexConfig(key, config.name));
                 
                 // 按钮悬停效果
@@ -1030,55 +1030,55 @@ class ILoveYouTranslucent7 {
             });
             
         } catch (error) {
-            console.error('❌ 加载自定义正则配置列表失败:', error);
+            console.error('❌ LoadCustom正则Configuration列TableFailed:', error);
         }
     }
 
-    // 删除自定义正则配置
+    // DeleteCustom正则Configuration
     async deleteCustomRegexConfig(key, name) {
-        if (!confirm(`确定要删除自定义正则配置 "${name}" 吗？此操作不可恢复。`)) {
+        if (!confirm(`Confirm要DeleteCustom正则Configuration "${name}" 吗？此操作不可恢复。`)) {
             return;
         }
         
         try {
-            // 通过SettingsManager删除配置
+            // ThroughSettingsManagerDeleteConfiguration
             await this.settingsManager.deleteCustomRegexConfig(key);
             
-            //console.log(`✅ 已删除自定义正则配置: ${name} (${key})`);
-            this.showNotification(`自定义正则配置 "${name}" 已删除`, 'success');
+            //console.log(`✅ DeletedCustom正则Configuration: ${name} (${key})`);
+            this.showNotification(`Custom正则Configuration "${name}" Deleted`, 'success');
             
-            // 通知PatternExtractor重新加载配置
+            // NotifyPatternExtractorReloadConfiguration
             if (this.patternExtractor) {
                 await this.patternExtractor.loadCustomPatterns();
             }
             
-            // 刷新配置列表显示
+            // 刷新Configuration列TableDisplay
             this.loadCustomRegexList();
             
         } catch (error) {
-            console.error('❌ 删除自定义正则配置失败:', error);
-            this.showNotification('删除配置失败: ' + error.message, 'error');
+            console.error('❌ DeleteCustom正则ConfigurationFailed:', error);
+            this.showNotification('DeleteConfigurationFailed: ' + error.message, 'error');
         }
     }
     
-    // 核心功能方法
+    // 核心功能Method
     async autoScanIfNeeded() {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
-            // 检查是否是有效的网页URL
+            // Check是否是Valid的网页URL
             if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-                //console.log('跳过系统页面的自动扫描');
+                //console.log('跳过SystemPage的AutoScan');
                 return;
             }
             
-            // 更新当前扫描域名显示
+            // UpdateCurrentScanDomainDisplay
             this.updateCurrentDomain(tab.url);
             
             const urlObj = new URL(tab.url);
             const fullUrl = `https://${urlObj.hostname}`;
             
-            // 从IndexedDB检查上次扫描时间
+            // fromIndexedDBCheck上次ScanTime
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
@@ -1086,18 +1086,18 @@ class ILoveYouTranslucent7 {
             const scanDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
             const scanData = scanDataWrapper ? scanDataWrapper.results : null;
             
-            // 如果没有扫描过当前页面，或者超过5分钟，则自动扫描
+            // 如果NoScan过CurrentPage，Or者超过5分钟，则AutoScan
             const now = Date.now();
             const lastScanTime = scanDataWrapper ? scanDataWrapper.timestamp : 0;
             const fiveMinutes = 5 * 60 * 1000;
             
             if (now - lastScanTime > fiveMinutes) {
                 setTimeout(() => {
-                    this.startScan(true); // 静默扫描
+                    this.startScan(true); // 静默Scan
                 }, 2000);
             }
         } catch (error) {
-            console.error('自动扫描检查失败:', error);
+            console.error('AutoScanCheckFailed:', error);
         }
     }
     
@@ -1112,33 +1112,33 @@ class ILoveYouTranslucent7 {
             if (domainDisplay) {
                 domainDisplay.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 12px; opacity: 0.8;">正在扫描:</span>
+                        <span style="font-size: 12px; opacity: 0.8;">In progressScan:</span>
                         <span style="color: #00d4aa; font-weight: 600;">${protocol}//${domain}${port}</span>
                     </div>
                 `;
             }
         } catch (error) {
-            console.error('更新域名显示失败:', error);
+            console.error('UpdateDomainDisplayFailed:', error);
         }
     }
     
     async clearResults() {
-        // 确认清空操作
-        if (!confirm('确定要清空当前页面的扫描数据吗？此操作不可恢复。')) {
+        // ConfirmClear操作
+        if (!confirm('Confirm要ClearCurrentPage的ScanData吗？此操作不可恢复。')) {
             return;
         }
         
         try {
-            // 获取当前页面URL
+            // GetCurrentPageURL
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                this.showNotification('无法获取当前页面URL', 'error');
+                this.showNotification('None法GetCurrentPageURL', 'error');
                 return;
             }
             
             const pageKey = this.getPageStorageKey(tab.url);
             
-            // 清空内存中的数据
+            // Clear内存中的Data
             this.results = {};
             this.deepScanResults = {};
             this.scannedUrls = new Set();
@@ -1146,11 +1146,11 @@ class ILoveYouTranslucent7 {
             this.currentDepth = 0;
             this.deepScanRunning = false;
             
-            // 清空界面显示
+            // Clear界面Display
             document.getElementById('results').innerHTML = '';
             document.getElementById('stats').textContent = '';
             
-            // 从IndexedDB删除所有相关数据
+            // fromIndexedDBDelete所有RelatedData
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
@@ -1159,74 +1159,74 @@ class ILoveYouTranslucent7 {
             const hostname = urlObj.hostname;
             const fullUrl = `https://${hostname}`;
             
-            // 删除普通扫描结果
+            // Delete普通Scan results
             await window.indexedDBManager.deleteScanResults(fullUrl);
             
-            // 删除深度扫描相关数据（包括结果和状态）
+            // Delete深度ScanRelatedData（包括ResultAndStatus）
             await window.indexedDBManager.deleteDeepScanData(fullUrl);
             
-            // 重置深度扫描UI状态
+            // Reset深度ScanUIStatus
             this.resetDeepScanUI();
             
-            // 显示清空成功提示
-            this.showNotification(`页面 ${tab.url} 的扫描数据已清空`, 'success');
+            // DisplayClearSuccessPrompt
+            this.showNotification(`Page ${tab.url} 的ScanDataCleared`, 'success');
             
-            //console.log(`✅ 页面 ${pageKey} 的扫描数据已清空`);
+            //console.log(`✅ Page ${pageKey} 的ScanDataCleared`);
             
         } catch (error) {
-            console.error('❌ 清空数据失败:', error);
-            this.showNotification('清空数据失败: ' + error.message, 'error');
+            console.error('❌ ClearDataFailed:', error);
+            this.showNotification('ClearDataFailed: ' + error.message, 'error');
         }
     }
     
-    // 生成页面存储键 - 统一使用域名作为键
+    // GeneratePage存储Key - Unified使用Domain作为Key
     getPageStorageKey(url) {
         try {
             const urlObj = new URL(url);
-            // 只使用域名作为键，不包含路径，确保同一域名下的所有页面共享存储
+            // Only使用Domain作为Key，Does not include path，Ensure同一Domain下的所有Page共享存储
             const key = urlObj.hostname;
-            // 替换特殊字符，确保键的有效性
+            // Replace特殊字符，EnsureKey的Valid性
             return key.replace(/[^a-zA-Z0-9._-]/g, '_');
         } catch (error) {
-            console.error('生成存储键失败:', error);
-            // 如果URL解析失败，使用简化的键
+            console.error('Generate存储KeyFailed:', error);
+            // 如果URLParseFailed，使用简化的Key
             return url.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
         }
     }
     
     async saveResults() {
         try {
-            // 获取当前页面URL作为存储键
+            // GetCurrentPageURL作为存储Key
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                console.warn('⚠️ 无法获取当前页面URL，跳过保存');
+                console.warn('⚠️ None法GetCurrentPageURL，跳过Save');
                 return;
             }
             
             const urlObj = new URL(tab.url);
             const hostname = urlObj.hostname;
-            // 构造完整的URL用于保存
+            // 构造Complete的URLUsed forSave
             const fullUrl = `https://${hostname}`;
             
-            // 初始化IndexedDBManager
+            // InitializeIndexedDBManager
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
             
-            // 使用IndexedDB保存普通扫描结果
+            // 使用IndexedDBSave普通Scan results
             if (this.results && Object.keys(this.results).length > 0) {
                 await window.indexedDBManager.saveScanResults(fullUrl, this.results);
-                //console.log(`✅ 普通扫描结果保存到IndexedDB成功: ${hostname}`);
+                //console.log(`✅ 普通Scan resultsSave to IndexedDBSuccess: ${hostname}`);
             }
             
-            // 保存深度扫描结果
+            // Save深度Scan results
             if (this.deepScanResults && Object.keys(this.deepScanResults).length > 0) {
                 await window.indexedDBManager.saveDeepScanResults(fullUrl, this.deepScanResults);
-                //console.log('💾 深度扫描结果保存到IndexedDB，数据条目:', 
+                //console.log('💾 深度Scan resultsSave to IndexedDB，Data条目:', 
                     //Object.values(this.deepScanResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0));
             }
             
-            // 保存深度扫描状态
+            // Save深度ScanStatus
             const deepState = {
                 running: this.deepScanRunning,
                 scannedUrls: Array.from(this.scannedUrls || []),
@@ -1236,19 +1236,19 @@ class ILoveYouTranslucent7 {
             };
             
             await window.indexedDBManager.saveDeepScanState(fullUrl, deepState);
-            //console.log(`✅ 深度扫描状态保存到IndexedDB成功: ${hostname}`);
+            //console.log(`✅ 深度ScanStatusSave to IndexedDBSuccess: ${hostname}`);
             
         } catch (error) {
-            console.error('❌ 数据保存失败:', error);
+            console.error('❌ DataSaveFailed:', error);
         }
     }
     
     async loadResults() {
         try {
-            // 获取当前页面URL作为存储键
+            // GetCurrentPageURL作为存储Key
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                console.warn('⚠️ 无法获取当前页面URL，跳过加载');
+                console.warn('⚠️ None法GetCurrentPageURL，跳过Load');
                 return;
             }
             
@@ -1256,27 +1256,27 @@ class ILoveYouTranslucent7 {
             const hostname = urlObj.hostname;
             const pageKey = this.getPageStorageKey(tab.url);
             
-            //console.log(`🔄 正在加载页面数据: ${hostname}`);
+            //console.log(`🔄 In progressLoadPageData: ${hostname}`);
             
-            // 从IndexedDB加载普通扫描结果
+            // Load from IndexedDB普通Scan results
             if (!window.indexedDBManager) {
                 window.indexedDBManager = new IndexedDBManager();
             }
             
-            // 构造完整的URL用于加载
+            // 构造Complete的URLUsed forLoad
             const fullUrl = `https://${hostname}`;
             const loadedDataWrapper = await window.indexedDBManager.loadScanResults(fullUrl);
             const indexedDBResults = loadedDataWrapper ? loadedDataWrapper.results : null;
             
-            // 从IndexedDB加载深度扫描结果和状态
+            // Load from IndexedDB深度Scan resultsAndStatus
             const deepScanDataWrapper = await window.indexedDBManager.loadDeepScanResults(fullUrl);
             const deepScanResults = deepScanDataWrapper ? deepScanDataWrapper.results : null;
             
-            // 优先使用最完整的数据源
+            // 优First使用最Complete的DataSource
             let bestResults = null;
             let bestSource = '';
             
-            // 比较各个数据源的完整性
+            // Compare各个DataSource的Complete性
             const sources = [
                 { data: deepScanResults, name: 'deepScanResults' },
                 { data: indexedDBResults, name: 'scanResults' }
@@ -1295,13 +1295,13 @@ class ILoveYouTranslucent7 {
             if (bestResults) {
                 this.results = bestResults;
                 this.deepScanResults = bestResults;
-                //console.log(`✅ 从IndexedDB ${bestSource} 加载了页面数据，共 ${Object.values(bestResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0)} 条记录`);
+                //console.log(`✅ fromIndexedDB ${bestSource} Load了PageData，共 ${Object.values(bestResults).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0)} 条Record`);
                 this.displayResults();
             } else {
-                //console.log(`⚠️ 页面 ${hostname} 未找到有效的扫描数据`);
+                //console.log(`⚠️ Page ${hostname} Not foundValid的ScanData`);
             }
             
-            // 从IndexedDB恢复深度扫描状态
+            // fromIndexedDB恢复深度ScanStatus
             const deepState = await window.indexedDBManager.loadDeepScanState(fullUrl);
             if (deepState) {
                 this.deepScanRunning = deepState.running || false;
@@ -1310,23 +1310,23 @@ class ILoveYouTranslucent7 {
                 this.maxDepth = deepState.maxDepth || 2;
                 this.concurrency = deepState.concurrency || 3;
                 
-                //console.log('🔄 从IndexedDB恢复深度扫描状态:', {
+                //console.log('🔄 fromIndexedDB恢复深度ScanStatus:', {
                 //    running: this.deepScanRunning,
                 //    scannedCount: this.scannedUrls.size,
                 //    depth: this.currentDepth
                 //});
             }
         } catch (error) {
-            console.error('❌ 加载结果失败:', error);
+            console.error('❌ LoadResultFailed:', error);
         }
     }
 
-    // 初始化JS注入页面
+    // InitializeJS注入Page
     initJSInjectPage() {
         if (this.jsInjector) {
-            // 设置全局引用，供HTML中的onclick使用
+            // Settings全局引用，供HTML中的onclick使用
             window.jsInjector = this.jsInjector;
-            // 延迟初始化，确保DOM元素已加载
+            // 延迟Initialize，EnsureDOMElementLoaded
             setTimeout(() => {
                 this.jsInjector.init();
             }, 100);
@@ -1359,8 +1359,8 @@ function showUpdateModal(release) {
             <h2 style="color:#00d4aa;">Xuan8a1提醒您，有新版本：${release.tag_name}</h2>
             <div style="margin:12px 0 18px 0;font-size:13px;">${release.name || ''}</div>
             <div style="margin-bottom:12px;font-size:12px;color:#ccc;">${release.body || ''}</div>
-            <a href="${release.html_url}" target="_blank" style="display:inline-block;padding:8px 18px;background:#00d4aa;color:#222;border-radius:6px;text-decoration:none;font-weight:bold;">前往下载</a>
-            <br><button style="margin-top:18px;padding:6px 18px;background:#444;color:#fff;border:none;border-radius:6px;cursor:pointer;" id="closeUpdateModal">关闭</button>
+            <a href="${release.html_url}" target="_blank" style="display:inline-block;padding:8px 18px;background:#00d4aa;color:#222;border-radius:6px;text-decoration:none;font-weight:bold;">Before往下载</a>
+            <br><button style="margin-top:18px;padding:6px 18px;background:#444;color:#fff;border:none;border-radius:6px;cursor:pointer;" id="closeUpdateModal">Close</button>
         </div>
     `;
     document.body.appendChild(modal);
@@ -1377,7 +1377,7 @@ async function checkForUpdate() {
         if (!res.ok) return;
         const releases = await res.json();
         if (!Array.isArray(releases) || releases.length === 0) return;
-        // 找到最大版本
+        // Found最大版本
         let maxRelease = releases[0];
         for (const r of releases) {
             if (compareVersion(maxRelease.tag_name, r.tag_name) < 0) {
@@ -1391,7 +1391,7 @@ async function checkForUpdate() {
     } catch (e) {}
 }
 
-// 初始化应用
+// Initialize应用
 document.addEventListener('DOMContentLoaded', () => {
     new ILoveYouTranslucent7();
     checkForUpdate();

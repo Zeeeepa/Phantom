@@ -1,5 +1,5 @@
 /**
- * 导出管理器 - 负责结果的导出功能
+ * Export管理器 - 负责Result的Export功能
  */
 class ExportManager {
     constructor(srcMiner) {
@@ -8,7 +8,7 @@ class ExportManager {
     
     exportResults() {
         if (Object.keys(this.srcMiner.results).length === 0) {
-            alert('没有数据可导出');
+            alert('NoData可Export');
             return;
         }
         
@@ -20,7 +20,7 @@ class ExportManager {
         if (modal) {
             modal.style.display = 'flex';
             
-            // 添加事件监听器（如果还没有添加）
+            // Add事件Listen器（如果还NoAdd）
             if (!this.modalListenersAdded) {
                 this.addModalListeners();
                 this.modalListenersAdded = true;
@@ -36,13 +36,13 @@ class ExportManager {
     }
     
     addModalListeners() {
-        // 关闭按钮
+        // Close按钮
         const closeBtn = document.getElementById('closeExportModal');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.hideExportModal());
         }
         
-        // JSON导出按钮
+        // JSONExport按钮
         const jsonBtn = document.getElementById('exportJSON');
         if (jsonBtn) {
             jsonBtn.addEventListener('click', async () => {
@@ -51,7 +51,7 @@ class ExportManager {
             });
         }
         
-        // XLS导出按钮
+        // XLSExport按钮
         const xlsBtn = document.getElementById('exportCSV');
         if (xlsBtn) {
             xlsBtn.addEventListener('click', async () => {
@@ -60,7 +60,7 @@ class ExportManager {
             });
         }
         
-        // 点击弹窗外部关闭
+        // Click弹窗外部Close
         const modal = document.getElementById('exportModal');
         if (modal) {
             modal.addEventListener('click', (e) => {
@@ -86,7 +86,7 @@ class ExportManager {
     }
     
     async exportToXLS() {
-        // 生成HTML表格格式的XLS文件（Excel可以直接打开）
+        // GenerateHTMLTable格Format的XLSFile（ExcelCanDirect打开）
         let xlsContent = `<?xml version="1.0"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -127,11 +127,11 @@ class ExportManager {
   </Style>
  </Styles>`;
 
-        // 为每个分类创建工作表
+        // 为Every个CategoryCreate工作Table
         const categories = Object.keys(this.srcMiner.results);
         let hasData = false;
 
-        // 获取DisplayManager实例以使用getItemLocationInfo方法
+        // GetDisplayManager实例以使用getItemLocationInfoMethod
         const displayManager = this.srcMiner.displayManager;
 
         for (const category of categories) {
@@ -151,49 +151,49 @@ class ExportManager {
    <Column ss:Width="150"/>
    <Row>
     <Cell ss:StyleID="Header"><Data ss:Type="String">序号</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">内容</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">分类</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">来源URL</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">结果来源</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">提取时间</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Content</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Category</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">来SourceURL</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Result来Source</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">ExtractTime</Data></Cell>
    </Row>`;
 
-                // 为每个项目获取位置信息
+                // 为Every个ProjectGet位置Information
                 for (let index = 0; index < items.length; index++) {
                     const item = items[index];
                     let locationInfo = {
-                        sourceUrl: '未知来源',
-                        pageTitle: '未知页面',
+                        sourceUrl: 'Not知来Source',
+                        pageTitle: 'Not知Page',
                         extractedAt: new Date().toISOString()
                     };
 
-                    // 尝试获取位置信息
+                    // 尝试Get位置Information
                     try {
                         if (displayManager && typeof displayManager.getItemLocationInfo === 'function') {
                             locationInfo = await displayManager.getItemLocationInfo(category, item);
                         } else {
-                            // 如果DisplayManager不可用，尝试直接从item获取信息
+                            // 如果DisplayManager不Available，尝试DirectfromitemGetInformation
                             if (typeof item === 'object' && item !== null) {
                                 locationInfo = {
-                                    sourceUrl: item.sourceUrl || '未知来源',
-                                    pageTitle: item.pageTitle || '未知页面',
+                                    sourceUrl: item.sourceUrl || 'Not知来Source',
+                                    pageTitle: item.pageTitle || 'Not知Page',
                                     extractedAt: item.extractedAt || new Date().toISOString()
                                 };
                             }
                         }
                     } catch (error) {
-                        console.warn(`[ExportManager] 获取项目位置信息失败:`, error);
+                        console.warn(`[ExportManager] GetProject位置InformationFailed:`, error);
                     }
 
-                    // 获取项目的显示内容
+                    // GetProject的DisplayContent
                     const itemContent = typeof item === 'object' && item !== null ? 
                         (item.value || item.text || item.content || JSON.stringify(item)) : 
                         String(item);
 
-                    // 格式化提取时间
+                    // FormatExtractTime
                     const extractedTime = locationInfo.extractedAt ? 
                         new Date(locationInfo.extractedAt).toLocaleString('zh-CN') : 
-                        '未知时间';
+                        'Not知Time';
 
                     xlsContent += `
    <Row>
@@ -212,17 +212,17 @@ class ExportManager {
             }
         }
 
-        // 如果没有数据，创建一个空的工作表
+        // 如果NoData，Create一个Empty的工作Table
         if (!hasData) {
             xlsContent += `
- <Worksheet ss:Name="无数据">
+ <Worksheet ss:Name="NoneData">
   <Table>
    <Column ss:Width="200"/>
    <Row>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">提示</Data></Cell>
+    <Cell ss:StyleID="Header"><Data ss:Type="String">Prompt</Data></Cell>
    </Row>
    <Row>
-    <Cell ss:StyleID="Data"><Data ss:Type="String">没有找到任何数据</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">NoFound任何Data</Data></Cell>
    </Row>
   </Table>
  </Worksheet>`;
@@ -231,7 +231,7 @@ class ExportManager {
         xlsContent += `
 </Workbook>`;
 
-        // 创建并下载文件
+        // CreateAnd下载File
         const blob = new Blob([xlsContent], { 
             type: 'application/vnd.ms-excel;charset=utf-8' 
         });
@@ -246,23 +246,23 @@ class ExportManager {
         URL.revokeObjectURL(url);
     }
 
-    // 清理工作表名称（Excel工作表名称有特殊字符限制）
+    // Clean工作Table名称（Excel工作Table名称有特殊字符限制）
     sanitizeSheetName(name) {
-        // 移除或替换Excel不允许的字符
+        // RemoveOrReplaceExcel不允许的字符
         let sanitized = name.replace(/[\\\/\?\*\[\]:]/g, '_');
-        // 限制长度（Excel工作表名称最大31个字符）
+        // 限制长度（Excel工作Table名称最大31个字符）
         if (sanitized.length > 31) {
             sanitized = sanitized.substring(0, 28) + '...';
         }
-        return sanitized || '未命名';
+        return sanitized || 'Not命名';
     }
 
-    // 生成文件名：域名__随机数
+    // GenerateFile名：Domain__随机数
     async generateFileName() {
         let domain = 'unknown';
         
         try {
-            // 使用chrome.tabs API获取当前活动标签页的域名
+            // 使用chrome.tabs APIGetCurrent活动标签页的Domain
             const tabs = await new Promise((resolve) => {
                 chrome.tabs.query({active: true, currentWindow: true}, resolve);
             });
@@ -270,36 +270,36 @@ class ExportManager {
             if (tabs[0] && tabs[0].url) {
                 const url = new URL(tabs[0].url);
                 domain = url.hostname;
-                //console.log('获取到域名:', domain);
+                //console.log('Get到Domain:', domain);
             }
         } catch (e) {
-            //console.log('获取域名失败，使用备选方案:', e);
-            // 尝试从DOM获取域名信息作为备选方案
+            //console.log('GetDomainFailed，使用备选方案:', e);
+            // 尝试fromDOMGetDomainInformation作为备选方案
             try {
                 const domainElement = document.getElementById('currentDomain');
                 if (domainElement && domainElement.textContent) {
                     const domainText = domainElement.textContent;
-                    // 提取域名部分，匹配 protocol://domain:port 格式
+                    // ExtractDomain部分，Match protocol://domain:port Format
                     const match = domainText.match(/https?:\/\/([^\/\s:]+)/);
                     if (match && match[1]) {
                         domain = match[1];
-                        //console.log('从DOM获取到域名:', domain);
+                        //console.log('fromDOMGet到Domain:', domain);
                     }
                 }
             } catch (domError) {
-                //console.log('从DOM获取域名也失败:', domError);
+                //console.log('fromDOMGetDomain也Failed:', domError);
             }
         }
         
-        // 如果仍然是unknown，使用时间戳作为标识
+        // 如果仍然是unknown，使用Time戳作为标识
         if (domain === 'unknown') {
             domain = `scan_${Date.now()}`;
         }
         
-        // 清理域名，移除特殊字符
+        // CleanDomain，Remove特殊字符
         domain = domain.replace(/[^a-zA-Z0-9.-]/g, '_');
         
-        // 生成随机数（6位）
+        // Generate随机数（6位）
         const randomNum = Math.floor(100000 + Math.random() * 900000);
         
         return `${domain}__${randomNum}`;

@@ -1,17 +1,17 @@
-// 后台脚本
+// After台Script
 class BackgroundSRCMiner {
     constructor() {
         this.init();
     }
     
     init() {
-        // 监听来自content script的消息
+        // Listen来自content script的消息
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             this.handleMessage(request, sender, sendResponse);
-            return true; // 保持消息通道开放以支持异步响应
+            return true; // 保持消息通道开放以支持Async响应
         });
         
-        // 监听标签页更新
+        // Listen标签页Update
         chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             if (changeInfo.status === 'complete' && tab.url) {
                 this.handleTabUpdate(tabId, tab.url);
@@ -19,7 +19,7 @@ class BackgroundSRCMiner {
         });
     }
     
-    // 处理消息
+    // Process消息
     async handleMessage(request, sender, sendResponse) {
         try {
             switch (request.action) {
@@ -48,7 +48,7 @@ class BackgroundSRCMiner {
                     sendResponse({ success: true, data: injectionResult });
                     break;
                 
-                // 处理深度扫描窗口的消息
+                // Process深度Scan窗口的消息
                 case 'updateScanResults':
                 case 'scanProgress':
                 case 'scanComplete':
@@ -67,57 +67,57 @@ class BackgroundSRCMiner {
         }
     }
     
-    // 处理深度扫描相关消息
+    // Process深度ScanRelated消息
     async handleDeepScanMessage(request, sender) {
-        //console.log('🔍 处理深度扫描消息:', request.action);
+        //console.log('🔍 Process深度Scan消息:', request.action);
         
-        // 转发消息给主扩展页面（popup或content script）
+        // 转发消息给主ExtensionPage（popupOrcontent script）
         try {
-            // 获取所有标签页
+            // Get所有标签页
             const tabs = await chrome.tabs.query({});
             
             for (const tab of tabs) {
-                // 跳过扫描窗口本身和非HTTP页面
+                // 跳过Scan窗口本身And非HTTPPage
                 if (tab.url && 
                     tab.url.startsWith('http') && 
                     !tab.url.includes('deep-scan-window.html')) {
                     
                     try {
                         await chrome.tabs.sendMessage(tab.id, request);
-                        //console.log(`✅ 消息已转发到标签页: ${tab.id}`);
+                        //console.log(`✅ 消息Already转发到标签页: ${tab.id}`);
                     } catch (error) {
-                        // 忽略无法发送消息的标签页（可能没有content script）
-                        //console.log(`⚠️ 无法向标签页 ${tab.id} 发送消息:`, error.message);
+                        // 忽略None法Send消息的标签页（可能Nocontent script）
+                        //console.log(`⚠️ None法向标签页 ${tab.id} Send消息:`, error.message);
                     }
                 }
             }
         } catch (error) {
-            console.error('❌ 转发深度扫描消息失败:', error);
+            console.error('❌ 转发深度Scan消息Failed:', error);
         }
     }
     
-    // 使用自定义请求头发送请求 - 通过declarativeNetRequest动态修改请求头
+    // 使用CustomRequest headerSendRequest - ThroughdeclarativeNetRequest动态修改Request header
     async makeRequestWithCookie(url, options = {}) {
         try {
-            //console.log(`🌐 后台脚本准备发送请求: ${url}`);
+            //console.log(`🌐 After台ScriptPrepareSendRequest: ${url}`);
             
-            // 获取保存的自定义请求头设置
-            ////console.log('🔍 [DEBUG] 开始获取自定义请求头...');
+            // GetSave的CustomRequest headerSettings
+            ////console.log('🔍 [DEBUG] StartGetCustomRequest header...');
             const result = await chrome.storage.local.get('phantomHeaders');
-            ////console.log('🔍 [DEBUG] chrome.storage.local.get结果:', result);
+            ////console.log('🔍 [DEBUG] chrome.storage.local.getResult:', result);
             const customHeaders = result.phantomHeaders || [];
             
-            ////console.log(`📋 获取到自定义请求头:`, customHeaders);
-            ////console.log(`📋 请求头数量: ${customHeaders.length}`);
-            ////console.log(`📋 请求头详情:`, JSON.stringify(customHeaders, null, 2));
+            ////console.log(`📋 Get到CustomRequest header:`, customHeaders);
+            ////console.log(`📋 Request header数量: ${customHeaders.length}`);
+            ////console.log(`📋 Request header详情:`, JSON.stringify(customHeaders, null, 2));
             
-            // 尝试添加自定义请求头规则（如果有的话）
+            // 尝试AddCustomRequest header规则（如果有的话）
             await this.addCustomHeadersRule(url, customHeaders);
             
-            // 确保离屏文档存在
+            // Ensure离屏文档存在
             await this.ensureOffscreenDocument();
             
-            // 通过离屏文档发送请求
+            // Through离屏文档SendRequest
             const response = await new Promise((resolve, reject) => {
                 chrome.runtime.sendMessage({
                     action: 'makeRequestWithCookie',
@@ -126,49 +126,49 @@ class BackgroundSRCMiner {
                     customHeaders: customHeaders
                 }, (response) => {
                     if (chrome.runtime.lastError) {
-                        console.error('❌ 离屏文档通信失败:', chrome.runtime.lastError);
+                        console.error('❌ 离屏文档通信Failed:', chrome.runtime.lastError);
                         reject(new Error(chrome.runtime.lastError.message));
                     } else if (response && response.success) {
-                        //console.log(`✅ 离屏文档请求成功: ${response.data.status}`);
+                        //console.log(`✅ 离屏文档RequestSuccess: ${response.data.status}`);
                         resolve(response.data);
                     } else {
-                        console.error('❌ 离屏文档请求失败:', response?.error);
+                        console.error('❌ 离屏文档RequestFailed:', response?.error);
                         reject(new Error(response?.error || 'Offscreen request failed'));
                     }
                 });
             });
             
-            // 清理规则（无论是否有自定义请求头都要清理，避免残留规则）
+            // Clean规则（None论是否有CustomRequest header都要Clean，避免残留规则）
             await this.removeCustomHeadersRule();
             
             return response;
         } catch (error) {
-            console.error(`❌ 后台脚本请求失败: ${error.message}`);
-            // 确保清理规则
+            console.error(`❌ After台ScriptRequestFailed: ${error.message}`);
+            // EnsureClean规则
             try {
                 await this.removeCustomHeadersRule();
             } catch (e) {
-                console.warn('清理规则时出错:', e);
+                console.warn('Clean规则时出错:', e);
             }
             throw error;
         }
     }
     
-    // 添加自定义请求头规则
+    // AddCustomRequest header规则
     async addCustomHeadersRule(url, customHeaders) {
         try {
-            // 如果没有自定义请求头，直接返回
+            // 如果NoCustomRequest header，DirectReturn
             if (!customHeaders || customHeaders.length === 0) {
-                //console.log('🔧 没有自定义请求头，跳过规则添加');
+                //console.log('🔧 NoCustomRequest header，跳过规则Add');
                 return;
             }
             
             const urlObj = new URL(url);
-            const ruleId = 1; // 使用固定ID，方便后续删除
+            const ruleId = 1; // 使用固定ID，方便After续Delete
             
-            //console.log(`🔧 添加自定义请求头规则: ${urlObj.hostname}`, customHeaders);
+            //console.log(`🔧 AddCustomRequest header规则: ${urlObj.hostname}`, customHeaders);
             
-            // 构建请求头数组，过滤无效的请求头
+            // 构建Request header数Group，FilterInvalid的Request header
             const requestHeaders = customHeaders
                 .filter(header => header && header.key && header.value)
                 .map(header => ({
@@ -177,9 +177,9 @@ class BackgroundSRCMiner {
                     value: header.value
                 }));
             
-            // 如果过滤后没有有效的请求头，直接返回
+            // 如果FilterAfterNoValid的Request header，DirectReturn
             if (requestHeaders.length === 0) {
-                //console.log('🔧 没有有效的自定义请求头，跳过规则添加');
+                //console.log('🔧 NoValid的CustomRequest header，跳过规则Add');
                 return;
             }
             
@@ -198,58 +198,58 @@ class BackgroundSRCMiner {
             
             await chrome.declarativeNetRequest.updateDynamicRules({
                 addRules: [rule],
-                removeRuleIds: [ruleId] // 先删除可能存在的旧规则
+                removeRuleIds: [ruleId] // FirstDelete可能存在的旧规则
             });
             
-            //console.log(`✅ 自定义请求头规则添加成功，共${requestHeaders.length}个请求头`);
+            //console.log(`✅ CustomRequest header规则AddSuccess，共${requestHeaders.length}个Request header`);
         } catch (error) {
-            console.error('❌ 添加自定义请求头规则失败:', error);
-            // 不要抛出错误，让请求继续进行
+            console.error('❌ AddCustomRequest header规则Failed:', error);
+            // 不要抛出Error，让RequestContinuePerform
         }
     }
     
-    // 移除自定义请求头规则
+    // RemoveCustomRequest header规则
     async removeCustomHeadersRule() {
         try {
             await chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: [1]
             });
-            //console.log('🔧 自定义请求头规则已清理');
+            //console.log('🔧 CustomRequest header规则AlreadyClean');
         } catch (error) {
-            // 规则可能不存在，这是正常的，不需要报错
-            //console.log('🔧 清理自定义请求头规则（规则可能不存在）');
+            // 规则可能不存在，This是正常的，No need to report an error
+            //console.log('🔧 CleanCustomRequest header规则（规则可能不存在）');
         }
     }
     
-    // 确保离屏文档存在
+    // Ensure离屏文档存在
     async ensureOffscreenDocument() {
         try {
-            // 检查是否已有离屏文档
+            // Check是否Already有离屏文档
             const existingContexts = await chrome.runtime.getContexts({
                 contextTypes: ['OFFSCREEN_DOCUMENT']
             });
             
             if (existingContexts.length > 0) {
-                //console.log('🔧 离屏文档已存在');
+                //console.log('🔧 离屏文档Already存在');
                 return;
             }
             
-            // 创建离屏文档
-            //console.log('🔧 创建离屏文档...');
+            // Create离屏文档
+            //console.log('🔧 Create离屏文档...');
             await chrome.offscreen.createDocument({
                 url: 'offscreen.html',
                 reasons: ['DOM_SCRAPING'],
-                justification: '需要使用完整的Web API来发送带Cookie的网络请求'
+                justification: 'Need使用Complete的Web API来Send带Cookie的NetworkRequest'
             });
             
-            //console.log('✅ 离屏文档创建成功');
+            //console.log('✅ 离屏文档CreateSuccess');
         } catch (error) {
-            console.error('❌ 离屏文档创建失败:', error);
+            console.error('❌ 离屏文档CreateFailed:', error);
             throw error;
         }
     }
     
-    // 执行深度扫描
+    // Execute深度Scan
     async performDeepScan(baseUrl, options = {}) {
         try {
             const results = {
@@ -257,7 +257,7 @@ class BackgroundSRCMiner {
                 errors: []
             };
             
-            // 获取要扫描的URL列表
+            // Get要Scan的URL列Table
             const urlsToScan = options.urls || [baseUrl];
             
             for (const url of urlsToScan) {
@@ -287,14 +287,14 @@ class BackgroundSRCMiner {
         }
     }
     
-    // 执行API测试
+    // ExecuteAPI Testing
     async performApiTest(urls, options = {}) {
         try {
             const results = [];
             const concurrency = options.concurrency || 5;
             const timeout = options.timeout || 5000;
             
-            // 分批处理URL
+            // 分批ProcessURL
             for (let i = 0; i < urls.length; i += concurrency) {
                 const batch = urls.slice(i, i + concurrency);
                 const batchPromises = batch.map(async (url) => {
@@ -335,30 +335,30 @@ class BackgroundSRCMiner {
             throw new Error(`API test failed: ${error.message}`);
         }
         
-        // 安装时的初始化
+        // 安装时的Initialize
         chrome.runtime.onInstalled.addListener(() => {
-            //console.log('幻影已安装');
+            //console.log('幻影Already安装');
         });
     }
     
     // JS注入功能 - 使用chrome.scripting.executeScript({world:'MAIN'})绕过CSP
     async executeJSInjection(tabId, code) {
         try {
-            console.log('🔧 开始执行JS注入 (world: MAIN)...');
+            console.log('🔧 StartExecuteJS注入 (world: MAIN)...');
             
-            // 记录执行的脚本内容（用于调试）
-            console.log('✅ 准备执行用户代码，长度:', code.length);
+            // RecordExecute的ScriptContent（Used for调试）
+            console.log('✅ PrepareExecuteUser代码，长度:', code.length);
 
-            // 使用 world: 'MAIN' 在主世界执行脚本，绕过CSP限制
+            // 使用 world: 'MAIN' 在主世界ExecuteScript，绕过CSP限制
             const results = await chrome.scripting.executeScript({
                 target: { tabId: tabId },
-                world: 'MAIN',  // 关键：在主世界执行，不受页面CSP限制
+                world: 'MAIN',  // 关Key：在主世界Execute，不受PageCSP限制
                 args: [code],
                 func: (userCode) => {
                     try {
-                        // 直接 eval 即可，CSP 不会拦截扩展注入
+                        // Direct eval 即可，CSP 不会拦截Extension注入
                         eval(userCode);
-                        return { success: true, message: '脚本执行成功' };
+                        return { success: true, message: 'ScriptExecuteSuccess' };
                     } catch (error) {
                         return { success: false, error: error.message };
                     }
@@ -367,15 +367,15 @@ class BackgroundSRCMiner {
 
             const result = results[0]?.result;
             if (result?.success) {
-                console.log('✅ JS脚本执行成功');
-                return { success: true, message: '脚本执行成功 (world: MAIN)' };
+                console.log('✅ JSScriptExecuteSuccess');
+                return { success: true, message: 'ScriptExecuteSuccess (world: MAIN)' };
             } else {
-                console.error('❌ JS脚本执行失败:', result?.error);
-                return { success: false, error: result?.error || '未知错误' };
+                console.error('❌ JSScriptExecuteFailed:', result?.error);
+                return { success: false, error: result?.error || 'Not知Error' };
             }
 
         } catch (error) {
-            console.error('❌ 脚本注入失败:', error);
+            console.error('❌ Script注入Failed:', error);
             return { success: false, error: error.message };
         }
     }
@@ -383,7 +383,7 @@ class BackgroundSRCMiner {
     async storeResults(data, url) {
         try {
             const timestamp = new Date().toISOString();
-            // 注释掉创建大量垃圾存储的功能
+            // 注释掉Create大量垃圾存储的功能
             // const key = `results_${Date.now()}`;
             
             // await chrome.storage.local.set({
@@ -394,7 +394,7 @@ class BackgroundSRCMiner {
             //     }
             // });
             
-            // 更新最新结果
+            // Update最新Result
             await chrome.storage.local.set({
                 'latestResults': {
                     url: url,
@@ -403,37 +403,37 @@ class BackgroundSRCMiner {
                 }
             });
             
-            //console.log('扫描结果已保存:', url);
+            //console.log('Scan resultsSaved:', url);
         } catch (error) {
-            console.error('保存结果失败:', error);
+            console.error('Save resultsFailed:', error);
         }
     }
 
-    // 执行脚本内容 - 使用chrome.scripting.executeScript({world:'MAIN'})绕过CSP
+    // ExecuteScriptContent - 使用chrome.scripting.executeScript({world:'MAIN'})绕过CSP
     async executeScriptContent(scriptContent) {
         try {
-            console.log('🔧 开始执行JS脚本 (world: MAIN)...');
+            console.log('🔧 StartExecuteJSScript (world: MAIN)...');
             
-            // 获取当前活动标签页
+            // GetCurrent活动标签页
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab) {
-                alert('无法获取当前标签页');
+                alert('None法GetCurrent标签页');
                 return;
             }
 
-            // 记录执行的脚本内容（用于调试）
-            console.log('✅ 准备执行用户代码，长度:', scriptContent.length);
+            // RecordExecute的ScriptContent（Used for调试）
+            console.log('✅ PrepareExecuteUser代码，长度:', scriptContent.length);
 
-            // 使用 world: 'MAIN' 在主世界执行脚本，绕过CSP限制
+            // 使用 world: 'MAIN' 在主世界ExecuteScript，绕过CSP限制
             const results = await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                world: 'MAIN',  // 关键：在主世界执行，不受页面CSP限制
+                world: 'MAIN',  // 关Key：在主世界Execute，不受PageCSP限制
                 args: [scriptContent],
                 func: (code) => {
                     try {
-                        // 直接 eval 即可，CSP 不会拦截扩展注入
+                        // Direct eval 即可，CSP 不会拦截Extension注入
                         eval(code);
-                        return { success: true, message: '脚本执行成功' };
+                        return { success: true, message: 'ScriptExecuteSuccess' };
                     } catch (error) {
                         return { success: false, error: error.message };
                     }
@@ -442,32 +442,32 @@ class BackgroundSRCMiner {
 
             const result = results[0]?.result;
             if (result?.success) {
-                console.log('✅ JS脚本执行成功');
-                alert('脚本执行成功 (world: MAIN)');
+                console.log('✅ JSScriptExecuteSuccess');
+                alert('ScriptExecuteSuccess (world: MAIN)');
             } else {
-                console.error('❌ JS脚本执行失败:', result?.error);
-                alert('脚本执行失败: ' + (result?.error || '未知错误'));
+                console.error('❌ JSScriptExecuteFailed:', result?.error);
+                alert('ScriptExecuteFailed: ' + (result?.error || 'Not知Error'));
             }
 
         } catch (error) {
-            console.error('❌ 脚本注入失败:', error);
-            alert('脚本注入失败: ' + error.message);
+            console.error('❌ Script注入Failed:', error);
+            alert('Script注入Failed: ' + error.message);
         }
     }
 
-    // 执行脚本内容 - 通过background.js使用chrome.scripting.executeScript({world:'MAIN'})绕过CSP
+    // ExecuteScriptContent - Throughbackground.js使用chrome.scripting.executeScript({world:'MAIN'})绕过CSP
     async executeScriptContent(scriptContent) {
         try {
-            console.log('🔧 开始执行JS脚本 (通过background.js)...');
+            console.log('🔧 StartExecuteJSScript (Throughbackground.js)...');
             
-            // 获取当前活动标签页
+            // GetCurrent活动标签页
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab) {
-                alert('无法获取当前标签页');
+                alert('None法GetCurrent标签页');
                 return;
             }
 
-            // 通过background.js执行注入
+            // Throughbackground.jsExecute注入
             const response = await chrome.runtime.sendMessage({
                 action: 'executeJSInjection',
                 tabId: tab.id,
@@ -475,50 +475,50 @@ class BackgroundSRCMiner {
             });
 
             if (response?.success && response.data?.success) {
-                console.log('✅ JS脚本执行成功');
-                alert('脚本执行成功 (world: MAIN)');
+                console.log('✅ JSScriptExecuteSuccess');
+                alert('ScriptExecuteSuccess (world: MAIN)');
             } else {
-                const errorMsg = response?.data?.error || response?.error || '未知错误';
-                console.error('❌ JS脚本执行失败:', errorMsg);
-                alert('脚本执行失败: ' + errorMsg);
+                const errorMsg = response?.data?.error || response?.error || 'Not知Error';
+                console.error('❌ JSScriptExecuteFailed:', errorMsg);
+                alert('ScriptExecuteFailed: ' + errorMsg);
             }
 
         } catch (error) {
-            console.error('❌ 脚本注入失败:', error);
-            alert('脚本注入失败: ' + error.message);
+            console.error('❌ Script注入Failed:', error);
+            alert('Script注入Failed: ' + error.message);
         }
     }
     
     async handleTabUpdate(tabId, url) {
-        // 当页面加载完成时，可以执行一些后台任务
+        // 当PageLoading complete时，CanExecute一些After台任务
         if (url.startsWith('http')) {
-            //console.log('页面已加载:', url);
+            //console.log('PageLoaded:', url);
         }
     }
     
-    // 清理旧数据
+    // Clean旧Data
     async cleanOldData() {
         try {
             const data = await chrome.storage.local.get();
             const keys = Object.keys(data);
             const resultKeys = keys.filter(key => key.startsWith('results_'));
             
-            // 只保留最近50条记录
+            // Only保留最近50条Record
             if (resultKeys.length > 50) {
                 const sortedKeys = resultKeys.sort().slice(0, -50);
                 await chrome.storage.local.remove(sortedKeys);
-                //console.log('已清理旧数据:', sortedKeys.length, '条');
+                //console.log('AlreadyClean旧Data:', sortedKeys.length, '条');
             }
         } catch (error) {
-            console.error('清理数据失败:', error);
+            console.error('CleanDataFailed:', error);
         }
     }
 }
 
-// 初始化后台脚本
+// InitializeAfter台Script
 new BackgroundSRCMiner();
 
-// 定期清理数据
+// 定期CleanData
 setInterval(() => {
     new BackgroundSRCMiner().cleanOldData();
-}, 24 * 60 * 60 * 1000); // 每24小时清理一次
+}, 24 * 60 * 60 * 1000); // Every24小时Clean一次
