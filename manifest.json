@@ -4,7 +4,6 @@
   "version": "1.7.6",
   "description": "专业的SRC漏洞挖掘辅助工具，自动提取页面中的敏感信息",
   "author": "Phantom&yihuo&Xuan8a1",
-  
   "permissions": [
     "activeTab",
     "storage",
@@ -16,21 +15,20 @@
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"
   ],
-  
   "host_permissions": [
     "<all_urls>"
   ],
-  
   "background": {
     "service_worker": "background.js"
   },
-  
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "js": [
-        "filters/api-filter.js", 
-        "filters/domain-phone-filter.js", 
+        "filters/api-filter.js",
+        "filters/domain-phone-filter.js",
         "filters/id-card-filter.js",
         "src/scanner/PatternExtractor.js",
         "src/scanner/ContentExtractor.js",
@@ -40,19 +38,20 @@
       "all_frames": false
     }
   ],
-  
   "web_accessible_resources": [
     {
       "resources": [
-        "filters/api-filter.js", 
-        "filters/domain-phone-filter.js", 
+        "filters/api-filter.js",
+        "filters/domain-phone-filter.js",
         "filters/id-card-filter.js",
         "src/scanner/PatternExtractor.js",
         "src/scanner/ContentExtractor.js",
         "src/scanner/DeepScanWindow.js",
         "src/core/injector.js",
-        "test-results.html", 
-        "test-window.html", 
+        "src/api/PackerBridge.js",
+        "src/ui/PackerIntegrationUI.js",
+        "test-results.html",
+        "test-window.html",
         "deep-scan-window.html",
         "src/api/test-window-script.js",
         "src/scanner/deep-scan-window-script.js",
@@ -60,10 +59,11 @@
         "offscreen.html",
         "offscreen.js"
       ],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
-  
   "action": {
     "default_popup": "popup.html",
     "default_title": "幻影",
@@ -74,13 +74,10 @@
       "128": "icons/icon128.png"
     }
   },
-  
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   }
-
 }
-
