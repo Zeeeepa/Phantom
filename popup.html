@@ -1564,6 +1564,83 @@
                             <select id="requestMethod">
                                 <option value="GET">GET</option>
                                 <option value="POST">POST</option>
+
+                    <!-- Packer-InfoFinder 集成设置 -->
+                    <div class="api-test-section">
+                        <div class="config-title">🚀 Packer-InfoFinder 深度分析集成</div>
+                        <div class="config-options" style="flex-direction: column; gap: 15px; align-items: flex-start;">
+                            <label class="config-option" style="width: 100%; justify-content: space-between;">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <span>启用Packer深度分析</span>
+                                    <small style="color: #888;">(需要本地运行Packer后端服务)</small>
+                                </span>
+                                <input type="checkbox" id="packerEnabled" checked style="margin-left: auto;">
+                            </label>
+                            
+                            <div style="width: 100%;">
+                                <label style="display: block; margin-bottom: 8px; color: #00d4aa;">API端点地址</label>
+                                <input 
+                                    type="text" 
+                                    id="packerEndpoint" 
+                                    value="http://localhost:8765"
+                                    placeholder="http://localhost:8765"
+                                    style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,170,0.3); border-radius: 6px; color: #fff; font-size: 14px;"
+                                />
+                                <small style="color: #888; display: block; margin-top: 5px;">默认: http://localhost:8765</small>
+                            </div>
+                            
+                            <div style="width: 100%;">
+                                <label style="display: block; margin-bottom: 8px; color: #00d4aa;">API密钥 <span style="color: #888; font-size: 12px;">(可选)</span></label>
+                                <input 
+                                    type="password" 
+                                    id="packerApiKey" 
+                                    placeholder="留空表示无需认证"
+                                    style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,170,0.3); border-radius: 6px; color: #fff; font-size: 14px;"
+                                />
+                                <small style="color: #888; display: block; margin-top: 5px;">如果后端设置了API密钥认证，请在此输入</small>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <button id="testPackerConnectionBtn" class="action-button" style="flex: 1;">
+                                    <span class="text">🔍 测试连接</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                                <button id="savePackerSettingsBtn" class="action-button" style="flex: 1;">
+                                    <span class="text">💾 保存配置</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                            </div>
+                            
+                            <div id="packerConnectionStatus" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; display: none;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div id="packerStatusIndicator" style="width: 12px; height: 12px; border-radius: 50%; background: #666;"></div>
+                                    <span id="packerStatusMessage" style="color: #fff; font-size: 14px;">检查连接中...</span>
+                                </div>
+                            </div>
+                            
+                            <div style="width: 100%; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; border-left: 3px solid #667eea;">
+                                <div style="color: #667eea; font-weight: bold; margin-bottom: 8px;">📖 快速启动指南</div>
+                                <div style="color: #ccc; font-size: 13px; line-height: 1.6;">
+                                    <p style="margin: 5px 0;">1. 克隆仓库并进入后端目录</p>
+                                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; display: block; margin: 5px 0;">cd packer-backend</code>
+                                    <p style="margin: 5px 0;">2. 安装依赖</p>
+                                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; display: block; margin: 5px 0;">pip install -r requirements.txt</code>
+                                    <p style="margin: 5px 0;">3. 启动API服务器</p>
+                                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; display: block; margin: 5px 0;">python packer_api.py</code>
+                                    <p style="margin: 10px 0 5px 0; color: #888;">详细文档: <a href="https://github.com/Zeeeepa/Phantom" target="_blank" style="color: #667eea;">INTEGRATION_GUIDE.md</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                             </select>
                             <select id="categorySelect">
                                 <option value="">选择要测试的分类</option>
@@ -2047,6 +2124,7 @@
     <script src="src/utils/SettingsManager.js"></script>
     <script src="src/core/jshook-presets.js"></script>
     <script src="src/core/JSInjector.js"></script>
+    <script src="src/utils/PackerSettingsHandler.js"></script>
     <script src="src/api/PackerBridge.js"></script>
     <script src="src/ui/PackerIntegrationUI.js"></script>
     <script src="src/main.js"></script>

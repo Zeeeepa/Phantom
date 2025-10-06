@@ -198,7 +198,25 @@ class PackerIntegrationUI {
             
         } catch (error) {
             console.error('❌ Packer analysis failed:', error);
-            alert('Packer分析失败: ' + error.message);
+            
+            // Provide user-friendly error messages
+            let errorMessage = 'Packer分析失败';
+            let troubleshooting = '';
+            
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                errorMessage = '❌ 无法连接到Packer后端服务';
+                troubleshooting = '\n\n💡 请确保:\n1. Packer后端正在运行 (python packer_api.py)\n2. 端点地址正确 (设置→Packer集成)\n3. 防火墙未阻止连接';
+            } else if (error.message.includes('timeout')) {
+                errorMessage = '⏱️ 分析超时';
+                troubleshooting = '\n\n💡 可能原因:\n1. 目标网站响应较慢\n2. 后端服务负载过高\n3. 网络连接不稳定';
+            } else if (error.message.includes('无法分析系统页面')) {
+                errorMessage = '🚫 无法分析Chrome系统页面';
+                troubleshooting = '\n\nChrome内部页面(chrome://)不支持扫描';
+            } else {
+                errorMessage = 'Packer分析失败: ' + error.message;
+            }
+            
+            this.showError(errorMessage + troubleshooting);
             this.hideProgress();
             
         } finally {
@@ -338,6 +356,38 @@ class PackerIntegrationUI {
     }
     
     /**
+     * Show error message with better UX
+     */
+    showError(message) {
+        // Create a styled error notification instead of alert
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 10000;
+            max-width: 400px;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        `;
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            errorDiv.style.opacity = '0';
+            errorDiv.style.transition = 'opacity 0.3s';
+            setTimeout(() => errorDiv.remove(), 300);
+        }, 8000);
+    }
+    
+    /**
      * Cleanup on extension unload
      */
     destroy() {
@@ -379,4 +429,3 @@ if (typeof window !== 'undefined') {
     window.PackerIntegrationUI = PackerIntegrationUI;
     window.packerUI = packerUI;
 }
-
