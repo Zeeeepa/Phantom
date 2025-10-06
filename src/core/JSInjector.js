@@ -1,18 +1,18 @@
-// JS注入功能模块
+// JS inject feature module
 class JSInjector {
     constructor() {
         this.savedScripts = [];
     }
 
-    // 初始化JS注入页面
+    // initialize JS inject page
     init() {
         //console.log('JSInjector init called');
-        // 初始化预设脚本（如果尚未初始化）
+        // initialize 预设 script（如果尚not initialize）
         if (typeof JSHookPresets !== 'undefined' && JSHookPresets.initializePresets) {
             JSHookPresets.initializePresets().then(() => {
                 this.loadSavedScripts();
             }).catch(error => {
-                console.error('预设脚本初始化失败:', error);
+                console.error('预设 script initialize failed:', error);
                 this.loadSavedScripts();
             });
         } else {
@@ -21,10 +21,10 @@ class JSInjector {
         this.initEvents();
     }
 
-    // 初始化事件监听
+    // initialize event listen
     initEvents() {
         //console.log('JSInjector initEvents called');
-        // 添加脚本按钮
+        // add script button
         const addScriptBtn = document.getElementById('addScriptBtn');
         //console.log('addScriptBtn element:', addScriptBtn);
         if (addScriptBtn) {
@@ -37,7 +37,7 @@ class JSInjector {
             console.error('addScriptBtn element not found!');
         }
 
-        // 模态框相关事件
+        // 模态框相关 event
         const modal = document.getElementById('addScriptModal');
         const closeBtn = modal?.querySelector('.close');
         const cancelBtn = document.getElementById('cancelAddScriptBtn');
@@ -55,7 +55,7 @@ class JSInjector {
             saveBtn.addEventListener('click', () => this.saveNewScript());
         }
 
-        // 点击模态框外部关闭
+        // 点击模态框外部 close
         if (modal) {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -64,13 +64,13 @@ class JSInjector {
             });
         }
 
-        // 绑定脚本按钮事件
+        // 绑定 script button event
         this.bindScriptEvents();
 
-        // 脚本描述展开按钮事件
+        // script 描述 expand button event
 
         
-        // 脚本详情相关事件
+        // script 详情相关 event
         window.openScriptDetails = (scriptName, description) => {
             const index = this.savedScripts.findIndex(s => s.name === scriptName);
             if (index !== -1) {
@@ -78,7 +78,7 @@ class JSInjector {
             }
         };
 
-        // 模态框关闭事件
+        // 模态框 close event
         const scriptDetailModal = document.getElementById('scriptDetailModal');
         if (scriptDetailModal) {
             const closeBtn = scriptDetailModal.querySelector('.close');
@@ -95,7 +95,7 @@ class JSInjector {
                 copyDescBtn.addEventListener('click', () => this.copyScriptDescription());
             }
 
-            // 点击模态框外部关闭
+            // 点击模态框外部 close
             scriptDetailModal.addEventListener('click', (e) => {
                 if (e.target === scriptDetailModal) {
                     this.closeScriptDetailModal();
@@ -104,12 +104,12 @@ class JSInjector {
         }
     }
 
-    // 显示添加脚本模态框
+    // display add script 模态框
     showAddScriptModal() {
         const modal = document.getElementById('addScriptModal');
         if (modal) {
             modal.style.display = 'block';
-            // 清空输入框
+            // clear input
             document.getElementById('scriptNameInput').value = '';
             document.getElementById('scriptCodeInput').value = '';
             const descriptionInput = document.getElementById('scriptDescInput');
@@ -117,7 +117,7 @@ class JSInjector {
         }
     }
 
-    // 隐藏添加脚本模态框
+    // hide add script 模态框
     hideAddScriptModal() {
         const modal = document.getElementById('addScriptModal');
         if (modal) {
@@ -125,19 +125,19 @@ class JSInjector {
         }
     }
 
-    // 保存新脚本
+    // save 新 script
     async saveNewScript() {
         const nameInput = document.getElementById('scriptNameInput');
         const codeInput = document.getElementById('scriptCodeInput');
         const descriptionInput = document.getElementById('scriptDescInput');
 
         if (!nameInput.value.trim() || !codeInput.value.trim()) {
-            alert('请输入脚本名称和代码内容');
+            alert('请输入 script 名称andcode content');
             return;
         }
 
         const script = {
-            id: Date.now(), // 使用时间戳作为唯一ID
+            id: Date.now(), // use时间戳作to唯一ID
             name: nameInput.value.trim(),
             content: codeInput.value.trim(),
             description: descriptionInput ? descriptionInput.value.trim() : '',
@@ -146,33 +146,33 @@ class JSInjector {
         };
 
         try {
-            // 从IndexedDB加载现有脚本
+            // fromIndexedDB load 现有 script
             const savedScripts = await window.IndexedDBManager.loadJSScripts();
             savedScripts.push(script);
             
-            // 保存到IndexedDB
+            // save 到IndexedDB
             await window.IndexedDBManager.saveJSScripts(savedScripts);
             
             this.hideAddScriptModal();
             this.loadSavedScripts();
-            alert('脚本保存成功');
+            alert('script save success');
             
-            // 清空输入框
+            // clear input
             nameInput.value = '';
             codeInput.value = '';
             if (descriptionInput) descriptionInput.value = '';
         } catch (error) {
-            console.error('❌ 保存脚本失败:', error);
-            alert('脚本保存失败: ' + error.message);
+            console.error('❌ save script failed:', error);
+            alert('script save failed: ' + error.message);
         }
     }
 
-    // 加载已保存的脚本
+    // load already save   script
     async loadSavedScripts() {
         try {
-            //console.log('[JSInjector] 开始加载脚本...');
+            //console.log('[JSInjector] start load script ...');
             
-            // 检查IndexedDBManager是否可用
+            // check IndexedDBManager是否可用
             if (!window.IndexedDBManager) {
                 console.error('[JSInjector] IndexedDBManager未找到');
                 this.savedScripts = [];
@@ -180,37 +180,37 @@ class JSInjector {
                 return;
             }
             
-            // 从IndexedDB加载所有脚本（包括预设脚本）
+            // fromIndexedDB load all script（package 括预设 script）
             this.savedScripts = await window.IndexedDBManager.loadJSScripts();
-            //console.log('[JSInjector] 加载到的脚本数量:', this.savedScripts.length);
-            //console.log('[JSInjector] 脚本列表:', this.savedScripts.map(s => ({ name: s.name, isPreset: s.isPreset })));
+            //console.log('[JSInjector] load 到  script count:', this.savedScripts.length);
+            //console.log('[JSInjector] script list:', this.savedScripts.map(s => ({ name: s.name, isPreset: s.isPreset })));
             
             this.displaySavedScripts();
         } catch (error) {
-            console.error('❌ 加载脚本失败:', error);
+            console.error('❌ load script failed:', error);
             this.savedScripts = [];
             this.displaySavedScripts();
         }
     }
 
-    // 显示已保存的脚本
+    // display already save   script
     displaySavedScripts() {
         const container = document.getElementById('scriptsContainer');
         if (!container) return;
 
-        // 清空现有内容
+        // clear 现有 content
         container.innerHTML = '';
 
         if (this.savedScripts.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <p style="font-style: normal;">暂无保存的脚本，点击下方"添加脚本"按钮开始创建</p>
+                    <p style="font-style: normal;">暂无 save   script，点击下方"add script"按钮开始创建</p>
                 </div>
             `;
             return;
         }
 
-        // 使用header-input-group样式显示脚本
+        // useheader-input-group style display script
         this.savedScripts.forEach((script, index) => {
             const scriptItem = document.createElement('div');
             scriptItem.className = 'header-input-group script-item';
@@ -220,7 +220,7 @@ class JSInjector {
             const description = script.description || '无描述';
             const truncatedDesc = description.length > 30 ? description.substring(0, 30) + '...' : description;
             
-            // 创建脚本信息区域
+            // 创建 script information 区域
             const scriptInfoDiv = document.createElement('div');
             scriptInfoDiv.style.cssText = 'flex: 1; max-width: 200px; cursor: pointer;';
             scriptInfoDiv.addEventListener('click', () => {
@@ -232,15 +232,15 @@ class JSInjector {
                 <div class="script-desc-preview" style="color: #aaa; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px;" title="${description}">${truncatedDesc}</div>
             `;
             
-            // 创建按钮区域
+            // 创建 button 区域
             const buttonsDiv = document.createElement('div');
             buttonsDiv.style.cssText = 'display: flex; gap: 5px; flex-shrink: 0;';
-            // 所有脚本都显示完整的操作按钮
+            // all script 都 display complete 操作 button
             buttonsDiv.innerHTML = `
                 ${script.isPreset ? '<span style="color: #4CAF50; font-size: 12px; padding: 4px 8px; background: rgba(76, 175, 80, 0.1); border-radius: 3px; margin-right: 5px;">预设</span>' : ''}
-                <button class="inject-btn" data-index="${index}" data-action="inject" onclick="event.stopPropagation()">注入</button>
-                <button class="modify-btn" data-index="${index}" data-action="modify" onclick="event.stopPropagation()">修改</button>
-                <button class="delete-btn" data-index="${index}" data-action="delete" onclick="event.stopPropagation()">删除</button>
+                <button class="inject-btn" data-index="${index}" data-action="inject" onclick="event.stopPropagation()">inject</button>
+                <button class="modify-btn" data-index="${index}" data-action="modify" onclick="event.stopPropagation()">modify</button>
+                <button class="delete-btn" data-index="${index}" data-action="delete" onclick="event.stopPropagation()">delete</button>
             `;
             
             scriptItem.appendChild(scriptInfoDiv);
@@ -249,7 +249,7 @@ class JSInjector {
         });
     }
 
-    // 绑定脚本按钮事件
+    // 绑定 script button event
     bindScriptEvents() {
         const container = document.getElementById('scriptsContainer');
         if (container) {
@@ -275,7 +275,7 @@ class JSInjector {
         }
     }
 
-    // 格式化文件大小
+    // format 化 file size
     formatFileSize(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -284,7 +284,7 @@ class JSInjector {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
-    // 注入脚本
+    // inject script
     injectScript(index) {
         if (this.savedScripts[index]) {
             const script = this.savedScripts[index];
@@ -293,44 +293,44 @@ class JSInjector {
         }
     }
 
-    // 修改脚本
+    // modify script
     modifyScript(index) {
         if (this.savedScripts[index]) {
             const script = this.savedScripts[index];
             
-            // 显示编辑模态框
+            // display edit 模态框
             this.showAddScriptModal();
             
-            // 填充现有数据
+            // 填充现有 data
             document.getElementById('scriptNameInput').value = script.name;
             document.getElementById('scriptCodeInput').value = script.content || script.code || '';
             const descriptionInput = document.getElementById('scriptDescInput');
             if (descriptionInput) descriptionInput.value = script.description || '';
             
-            // 修改保存按钮行为为更新
+            // modify save button 行toto update
             const saveBtn = document.getElementById('saveScriptBtn');
-            saveBtn.textContent = '更新脚本';
+            saveBtn.textContent = 'update script';
             
-            // 移除原有事件监听器并添加新的
+            // remove 原有 event listener 并 add 新 
             saveBtn.replaceWith(saveBtn.cloneNode(true));
             const newSaveBtn = document.getElementById('saveScriptBtn');
             newSaveBtn.addEventListener('click', () => this.updateScript(index));
         }
     }
 
-    // 更新脚本
+    // update script
     async updateScript(index) {
         const nameInput = document.getElementById('scriptNameInput');
         const codeInput = document.getElementById('scriptCodeInput');
         const descriptionInput = document.getElementById('scriptDescInput');
 
         if (!nameInput.value.trim() || !codeInput.value.trim()) {
-            alert('请输入脚本名称和代码内容');
+            alert('请输入 script 名称andcode content');
             return;
         }
 
         try {
-            // 更新脚本数据
+            // update script data
             this.savedScripts[index] = {
                 ...this.savedScripts[index],
                 name: nameInput.value.trim(),
@@ -340,53 +340,53 @@ class JSInjector {
                 updatedAt: new Date().toLocaleString()
             };
 
-            // 保存到IndexedDB
+            // save 到IndexedDB
             await window.IndexedDBManager.saveJSScripts(this.savedScripts);
             
             this.hideAddScriptModal();
-            this.loadSavedScripts(); // 重新加载而不是直接显示
-            alert('脚本更新成功');
+            this.loadSavedScripts(); // 重新 load 而do not是directly display
+            alert('script update success');
             
-            // 恢复保存按钮
+            // 恢复 save button
             const saveBtn = document.getElementById('saveScriptBtn');
-            saveBtn.textContent = '保存脚本';
+            saveBtn.textContent = 'save script';
             saveBtn.onclick = () => this.saveNewScript();
         } catch (error) {
-            console.error('❌ 更新脚本失败:', error);
-            alert('脚本更新失败: ' + error.message);
+            console.error('❌ update script failed:', error);
+            alert('script update failed: ' + error.message);
         }
     }
 
-    // 删除脚本
+    // delete script
     async deleteScript(index) {
-        if (!confirm('确定要删除这个脚本吗？')) {
+        if (!confirm('确定要 delete 这个 script 吗？')) {
             return;
         }
 
         try {
-            // 从数组中删除脚本
+            // from array in delete script
             this.savedScripts.splice(index, 1);
 
-            // 保存到IndexedDB
+            // save 到IndexedDB
             await window.IndexedDBManager.saveJSScripts(this.savedScripts);
             
             this.loadSavedScripts();
-            alert('脚本删除成功');
+            alert('script delete success');
         } catch (error) {
-            console.error('❌ 删除脚本失败:', error);
-            alert('脚本删除失败: ' + error.message);
+            console.error('❌ delete script failed:', error);
+            alert('script delete failed: ' + error.message);
         }
     }
 
-    // 显示消息提示
+    // display message prompt
     showMessage(message, type = 'info') {
-        // 简单的alert提示，后续可以改为更美观的提示
+        // simple  alert prompt，后续可以改to更美观  prompt
         alert(message);
     }
 
 
 
-    // 显示脚本详情模态框
+    // display script 详情模态框
     showScriptDetail(index) {
         // console.log('showScriptDetail called with index:', index);
         if (!this.savedScripts[index]) {
@@ -410,12 +410,12 @@ class JSInjector {
             nameElement.textContent = script.name;
             descElement.textContent = script.description || '无描述';
             
-            // 显示创建时间
+            // display 创建时间
             if (createdElement && script.created) {
                 createdElement.textContent = new Date(script.created).toLocaleString('zh-CN');
             }
             
-            // 显示更新时间（如果有）
+            // display update 时间（如果有）
             if (updatedElement && updatedGroup && script.updated) {
                 updatedElement.textContent = new Date(script.updated).toLocaleString('zh-CN');
                 updatedGroup.style.display = 'block';
@@ -425,7 +425,7 @@ class JSInjector {
             
             modal.style.display = 'block';
             
-            // 存储当前脚本描述用于复制
+            // storage current script 描述for copy
             this.currentScriptDescription = script.description || '';
             // console.log('Modal should be visible now');
         } else {
@@ -433,7 +433,7 @@ class JSInjector {
         }
     }
 
-    // 关闭脚本详情模态框
+    // close script 详情模态框
     closeScriptDetailModal() {
         const modal = document.getElementById('scriptDetailModal');
         if (modal) {
@@ -441,47 +441,47 @@ class JSInjector {
         }
     }
 
-    // 复制脚本描述
+    // copy script 描述
     copyScriptDescription() {
         if (this.currentScriptDescription) {
             navigator.clipboard.writeText(this.currentScriptDescription).then(() => {
-                alert('描述已复制到剪贴板');
+                alert('描述already copy 到剪贴板');
             }).catch(err => {
-                console.error('复制失败:', err);
-                alert('复制失败，请手动选择文本复制');
+                console.error('copy failed:', err);
+                alert('copy failed，请 manual select text copy');
             });
         } else {
-            alert('无描述内容可复制');
+            alert('无描述 content can copy');
         }
     }
 
 
 
-    // 执行脚本内容 - 使用chrome.scripting.executeScript({world:'MAIN'})绕过CSP
+    // execute script content - usechrome.scripting.executeScript({world:'MAIN'})绕throughCSP
     async executeScriptContent(scriptContent) {
         try {
-            console.log('🔧 开始执行JS脚本 (world: MAIN)...');
+            console.log('🔧 start execute JS script (world: MAIN)...');
             
-            // 获取当前活动标签页
+            // 获取 current 活动 tab 页
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab) {
-                alert('无法获取当前标签页');
+                alert('无法获取 current tab 页');
                 return;
             }
 
-            // 记录执行的脚本内容（用于调试）
-            console.log('✅ 准备执行用户代码，长度:', scriptContent.length);
+            // 记录 execute   script content（for debug）
+            console.log('✅ 准备 execute user code，length:', scriptContent.length);
 
-            // 使用 world: 'MAIN' 在主世界执行脚本，绕过CSP限制
+            // use world: 'MAIN' in主世界 execute script，绕throughCSP limit
             const results = await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                world: 'MAIN',  // 关键：在主世界执行，不受页面CSP限制
+                world: 'MAIN',  // 关 key：in主世界 execute，do not受 page CSP limit
                 args: [scriptContent],
                 func: (code) => {
                     try {
-                        // 直接 eval 即可，CSP 不会拦截扩展注入
+                        // directly eval 即可，CSP do not会 intercept extension inject
                         eval(code);
-                        return { success: true, message: '脚本执行成功' };
+                        return { success: true, message: 'script execute success' };
                     } catch (error) {
                         return { success: false, error: error.message };
                     }
@@ -490,16 +490,16 @@ class JSInjector {
 
             const result = results[0]?.result;
             if (result?.success) {
-                console.log('✅ JS脚本执行成功');
-                alert('脚本执行成功 (world: MAIN)');
+                console.log('✅ JS script execute success');
+                alert('script execute success (world: MAIN)');
             } else {
-                console.error('❌ JS脚本执行失败:', result?.error);
-                alert('脚本执行失败: ' + (result?.error || '未知错误'));
+                console.error('❌ JS script execute failed:', result?.error);
+                alert('script execute failed: ' + (result?.error || '未知 error'));
             }
 
         } catch (error) {
-            console.error('❌ 脚本注入失败:', error);
-            alert('脚本注入失败: ' + error.message);
+            console.error('❌ script inject failed:', error);
+            alert('script inject failed: ' + error.message);
         }
     }
 }

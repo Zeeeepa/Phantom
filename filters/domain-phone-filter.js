@@ -1,6 +1,6 @@
 /*
- * 域名和手机号过滤器
- * 用于增强筛选域名和手机号的功能
+ * domain and phone number filter
+ * forenhancedfilter domain and phone number   feature
  */
 class DomainPhoneFilter {
     constructor() {
@@ -9,17 +9,17 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 加载有效的顶级域名列表
+     * load valid  top-level domain list
      */
     loadDomainTLDs() {
-        // 完整的顶级域名列表
+        // complete top-level domain list
         return new Set([
-            // 常见通用顶级域名
+            // commongeneraltop-level domain
             'com', 'net', 'org', 'edu', 'gov', 'mil', 'int', 'info', 'biz', 'name', 'pro', 
             'mobi', 'app', 'io', 'co', 'me', 'tv', 'xyz', 'site', 'online', 'store', 'shop',
             'tech', 'dev', 'ai', 'cloud', 'digital', 'live', 'blog', 'art', 'design', 'game',
             
-            // 国家和地区顶级域名
+            // 国家and地区top-level domain
             'cn', 'us', 'uk', 'ca', 'au', 'de', 'fr', 'jp', 'ru', 'br', 'in', 'it', 'es', 'nl',
             'se', 'no', 'dk', 'fi', 'ch', 'at', 'be', 'ie', 'nz', 'sg', 'hk', 'tw', 'kr', 'za',
             'mx', 'ar', 'cl', 'co', 'pe', 've', 'ec', 'py', 'uy', 'bo', 'cr', 'cu', 'do', 'gt',
@@ -32,10 +32,10 @@ class DomainPhoneFilter {
             'gu', 'as', 'cx', 'cc', 'nf', 'nc', 'pf', 'wf', 'ki', 'tv', 'ua', 'by', 'md', 'am',
             'az', 'ge', 'kz', 'kg', 'tj', 'tm', 'uz',
             
-            // 特殊顶级域名
+            // 特殊top-level domain
             'eu', 'asia', 'travel', 'museum', 'jobs', 'coop', 'aero', 'cat', 'tel', 'post', 'arpa',
             
-            // 常用商业和主题顶级域名
+            // 常用 quotient 业and主题top-level domain
             'top', 'vip', 'club', 'team', 'company', 'network', 'group', 'agency', 'academy',
             'school', 'university', 'college', 'institute', 'foundation', 'center', 'community',
             'church', 'city', 'town', 'zone', 'ninja', 'guru', 'expert', 'consulting', 'management',
@@ -58,7 +58,7 @@ class DomainPhoneFilter {
             'sex', 'porn', 'xxx', 'adult', 'chat', 'talk', 'meet', 'date', 'match', 'social',
             'network', 'forum', 'community',
             
-            // a开头的顶级域名
+            // a开头 top-level domain
             'aaa', 'aarp', 'abb', 'abbott', 'abbvie', 'abc', 'able', 'abogado', 'abudhabi',
             'ac', 'academy', 'accenture', 'accountant', 'accountants', 'aco', 'actor', 'ad',
             'ads', 'adult', 'ae', 'aeg', 'aero', 'aetna', 'af', 'afl', 'africa', 'ag',
@@ -71,7 +71,7 @@ class DomainPhoneFilter {
             'audi', 'audible', 'audio', 'auspost', 'author', 'auto', 'autos', 'aw', 'aws',
             'ax', 'axa', 'az', 'azure',
             
-            // b开头的顶级域名
+            // b开头 top-level domain
             'ba', 'baby', 'baidu', 'banamex', 'band', 'bank', 'bar', 'barcelona', 'barclaycard',
             'barclays', 'barefoot', 'bargains', 'baseball', 'basketball', 'bauhaus', 'bayern',
             'bb', 'bbc', 'bbt', 'bbva', 'bcg', 'bcn', 'bd', 'be', 'beats', 'beauty', 'beer',
@@ -83,7 +83,7 @@ class DomainPhoneFilter {
             'bridgestone', 'broadway', 'broker', 'brother', 'brussels', 'bs', 'bt', 'build',
             'builders', 'business', 'buy', 'buzz', 'bv', 'bw', 'by', 'bz', 'bzh',
             
-            // c开头的顶级域名
+            // c开头 top-level domain
             'ca', 'cab', 'cafe', 'cal', 'call', 'calvinklein', 'cam', 'camera', 'camp',
             'canon', 'capetown', 'capital', 'capitalone', 'car', 'caravan', 'cards', 'care',
             'career', 'careers', 'cars', 'casa', 'case', 'cash', 'casino', 'cat', 'catering',
@@ -99,7 +99,7 @@ class DomainPhoneFilter {
             'creditunion', 'cricket', 'crown', 'crs', 'cruise', 'cruises', 'cu', 'cuisinella',
             'cv', 'cw', 'cx', 'cy', 'cymru', 'cyou', 'cz',
             
-            // d开头的顶级域名
+            // d开头 top-level domain
             'dad', 'dance', 'data', 'date', 'dating', 'datsun', 'day', 'dclk', 'dds', 'de',
             'deal', 'dealer', 'deals', 'degree', 'delivery', 'dell', 'deloitte', 'delta',
             'democrat', 'dental', 'dentist', 'desi', 'design', 'dev', 'dhl', 'diamonds',
@@ -108,13 +108,13 @@ class DomainPhoneFilter {
             'download', 'drive', 'dtv', 'dubai', 'dunlop', 'dupont', 'durban', 'dvag',
             'dvr', 'dz',
             
-            // e开头的顶级域名
+            // e开头 top-level domain
             'earth', 'eat', 'ec', 'eco', 'edeka', 'edu', 'education', 'ee', 'eg', 'email',
             'emerck', 'energy', 'engineer', 'engineering', 'enterprises', 'epson', 'equipment',
             'er', 'ericsson', 'erni', 'es', 'esq', 'estate', 'et', 'eu', 'eurovision',
             'eus', 'events', 'exchange', 'expert', 'exposed', 'express', 'extraspace',
             
-            // f开头的顶级域名
+            // f开头 top-level domain
             'fage', 'fail', 'fairwinds', 'faith', 'family', 'fan', 'fans', 'farm', 'farmers',
             'fashion', 'fast', 'fedex', 'feedback', 'ferrari', 'ferrero', 'fi', 'fidelity',
             'fido', 'film', 'final', 'finance', 'financial', 'fire', 'firestone', 'firmdale',
@@ -124,7 +124,7 @@ class DomainPhoneFilter {
             'frl', 'frogans', 'frontier', 'ftr', 'fujitsu', 'fun', 'fund', 'furniture',
             'futbol', 'fyi',
             
-            // g开头的顶级域名
+            // g开头 top-level domain
             'ga', 'gal', 'gallery', 'gallo', 'gallup', 'game', 'games', 'gap', 'garden',
             'gay', 'gb', 'gbiz', 'gd', 'gdn', 'ge', 'gea', 'gent', 'genting', 'george',
             'gf', 'gg', 'ggee', 'gh', 'gi', 'gift', 'gifts', 'gives', 'giving', 'gl',
@@ -134,7 +134,7 @@ class DomainPhoneFilter {
             'green', 'gripe', 'grocery', 'group', 'gs', 'gt', 'gu', 'gucci', 'guge',
             'guide', 'guitars', 'guru', 'gw', 'gy',
             
-            // h开头的顶级域名
+            // h开头 top-level domain
             'hair', 'hamburg', 'hangout', 'haus', 'hbo', 'hdfc', 'hdfcbank', 'health',
             'healthcare', 'help', 'helsinki', 'here', 'hermes', 'hiphop', 'hisamitsu',
             'hitachi', 'hiv', 'hk', 'hkt', 'hm', 'hn', 'hockey', 'holdings', 'holiday',
@@ -142,25 +142,25 @@ class DomainPhoneFilter {
             'host', 'hosting', 'hot', 'hotels', 'hotmail', 'house', 'how', 'hr', 'hsbc',
             'ht', 'hu', 'hughes', 'hyatt', 'hyundai',
             
-            // i开头的顶级域名
+            // i开头 top-level domain
             'ibm', 'icbc', 'ice', 'icu', 'id', 'ie', 'ieee', 'ifm', 'ikano', 'il', 'im',
             'imamat', 'imdb', 'immo', 'immobilien', 'in', 'inc', 'industries', 'infiniti',
             'info', 'ing', 'ink', 'institute', 'insurance', 'insure', 'int', 'international',
             'intuit', 'investments', 'io', 'ipiranga', 'iq', 'ir', 'irish', 'is', 'ismaili',
             'ist', 'istanbul', 'it', 'itau', 'itv',
             
-            // j开头的顶级域名
+            // j开头 top-level domain
             'jaguar', 'java', 'jcb', 'je', 'jeep', 'jetzt', 'jewelry', 'jio', 'jll', 'jm',
             'jmp', 'jnj', 'jo', 'jobs', 'joburg', 'jot', 'joy', 'jp', 'jpmorgan', 'jprs',
             'juegos', 'juniper',
             
-            // k开头的顶级域名
+            // k开头 top-level domain
             'kaufen', 'kddi', 'ke', 'kerryhotels', 'kerryproperties', 'kfh', 'kg', 'kh',
             'ki', 'kia', 'kids', 'kim', 'kindle', 'kitchen', 'kiwi', 'km', 'kn', 'koeln',
             'komatsu', 'kosher', 'kp', 'kpmg', 'kpn', 'kr', 'krd', 'kred', 'kuokgroup',
             'kw', 'ky', 'kyoto', 'kz',
             
-            // l开头的顶级域名
+            // l开头 top-level domain
             'la', 'lacaixa', 'lamborghini', 'lamer', 'land', 'landrover', 'lanxess',
             'lasalle', 'lat', 'latino', 'latrobe', 'law', 'lawyer', 'lb', 'lc', 'lds',
             'lease', 'leclerc', 'lefrak', 'legal', 'lego', 'lexus', 'lgbt', 'li', 'lidl',
@@ -170,7 +170,7 @@ class DomainPhoneFilter {
             'lplfinancial', 'lr', 'ls', 'lt', 'ltd', 'ltda', 'lu', 'lundbeck', 'luxe',
             'luxury', 'lv', 'ly',
             
-            // m开头的顶级域名
+            // m开头 top-level domain
             'ma', 'madrid', 'maif', 'maison', 'makeup', 'man', 'management', 'mango',
             'map', 'market', 'marketing', 'markets', 'marriott', 'marshalls', 'mattel',
             'mba', 'mc', 'mckinsey', 'md', 'me', 'med', 'media', 'meet', 'melbourne',
@@ -181,19 +181,19 @@ class DomainPhoneFilter {
             'mov', 'movie', 'mp', 'mq', 'mr', 'ms', 'msd', 'mt', 'mtn', 'mtr', 'mu',
             'museum', 'music', 'mv', 'mw', 'mx', 'my', 'mz',
             
-            // n开头的顶级域名
+            // n开头 top-level domain
             'na', 'nab', 'nagoya', 'name', 'navy', 'nba', 'nc', 'ne', 'nec', 'net',
             'netbank', 'netflix', 'network', 'neustar', 'new', 'news', 'next', 'nextdirect',
             'nexus', 'nf', 'nfl', 'ng', 'ngo', 'nhk', 'ni', 'nico', 'nike', 'nikon',
             'ninja', 'nissan', 'nissay', 'nl', 'no', 'nokia', 'norton', 'now', 'nowruz',
             'nowtv', 'np', 'nr', 'nra', 'nrw', 'ntt', 'nu', 'nyc', 'nz',
             
-            // o开头的顶级域名
+            // o开头 top-level domain
             'obi', 'observer', 'office', 'okinawa', 'olayan', 'olayangroup', 'ollo', 'om',
             'omega', 'one', 'ong', 'onl', 'online', 'ooo', 'open', 'oracle', 'orange',
             'org', 'organic', 'origins', 'osaka', 'otsuka', 'ott', 'ovh',
             
-            // p开头的顶级域名
+            // p开头 top-level domain
             'pa', 'page', 'panasonic', 'paris', 'pars', 'partners', 'parts', 'party',
             'pay', 'pccw', 'pe', 'pet', 'pf', 'pfizer', 'pg', 'ph', 'pharmacy', 'phd',
             'philips', 'phone', 'photo', 'photography', 'photos', 'physio', 'pics', 'pictet',
@@ -203,10 +203,10 @@ class DomainPhoneFilter {
             'prod', 'productions', 'prof', 'progressive', 'promo', 'properties', 'property',
             'protection', 'pru', 'prudential', 'ps', 'pt', 'pub', 'pw', 'pwc', 'py',
             
-            // q开头的顶级域名
+            // q开头 top-level domain
             'qa', 'qpon', 'quebec', 'quest',
             
-            // r开头的顶级域名
+            // r开头 top-level domain
             'racing', 'radio', 're', 'read', 'realestate', 'realtor', 'realty', 'recipes',
             'red', 'redstone', 'redumbrella', 'rehab', 'reise', 'reisen', 'reit', 'reliance',
             'ren', 'rent', 'rentals', 'repair', 'report', 'republican', 'rest', 'restaurant',
@@ -214,7 +214,7 @@ class DomainPhoneFilter {
             'rip', 'ro', 'rocks', 'rodeo', 'rogers', 'room', 'rs', 'rsvp', 'ru', 'rugby',
             'ruhr', 'run', 'rw', 'rwe', 'ryukyu',
             
-            // s开头的顶级域名
+            // s开头 top-level domain
             'sa', 'saarland', 'safe', 'safety', 'sakura', 'sale', 'salon', 'samsclub',
             'samsung', 'sandvik', 'sandvikcoromant', 'sanofi', 'sap', 'sarl', 'sas',
             'save', 'saxo', 'sb', 'sbi', 'sbs', 'sc', 'scb', 'schaeffler', 'schmidt',
@@ -231,7 +231,7 @@ class DomainPhoneFilter {
             'supplies', 'supply', 'support', 'surf', 'surgery', 'suzuki', 'sv', 'swatch',
             'swiss', 'sx', 'sy', 'sydney', 'systems', 'sz',
             
-            // t开头的顶级域名
+            // t开头 top-level domain
             'tab', 'taipei', 'talk', 'taobao', 'target', 'tatamotors', 'tatar', 'tattoo',
             'tax', 'taxi', 'tc', 'tci', 'td', 'tdk', 'team', 'tech', 'technology', 'tel',
             'temasek', 'tennis', 'teva', 'tf', 'tg', 'th', 'thd', 'theater', 'theatre',
@@ -241,44 +241,44 @@ class DomainPhoneFilter {
             'trade', 'trading', 'training', 'travel', 'travelers', 'travelersinsurance',
             'trust', 'trv', 'tt', 'tube', 'tui', 'tunes', 'tushu', 'tv', 'tvs', 'tw', 'tz',
             
-            // u开头的顶级域名
+            // u开头 top-level domain
             'ua', 'ubank', 'ubs', 'ug', 'uk', 'unicom', 'university', 'uno', 'uol', 'ups',
             'us', 'uy', 'uz',
             
-            // v开头的顶级域名
+            // v开头 top-level domain
             'va', 'vacations', 'vana', 'vanguard', 'vc', 've', 'vegas', 'ventures',
             'verisign', 'versicherung', 'vet', 'vg', 'vi', 'viajes', 'video', 'vig',
             'viking', 'villas', 'vin', 'vip', 'virgin', 'visa', 'vision', 'viva', 'vivo',
             'vlaanderen', 'vn', 'vodka', 'volvo', 'vote', 'voting', 'voto', 'voyage', 'vu',
             
-            // w开头的顶级域名
+            // w开头 top-level domain
             'wales', 'walmart', 'walter', 'wang', 'wanggou', 'watch', 'watches', 'weather',
             'weatherchannel', 'webcam', 'weber', 'website', 'wed', 'wedding', 'weibo', 'weir',
             'wf', 'whoswho', 'wien', 'wiki', 'williamhill', 'win', 'windows', 'wine',
             'winners', 'wme', 'wolterskluwer', 'woodside', 'work', 'works', 'world', 'wow',
             'ws', 'wtc', 'wtf',
             
-            // x开头的顶级域名
+            // x开头 top-level domain
             'xbox', 'xerox', 'xihuan', 'xin', 'xxx', 'xyz',
             
-            // y开头的顶级域名
+            // y开头 top-level domain
             'yachts', 'yahoo', 'yamaxun', 'yandex', 'ye', 'yodobashi', 'yoga', 'yokohama',
             'you', 'youtube', 'yt', 'yun',
             
-            // z开头的顶级域名
+            // z开头 top-level domain
             'za', 'zappos', 'zara', 'zero', 'zip', 'zm', 'zone', 'zuerich', 'zw',
             
-            // 其他语言的顶级域名
+            // 其他语言 top-level domain
             'xn--p1ai', 'xn--80asehdb', 'xn--80aswg', 'xn--j1amh', 'xn--90ais'
         ]);
     }
     
     /**
-     * 加载无效的文件后缀列表
+     * load invalid   file 后缀 list
      */
     loadInvalidSuffixes() {
         return new Set([
-            // 常见资源文件后缀
+            // common resource file 后缀
             'js', 'css', 'html', 'htm', 'php', 'asp', 'aspx', 'jsp', 'png', 'jpg', 'jpeg', 
             'gif', 'bmp', 'ico', 'svg', 'webp', 'mp3', 'mp4', 'avi', 'mov', 'wmv', 'flv', 
             'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar', 'tar', 'gz',
@@ -288,14 +288,14 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 检查是否是有效的域名
-     * @param {string} domain 待检查的域名
-     * @returns {boolean} 是否是有效域名
+     * check 是否是 valid   domain
+     * @param {string} domain 待 check   domain
+     * @returns {boolean} 是否是 valid domain
      */
     isValidDomain(domain) {
         if (!domain || typeof domain !== 'string') return false;
         
-        // 移除前缀和路径
+        // remove before缀and path
         domain = domain.toLowerCase().trim();
         domain = domain.replace(/^https?:\/\//, '');
         domain = domain.replace(/^www\./, '');
@@ -304,188 +304,188 @@ class DomainPhoneFilter {
         domain = domain.split('#')[0];
         domain = domain.split(':')[0];
         
-        // 过滤掉明显不是域名的内容
+        // filter 掉明显do not是 domain   content
         if (domain.length < 3) return false;
         if (domain.startsWith('.') || domain.endsWith('.')) return false;
         if (domain.includes('..')) return false;
         
-        // 检查是否包含点号（域名必须有点号）
+        // check 是否 contains 点号（domain 必须有点号）
         if (!domain.includes('.')) return false;
         
-        // 检查基本格式
+        // check 基本 format
         const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z0-9\-]+$/i;
         if (!domainRegex.test(domain)) return false;
         
-        // 检查顶级域名是否有效
+        // check top-level domain 是否 valid
         const parts = domain.split('.');
         if (parts.length < 2) return false;
         
         const tld = parts[parts.length - 1];
         
-        // 检查是否是数字后缀（通常不是有效的顶级域名）
+        // check 是否是 number 后缀（通常do not是 valid  top-level domain）
         if (/^\d+$/.test(tld)) return false;
         
-        // 检查是否是资源文件后缀
+        // check 是否是 resource file 后缀
         if (this.invalidSuffixes.has(tld)) return false;
         
-        // 检查TLD长度（有效的TLD通常在2-63个字符之间）
+        // check TLD length（valid  TLD通常in2-63 items字符之间）
         if (tld.length < 2 || tld.length > 63) return false;
         
-        // 检查是否是有效的顶级域名
+        // check 是否是 valid  top-level domain
         if (!this.domainTLDs.has(tld)) return false;
         
-        // 额外检查：过滤掉一些明显不是域名的模式
-        // 过滤掉纯数字域名（除了IP地址格式）
+        // 额外 check：filter 掉一些明显do not是 domain   mode
+        // filter 掉纯 number domain（除了IP address format）
         const isIPAddress = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(domain);
         if (!isIPAddress && /^\d+\.\d+/.test(domain)) return false;
         
-        // 过滤掉包含特殊字符的域名
+        // filter 掉 contains 特殊字符  domain
         if (/[<>(){}[\]"'`~!@#$%^&*+=|\\;,]/.test(domain)) return false;
         
         return true;
     }
     
     /**
-     * 检查是否是有效的中国手机号
-     * @param {string} phone 待检查的手机号
-     * @returns {boolean} 是否是有效手机号
+     * check 是否是 valid  in国 phone number
+     * @param {string} phone 待 check   phone number
+     * @returns {boolean} 是否是 valid phone number
      */
     isValidChinesePhone(phone) {
         if (!phone || typeof phone !== 'string') return false;
         
-        // 移除所有非数字字符并处理国家码（+86/86/0086）
+        // remove all非 number 字符并 process 国家码（+86/86/0086）
         let cleaned = phone.replace(/\D/g, '');
         if (cleaned.startsWith('0086')) cleaned = cleaned.slice(4);
         else if (cleaned.startsWith('86')) cleaned = cleaned.slice(2);
         
-        // 截取最后11位，避免前缀残留
+        // 截取最后11-digit，避免before缀残留
         if (cleaned.length > 11) {
             cleaned = cleaned.slice(-11);
         }
         
-        // 中国手机号规则：1开头，11位数字
+        // in国 phone number 规则：starts with 1，11-digit number
         if (cleaned.length !== 11) return false;
         if (cleaned[0] !== '1') return false;
         
-        // 检查运营商前缀
+        // check 运营 quotient before缀
         // 移动: 134-139, 147-148, 150-152, 157-159, 165, 172, 178, 182-184, 187-188, 195, 197-198
         // 联通: 130-132, 145-146, 155-156, 166, 167, 171, 175-176, 185-186, 196
         // 电信: 133, 149, 153, 173-174, 177, 180-181, 189, 191, 193, 199
         // 广电: 192
-        // 虚拟运营商: 162, 165, 167, 170-171, 192
+        // 虚拟运营 quotient: 162, 165, 167, 170-171, 192
         const validPrefixes = /^1(3[0-9]|4[5-9]|5[0-3,5-9]|6[2,5-7]|7[0-8]|8[0-9]|9[1,3,5-9])/;
         return validPrefixes.test(cleaned);
     }
     
     /**
-     * 检查是否是有效的国际手机号
-     * @param {string} phone 待检查的手机号
-     * @returns {boolean} 是否是有效手机号
+     * check 是否是 valid  国际 phone number
+     * @param {string} phone 待 check   phone number
+     * @returns {boolean} 是否是 valid phone number
      */
     isValidInternationalPhone(phone) {
         if (!phone || typeof phone !== 'string') return false;
         
-        // 移除所有非数字字符和开头的+号
+        // remove all非 number 字符and开头 +号
         const originalPhone = phone;
         phone = phone.replace(/^\+/, '').replace(/\D/g, '');
         
-        // 过滤掉明显不是手机号的数字
-        // 1. 长度检查：国际手机号通常在7-15位之间
+        // filter 掉明显do not是 phone number   number
+        // 1. length check：国际 phone number 通常in7-15-digit之间
         if (phone.length < 7 || phone.length > 15) return false;
         
-        // 2. 排除明显不是手机号的数字序列
-        if (/^(.)\1+$/.test(phone)) return false; // 全相同数字
+        // 2. exclude 明显do not是 phone number   number 序列
+        if (/^(.)\1+$/.test(phone)) return false; // 全相同 number
         if (/^0+$/.test(phone)) return false; // 全0
         if (/^1+$/.test(phone)) return false; // 全1
-        if (/^(0123456789|1234567890|9876543210|0987654321)/.test(phone)) return false; // 顺序数字
+        if (/^(0123456789|1234567890|9876543210|0987654321)/.test(phone)) return false; // 顺序 number
         
-        // 3. 排除小数点数字（如 227.7371）
+        // 3. exclude 小数点 number（如 227.7371）
         if (originalPhone.includes('.')) return false;
         
-        // 4. 排除带有减号但不是电话号码格式的数字
+        // 4. exclude 带有减号但do not是电话number format   number
         if (originalPhone.includes('-')) {
-            // 如果包含减号，检查是否是合理的电话号码格式
+            // 如果 contains 减号，check 是否是合理 电话number format
             const dashCount = (originalPhone.match(/-/g) || []).length;
             if (dashCount > 3) return false; // 减号太多
             
-            // 检查减号前后是否都是数字
+            // check 减号before后是否都是 number
             const parts = originalPhone.split('-');
             for (let part of parts) {
                 if (!/^\d+$/.test(part.replace(/^\+/, ''))) return false;
             }
         }
         
-        // 5. 排除过短的数字（可能是版本号、ID等）
+        // 5. exclude through短  number（可能是 version 号、ID等）
         if (phone.length < 8) return false;
         
-        // 6. 排除明显是其他类型数据的数字
-        // 排除看起来像坐标、尺寸、版本号等的数字
+        // 6. exclude 明显是其他 type data   number
+        // exclude 看起来像坐标、尺寸、version 号等  number
         if (/^\d{1,3}\.\d+$/.test(originalPhone)) return false; // 小数
-        if (/^\d{4}$/.test(phone)) return false; // 4位数字（可能是年份）
-        if (/^[12]\d{3}$/.test(phone)) return false; // 看起来像年份的4位数字
+        if (/^\d{4}$/.test(phone)) return false; // 4-digit number（可能是年份）
+        if (/^[12]\d{3}$/.test(phone)) return false; // 看起来像年份 4-digit number
         
         return true;
     }
     
     /**
-     * 检查是否是有效的邮箱地址
-     * @param {string} email 待检查的邮箱地址
-     * @returns {boolean} 是否是有效邮箱
+     * check 是否是 valid   email address
+     * @param {string} email 待 check   email address
+     * @returns {boolean} 是否是 valid email
      */
     isValidEmail(email) {
         if (!email) return false;
         
-        // 基本邮箱格式检查
+        // 基本 email format check
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) return false;
         
-        // 检查域名部分是否有效
+        // check domain partial 是否 valid
         const domain = email.split('@')[1];
         return this.isValidDomain(domain);
     }
     
     /**
-     * 过滤域名列表，只保留有效域名
-     * @param {string[]} domains 域名列表
-     * @returns {string[]} 有效域名列表
+     * filter domain list，只keep valid domain
+     * @param {string[]} domains domain list
+     * @returns {string[]} valid domain list
      */
     filterDomains(domains) {
         if (!domains || !Array.isArray(domains)) return [];
         
-        const validDomains = new Set(); // 使用Set自动去重
+        const validDomains = new Set(); // useSet automatic 去重
         
         for (let domain of domains) {
             if (!domain || typeof domain !== 'string') continue;
             
-            // 提取域名部分
+            // extract domain partial
             let cleanDomain = domain.toLowerCase().trim();
             
-            // 移除协议前缀
+            // remove protocol before缀
             cleanDomain = cleanDomain.replace(/^https?:\/\//, '');
             cleanDomain = cleanDomain.replace(/^ftp:\/\//, '');
             cleanDomain = cleanDomain.replace(/^ftps:\/\//, '');
             
-            // 移除www前缀
+            // remove wwwbefore缀
             cleanDomain = cleanDomain.replace(/^www\./, '');
             
-            // 移除路径、查询参数和锚点
+            // remove path、query parameter and锚点
             cleanDomain = cleanDomain.split('/')[0];
             cleanDomain = cleanDomain.split('?')[0];
             cleanDomain = cleanDomain.split('#')[0];
-            cleanDomain = cleanDomain.split(':')[0]; // 移除端口号
+            cleanDomain = cleanDomain.split(':')[0]; // remove port 号
             
-            // 过滤掉明显不是域名的内容
+            // filter 掉明显do not是 domain   content
             if (!cleanDomain || cleanDomain.length < 3) continue;
             if (cleanDomain.startsWith('.') || cleanDomain.endsWith('.')) continue;
-            if (!cleanDomain.includes('.')) continue; // 域名必须包含点号
+            if (!cleanDomain.includes('.')) continue; // domain 必须 contains 点号
             
-            // 过滤掉包含localStorage、sessionStorage等浏览器API的内容
+            // filter 掉 contains localStorage、sessionStorage等 browser API  content
             if (cleanDomain.includes('localStorage') || 
                 cleanDomain.includes('sessionStorage') || 
                 cleanDomain.includes('indexedDB') ||
                 cleanDomain.includes('webkitStorage')) continue;
             
-            // 检查是否是有效域名
+            // check 是否是 valid domain
             if (this.isValidDomain(cleanDomain)) {
                 validDomains.add(cleanDomain);
             }
@@ -495,10 +495,10 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 过滤手机号列表，只保留有效手机号
-     * @param {string[]} phones 手机号列表
-     * @param {boolean} chineseOnly 是否只过滤中国手机号
-     * @returns {string[]} 有效手机号列表
+     * filter phone number list，只keep valid phone number
+     * @param {string[]} phones phone number list
+     * @param {boolean} chineseOnly 是否只 filter in国 phone number
+     * @returns {string[]} valid phone number list
      */
     filterPhones(phones, chineseOnly = false) {
         if (!phones || !Array.isArray(phones)) return [];
@@ -513,9 +513,9 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 过滤邮箱地址列表，只保留有效邮箱
-     * @param {string[]} emails 邮箱地址列表
-     * @returns {string[]} 有效邮箱列表
+     * filter email address list，只keep valid email
+     * @param {string[]} emails email address list
+     * @returns {string[]} valid email list
      */
     filterEmails(emails) {
         if (!emails || !Array.isArray(emails)) return [];
@@ -524,9 +524,9 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 从文本中提取域名
-     * @param {string} text 待分析的文本
-     * @returns {string[]} 提取的域名列表
+     * from text in extract domain
+     * @param {string} text 待 analysis   text
+     * @returns {string[]} extract   domain list
      */
     extractDomainsFromText(text) {
         if (!text || typeof text !== 'string') return [];
@@ -536,7 +536,7 @@ class DomainPhoneFilter {
         let match;
         
         while ((match = domainRegex.exec(text)) !== null) {
-            // 提取域名部分（不包括路径和查询参数）
+            // extract domain partial（do not package 括 path and query parameter）
             let domain = match[1] || match[0];
             domain = domain.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
             domain = domain.split('/')[0].split('?')[0].split('#')[0];
@@ -550,27 +550,27 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 从文本中提取手机号
-     * @param {string} text 待分析的文本
-     * @returns {string[]} 提取的手机号列表
+     * from text in extract phone number
+     * @param {string} text 待 analysis   text
+     * @returns {string[]} extract   phone number list
      */
     extractPhonesFromText(text) {
         if (!text || typeof text !== 'string') return [];
         
         const matches = [];
         
-        // 中国手机号模式：1开头的11位数字
+        // in国 phone number mode：starts with 1 11-digit number
         const cnPhoneRegex = /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/g;
         let cnMatch;
         while ((cnMatch = cnPhoneRegex.exec(text)) !== null) {
             matches.push(cnMatch[0]);
         }
         
-        // 国际手机号模式：可能带有国家代码的6-15位数字
+        // 国际 phone number mode：可能带有国家code 6-15-digit number
         const intlPhoneRegex = /(?<!\d)(?:\+\d{1,3}[\s-]?)?\d{6,15}(?!\d)/g;
         let intlMatch;
         while ((intlMatch = intlPhoneRegex.exec(text)) !== null) {
-            // 避免与中国手机号重复
+            // 避免与in国 phone number 重复
             if (!matches.includes(intlMatch[0])) {
                 matches.push(intlMatch[0]);
             }
@@ -580,9 +580,9 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 从文本中提取邮箱地址
-     * @param {string} text 待分析的文本
-     * @returns {string[]} 提取的邮箱列表
+     * from text in extract email address
+     * @param {string} text 待 analysis   text
+     * @returns {string[]} extract   email list
      */
     extractEmailsFromText(text) {
         if (!text || typeof text !== 'string') return [];
@@ -599,9 +599,9 @@ class DomainPhoneFilter {
     }
     
     /**
-     * 处理文本，提取并过滤域名、手机号和邮箱
-     * @param {string} text 待处理的文本
-     * @returns {Object} 包含有效域名、手机号和邮箱的对象
+     * process text，extract 并 filter domain、phone number and email
+     * @param {string} text 待 process   text
+     * @returns {Object} contains valid domain、phone number and email   object
      */
     processText(text) {
         if (!text || typeof text !== 'string') {
@@ -612,15 +612,15 @@ class DomainPhoneFilter {
             };
         }
         
-        // 提取域名
+        // extract domain
         const domainMatches = this.extractDomainsFromText(text);
         const validDomains = this.filterDomains(domainMatches);
         
-        // 提取手机号（仅中国大陆）
+        // extract phone number（仅in国大陆）
         const phoneMatches = this.extractPhonesFromText(text);
         const validPhones = this.filterPhones(phoneMatches, true);
         
-        // 提取邮箱
+        // extract email
         const emailMatches = this.extractEmailsFromText(text);
         const validEmails = this.filterEmails(emailMatches);
         
@@ -632,7 +632,7 @@ class DomainPhoneFilter {
     }
 }
 
-// 支持多种模块系统
+// support多种 module system
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = DomainPhoneFilter;
 } else if (typeof window !== 'undefined') {
