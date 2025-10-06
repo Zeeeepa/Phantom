@@ -1,0 +1,36 @@
+2025-10-06 14:28:26,870 - INFO - Starting comprehensive scan of project: .
+2025-10-06 14:28:26,871 - INFO - Processing file: deep-scan-window.html
+2025-10-06 14:28:26,879 - INFO - Processing file: background.js
+2025-10-06 14:28:26,889 - INFO - Processing file: content-regex-fix.js
+2025-10-06 14:28:26,893 - INFO - Processing file: content.js
+2025-10-06 14:28:26,899 - INFO - Processing file: popup.html
+2025-10-06 14:28:26,933 - INFO - Processing file: test-window.html
+2025-10-06 14:28:26,936 - INFO - Processing file: offscreen.html
+2025-10-06 14:28:26,937 - INFO - Processing file: offscreen.js
+2025-10-06 14:28:26,939 - INFO - Processing file: foreign_word_extractor.py
+2025-10-06 14:28:26,948 - INFO - Processing file: src/main.js
+2025-10-06 14:28:26,965 - INFO - Processing file: src/utils/SettingsManager.js
+2025-10-06 14:28:26,982 - INFO - Processing file: src/utils/ExportManager.js
+2025-10-06 14:28:26,985 - INFO - Processing file: src/ui/DisplayManager.js
+2025-10-06 14:28:27,008 - INFO - Processing file: src/scanner/BasicScanner.js
+2025-10-06 14:28:27,013 - INFO - Processing file: src/scanner/deep-scan-window-script-optimized.js
+2025-10-06 14:28:27,019 - INFO - Processing file: src/scanner/DeepScanner.js
+2025-10-06 14:28:27,044 - INFO - Processing file: src/scanner/ContentExtractor.js
+2025-10-06 14:28:27,052 - INFO - Processing file: src/scanner/deep-scan-window-script-temp.js
+2025-10-06 14:28:27,053 - INFO - Processing file: src/scanner/DeepScanWindow.js
+2025-10-06 14:28:27,058 - INFO - Processing file: src/scanner/deep-scan-window-script.js
+2025-10-06 14:28:27,098 - INFO - Processing file: src/scanner/PatternExtractor.js
+2025-10-06 14:28:27,142 - INFO - Processing file: src/core/SRCMiner.js
+2025-10-06 14:28:27,173 - INFO - Processing file: src/core/jshook-presets.js
+2025-10-06 14:28:27,369 - INFO - Processing file: src/core/injector.js
+2025-10-06 14:28:27,371 - INFO - Processing file: src/core/IndexedDBManager.js
+2025-10-06 14:28:27,380 - INFO - Processing file: src/core/JSInjector.js
+2025-10-06 14:28:27,386 - INFO - Processing file: src/api/ApiTester.js
+2025-10-06 14:28:27,396 - INFO - Processing file: src/api/test-window-script.js
+2025-10-06 14:28:27,417 - INFO - Processing file: src/api/TestWindow.js
+2025-10-06 14:28:27,426 - INFO - Processing file: filters/domain-phone-filter.js
+2025-10-06 14:28:27,436 - INFO - Processing file: filters/api-filter.js
+2025-10-06 14:28:27,443 - INFO - Processing file: filters/id-card-filter.js
+2025-10-06 14:28:27,449 - INFO - Scan complete: 3871 unique foreign words found at 6467 locations
+2025-10-06 14:28:27,520 - INFO - Extraction cache saved: .translate/extraction_cache.json
+2025-10-06 14:28:27,523 - INFO - Foreign words list saved: .translate/foreign_words_list.txt

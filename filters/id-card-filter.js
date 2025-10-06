@@ -1,13 +1,13 @@
 /**
- * 身份证号码验证过滤器
- * 支持15位和18位身份证号码验证
+ * ID number filter validate
+ * ID number validate digit(s) digit(s) and 支持1518
  */
 
 class IdCardFilter {
     constructor() {
-        // 省份代码映射
+        // code 省份映射
         this.provinceCodes = {
-            '11': '北京', '12': '天津', '13': '河北', '14': '山西', '15': '内蒙古',
+            '11': '北京', '12': ' days 津', '13': '河北', '14': '山西', '15': '内蒙古',
             '21': '辽宁', '22': '吉林', '23': '黑龙江',
             '31': '上海', '32': '江苏', '33': '浙江', '34': '安徽', '35': '福建', '36': '江西', '37': '山东',
             '41': '河南', '42': '湖北', '43': '湖南', '44': '广东', '45': '广西', '46': '海南',
@@ -16,31 +16,31 @@ class IdCardFilter {
             '71': '台湾', '81': '香港', '82': '澳门'
         };
         
-        // 校验码权重
+        // verify 码权重
         this.weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
-        // 校验码对应表
+        // verify 码对应表
         this.checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
     }
 
     /**
-     * 验证身份证号码
-     * @param {string} idCard - 身份证号码
-     * @returns {Object} 验证结果
+     * ID number validate
+     * @param {string} idCard - ID number
+     * @returns {Object} results validate
      */
     validate(idCard) {
         if (!idCard) {
-            return { valid: false, error: '身份证号码不能为空' };
+            return { valid: false, error: 'ID number is empty 不能' };
         }
 
-        // 去除空格并转为大写
+        // as empty 去除格并转大写
         idCard = idCard.replace(/\s/g, '').toUpperCase();
 
-        // 长度验证
+        // validate length
         if (idCard.length !== 15 && idCard.length !== 18) {
-            return { valid: false, error: '身份证号码长度不正确' };
+            return { valid: false, error: 'ID number length 不正确' };
         }
 
-        // 格式验证
+        // validate format
         if (idCard.length === 15) {
             return this.validate15(idCard);
         } else {
@@ -49,23 +49,23 @@ class IdCardFilter {
     }
 
     /**
-     * 验证15位身份证
-     * @param {string} idCard - 15位身份证号码
-     * @returns {Object} 验证结果
+     * ID card validate digit(s) 15
+     * @param {string} idCard - ID number digit(s) 15
+     * @returns {Object} results validate
      */
     validate15(idCard) {
-        // 格式检查：前14位必须是数字，第15位是数字
+        // check format：digit(s) digit(s) yes before 14必须，digit(s) digit(s) yes # 15
         if (!/^\d{15}$/.test(idCard)) {
-            return { valid: false, error: '15位身份证号码格式不正确' };
+            return { valid: false, error: 'format is incorrect ID number digit(s) 15' };
         }
 
-        // 省份代码验证
+        // code validate 省份
         const provinceCode = idCard.substring(0, 2);
         if (!this.provinceCodes[provinceCode]) {
-            return { valid: false, error: '省份代码不正确' };
+            return { valid: false, error: 'code 省份不正确' };
         }
 
-        // 出生日期验证（15位身份证年份为两位数，默认19xx年）
+        // validate 出生日期（ID card two digits year digit(s) as 15，default 19xx年）
         const year = parseInt('19' + idCard.substring(6, 8));
         const month = parseInt(idCard.substring(8, 10));
         const day = parseInt(idCard.substring(10, 12));
@@ -76,7 +76,7 @@ class IdCardFilter {
 
         return {
             valid: true,
-            type: '15位身份证',
+            type: 'ID card digit(s) 15',
             province: this.provinceCodes[provinceCode],
             birthDate: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
             gender: parseInt(idCard.charAt(14)) % 2 === 0 ? '女' : '男'
@@ -84,23 +84,23 @@ class IdCardFilter {
     }
 
     /**
-     * 验证18位身份证
-     * @param {string} idCard - 18位身份证号码
-     * @returns {Object} 验证结果
+     * ID card validate digit(s) 18
+     * @param {string} idCard - ID number digit(s) 18
+     * @returns {Object} results validate
      */
     validate18(idCard) {
-        // 格式检查：前17位必须是数字，第18位是数字或X
+        // check format：digit(s) digit(s) yes before 17必须，digit(s) digit(s) yes # 18或X
         if (!/^\d{17}[\dX]$/.test(idCard)) {
-            return { valid: false, error: '18位身份证号码格式不正确' };
+            return { valid: false, error: 'format is incorrect ID number digit(s) 18' };
         }
 
-        // 省份代码验证
+        // code validate 省份
         const provinceCode = idCard.substring(0, 2);
         if (!this.provinceCodes[provinceCode]) {
-            return { valid: false, error: '省份代码不正确' };
+            return { valid: false, error: 'code 省份不正确' };
         }
 
-        // 出生日期验证
+        // validate 出生日期
         const year = parseInt(idCard.substring(6, 10));
         const month = parseInt(idCard.substring(10, 12));
         const day = parseInt(idCard.substring(12, 14));
@@ -109,14 +109,14 @@ class IdCardFilter {
             return { valid: false, error: '出生日期不正确' };
         }
 
-        // 校验码验证
+        // validate verify 码
         if (!this.validateCheckCode(idCard)) {
-            return { valid: false, error: '校验码不正确' };
+            return { valid: false, error: 'verify 码不正确' };
         }
 
         return {
             valid: true,
-            type: '18位身份证',
+            type: 'ID card digit(s) 18',
             province: this.provinceCodes[provinceCode],
             birthDate: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
             gender: parseInt(idCard.charAt(16)) % 2 === 0 ? '女' : '男'
@@ -124,25 +124,25 @@ class IdCardFilter {
     }
 
     /**
-     * 验证日期是否有效
-     * @param {number} year - 年份
+     * validate no yes has 日期效
+     * @param {number} year - year
      * @param {number} month - 月份
      * @param {number} day - 日期
-     * @returns {boolean} 是否有效
+     * @returns {boolean} no yes has 效
      */
     isValidDate(year, month, day) {
-        // 年份范围检查
+        // check year 范围
         const currentYear = new Date().getFullYear();
         if (year < 1900 || year > currentYear) {
             return false;
         }
 
-        // 月份检查
+        // check 月份
         if (month < 1 || month > 12) {
             return false;
         }
 
-        // 日期检查
+        // check 日期
         const daysInMonth = new Date(year, month, 0).getDate();
         if (day < 1 || day > daysInMonth) {
             return false;
@@ -152,9 +152,9 @@ class IdCardFilter {
     }
 
     /**
-     * 验证18位身份证校验码
-     * @param {string} idCard - 18位身份证号码
-     * @returns {boolean} 校验码是否正确
+     * ID card validate verify digit(s) 18码
+     * @param {string} idCard - ID number digit(s) 18
+     * @returns {boolean} verify no yes 码正确
      */
     validateCheckCode(idCard) {
         let sum = 0;
@@ -167,23 +167,23 @@ class IdCardFilter {
     }
 
     /**
-     * 从文本中提取身份证号码
-     * @param {string} text - 待检测文本
-     * @returns {Array} 提取到的身份证号码数组
+     * ID number text extracted from in
+     * @param {string} text - text detect 待
+     * @returns {Array} ID number extracted array to of
      */
     extractIdCards(text) {
         if (!text) return [];
 
         const idCards = [];
         
-        // 18位身份证正则
+        // ID card regex digit(s) 18
         const regex18 = /\b\d{17}[\dX]\b/g;
-        // 15位身份证正则
+        // ID card regex digit(s) 15
         const regex15 = /\b\d{15}\b/g;
 
         let matches;
         
-        // 提取18位身份证
+        // ID card extracted digit(s) 18
         while ((matches = regex18.exec(text)) !== null) {
             const idCard = matches[0];
             const result = this.validate(idCard);
@@ -196,7 +196,7 @@ class IdCardFilter {
             }
         }
 
-        // 提取15位身份证
+        // ID card extracted digit(s) 15
         while ((matches = regex15.exec(text)) !== null) {
             const idCard = matches[0];
             const result = this.validate(idCard);
@@ -213,19 +213,19 @@ class IdCardFilter {
     }
 
     /**
-     * 检查文本中是否包含身份证号码
-     * @param {string} text - 待检测文本
-     * @returns {boolean} 是否包含身份证号码
+     * ID number text contains check in no yes
+     * @param {string} text - text detect 待
+     * @returns {boolean} ID number contains no yes
      */
     hasIdCard(text) {
         return this.extractIdCards(text).length > 0;
     }
 
     /**
-     * 脱敏身份证号码
-     * @param {string} idCard - 身份证号码
-     * @param {string} maskChar - 脱敏字符，默认为*
-     * @returns {string} 脱敏后的身份证号码
+     * ID number 脱敏
+     * @param {string} idCard - ID number
+     * @param {string} maskChar - characters 脱敏，default as *
+     * @returns {string} ID number of after 脱敏
      */
     maskIdCard(idCard, maskChar = '*') {
         if (!idCard) return '';
@@ -234,19 +234,19 @@ class IdCardFilter {
         if (!result.valid) return idCard;
 
         if (idCard.length === 15) {
-            // 15位身份证：保留前6位和后3位
+            // ID card digit(s) 15： digit(s) digit(s) and after before 保留63
             return idCard.substring(0, 6) + maskChar.repeat(6) + idCard.substring(12);
         } else {
-            // 18位身份证：保留前6位和后4位
+            // ID card digit(s) 18： digit(s) digit(s) and after before 保留64
             return idCard.substring(0, 6) + maskChar.repeat(8) + idCard.substring(14);
         }
     }
 }
 
-// 导出单例实例
+// export instance 单例
 const idCardFilter = new IdCardFilter();
 
-// 兼容不同的模块系统
+// module of 兼容不同系统
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = idCardFilter;
 } else if (typeof window !== 'undefined') {

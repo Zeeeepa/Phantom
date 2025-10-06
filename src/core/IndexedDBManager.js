@@ -1,16 +1,16 @@
 /**
- * IndexedDB管理器 - 负责普通扫描结果的存储和读取
+ * manager IndexedDB - scan results read of and 负责普通存储
  */
 class IndexedDBManager {
     constructor() {
         this.dbName = 'PhantomScanDB';
-        this.dbVersion = 2; // 升级版本以支持JS脚本存储
+        this.dbVersion = 2; // script version with 升级支持JS存储
         this.db = null;
         this.storeName = 'scanResults';
     }
 
     /**
-     * 初始化数据库
+     * initialize data 库
      */
     async init() {
         if (this.db) {
@@ -21,21 +21,21 @@ class IndexedDBManager {
             const request = indexedDB.open(this.dbName, this.dbVersion);
 
             request.onerror = () => {
-                console.error('❌ IndexedDB 打开失败:', request.error);
+                console.error('❌ IndexedDB failed open:', request.error);
                 reject(request.error);
             };
 
             request.onsuccess = () => {
                 this.db = request.result;
-                //console.log('✅ IndexedDB 初始化成功');
+                //console.log('✅ IndexedDB initialized successfully');
                 resolve(this.db);
             };
 
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
-                console.log('🔄 IndexedDB 升级中...');
+                console.log('🔄 IndexedDB in 升级...');
 
-                // 创建扫描结果对象存储
+                // scan results object 创建存储
                 if (!db.objectStoreNames.contains(this.storeName)) {
                     const store = db.createObjectStore(this.storeName, { 
                         keyPath: 'id',
@@ -47,10 +47,10 @@ class IndexedDBManager {
                     store.createIndex('url', 'url', { unique: false });
                     store.createIndex('timestamp', 'timestamp', { unique: false });
                     
-                    //console.log('✅ 扫描结果对象存储和索引创建成功');
+                    //console.log('✅ scan results success object and 存储索引创建');
                 }
 
-                // 创建JS脚本对象存储
+                // script object 创建JS存储
                 if (!db.objectStoreNames.contains('jsScripts')) {
                     const jsStore = db.createObjectStore('jsScripts', { 
                         keyPath: 'id',
@@ -60,7 +60,7 @@ class IndexedDBManager {
                     // 创建索引
                     jsStore.createIndex('timestamp', 'timestamp', { unique: false });
                     
-                    console.log('✅ JS脚本对象存储和索引创建成功');
+                    console.log('✅ success script object and JS存储索引创建');
                 }
             };
         });
@@ -72,17 +72,17 @@ class IndexedDBManager {
     generateStorageKey(url) {
         try {
             const urlObj = new URL(url);
-            // 只使用域名作为键，确保同一域名下的所有页面共享存储
+            // domain use as 只作键，domain page all total of 确保同一下享存储
             const key = urlObj.hostname;
             return key.replace(/[^a-zA-Z0-9._-]/g, '_');
         } catch (error) {
-            console.error('生成存储键失败:', error);
+            console.error('failed 生成存储键:', error);
             return url.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
         }
     }
 
     /**
-     * 保存扫描结果
+     * scan results save
      */
     async saveScanResults(url, results, sourceUrl = null, pageTitle = null) {
         try {
@@ -94,18 +94,18 @@ class IndexedDBManager {
             const urlObj = new URL(url);
             const storageKey = this.generateStorageKey(url);
             
-            // 使用传入的sourceUrl，如果没有则使用url参数
+            // use of 传入sourceUrl，parameters if use then has 没url
             const actualSourceUrl = sourceUrl || url;
             const actualPageTitle = pageTitle || document.title || urlObj.hostname;
             const currentTime = new Date().toISOString();
             
-            // 转换普通扫描结果格式，确保每个项目都有sourceUrl字段
+            // scan results format convert 普通，project item(s) has 确保每都sourceUrl字段
             const transformedResults = {};
             
             if (results && typeof results === 'object') {
                 for (const [key, value] of Object.entries(results)) {
                     if (Array.isArray(value)) {
-                        // 将数组中的每个字符串转换为包含sourceUrl的对象
+                        // contains object convert characters array item(s) as in of of 将每串sourceUrl
                         transformedResults[key] = value.map(item => {
                             if (typeof item === 'string') {
                                 return {
@@ -115,7 +115,7 @@ class IndexedDBManager {
                                     pageTitle: actualPageTitle
                                 };
                             } else if (typeof item === 'object' && item !== null) {
-                                // 如果已经是对象，确保包含必要字段
+                                // object if yes 已经，contains 确保必要字段
                                 return {
                                     ...item,
                                     sourceUrl: item.sourceUrl || actualSourceUrl,
@@ -126,7 +126,7 @@ class IndexedDBManager {
                             return item;
                         });
                     } else {
-                        // 非数组数据保持原样
+                        // data array 非保持原样
                         transformedResults[key] = value;
                     }
                 }
@@ -150,24 +150,24 @@ class IndexedDBManager {
             
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
-                    //console.log(`✅ 扫描结果已保存到IndexedDB: ${storageKey}`);
+                    //console.log(`✅ scan results saved to IndexedDB: ${storageKey}`);
                     resolve(true);
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 保存扫描结果失败:', request.error);
+                    console.error('❌ scan results failed save:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB保存操作失败:', error);
+            console.error('❌ operation failed save IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 读取扫描结果
+     * scan results read
      */
     async loadScanResults(url) {
         try {
@@ -183,32 +183,32 @@ class IndexedDBManager {
                 request.onsuccess = () => {
                     const result = request.result;
                     if (result) {
-                        //console.log(`✅ 从IndexedDB加载扫描结果: ${storageKey}`);
+                        //console.log(`✅ scan results load from IndexedDB: ${storageKey}`);
                         resolve({
                             results: result.results || {},
                             timestamp: result.timestamp,
                             lastSave: result.lastSave
                         });
                     } else {
-                        //console.log(`📭 IndexedDB中未找到数据: ${storageKey}`);
+                        //console.log(`📭 not found data in IndexedDB: ${storageKey}`);
                         resolve(null);
                     }
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 读取扫描结果失败:', request.error);
+                    console.error('❌ scan results failed read:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB读取操作失败:', error);
+            console.error('❌ operation failed read IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 删除扫描结果
+     * scan results delete
      */
     async deleteScanResults(url) {
         try {
@@ -222,24 +222,24 @@ class IndexedDBManager {
             
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
-                    console.log(`✅ 已从IndexedDB删除扫描结果: ${storageKey}`);
+                    console.log(`✅ scan results delete from 已IndexedDB: ${storageKey}`);
                     resolve(true);
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 删除扫描结果失败:', request.error);
+                    console.error('❌ scan results failed delete:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB删除操作失败:', error);
+            console.error('❌ operation failed delete IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 获取所有扫描结果（用于数据管理）
+     * scan results get all（data for 管理）
      */
     async getAllScanResults() {
         try {
@@ -253,24 +253,24 @@ class IndexedDBManager {
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
                     const results = request.result || [];
-                    console.log(`✅ 获取所有扫描结果，共 ${results.length} 条记录`);
+                    console.log(`✅ scan results get all，total ${results.length} record record(s)`);
                     resolve(results);
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 获取所有扫描结果失败:', request.error);
+                    console.error('❌ scan results failed get all:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB获取所有数据操作失败:', error);
+            console.error('❌ operation failed data get all IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 按域名获取扫描结果
+     * scan results domain get by
      */
     async getScanResultsByDomain(domain) {
         try {
@@ -285,24 +285,24 @@ class IndexedDBManager {
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
                     const results = request.result || [];
-                    console.log(`✅ 获取域名 ${domain} 的扫描结果，共 ${results.length} 条记录`);
+                    console.log(`✅ domain get ${domain} scan results of，total ${results.length} record record(s)`);
                     resolve(results);
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 按域名获取扫描结果失败:', request.error);
+                    console.error('❌ scan results failed domain get by:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB按域名查询操作失败:', error);
+            console.error('❌ operation failed domain query by IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 清空所有扫描结果
+     * scan results clear all
      */
     async clearAllScanResults() {
         try {
@@ -315,24 +315,24 @@ class IndexedDBManager {
             
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
-                    console.log('✅ 已清空所有IndexedDB扫描结果');
+                    console.log('✅ scan results clear all 已IndexedDB');
                     resolve(true);
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 清空扫描结果失败:', request.error);
+                    console.error('❌ scan results failed clear:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB清空操作失败:', error);
+            console.error('❌ operation failed clear IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 获取数据库统计信息
+     * data information get statistics 库
      */
     async getStats() {
         try {
@@ -347,12 +347,12 @@ class IndexedDBManager {
             };
 
             if (allResults.length > 0) {
-                // 计算数据大小（近似）
+                // data 计算大小（近似）
                 stats.totalDataSize = allResults.reduce((size, record) => {
                     return size + JSON.stringify(record).length;
                 }, 0);
 
-                // 找到最老和最新的记录
+                // record latest to of and 找最老
                 const timestamps = allResults.map(r => r.timestamp).sort((a, b) => a - b);
                 stats.oldestRecord = new Date(timestamps[0]);
                 stats.newestRecord = new Date(timestamps[timestamps.length - 1]);
@@ -361,7 +361,7 @@ class IndexedDBManager {
             return stats;
             
         } catch (error) {
-            console.error('❌ 获取IndexedDB统计信息失败:', error);
+            console.error('❌ failed information get statistics IndexedDB:', error);
             return {
                 totalRecords: 0,
                 domains: 0,
@@ -373,7 +373,7 @@ class IndexedDBManager {
     }
 
     /**
-     * 保存深度扫描结果
+     * deep scan save results
      */
     async saveDeepScanResults(url, results, sourceUrl = null, pageTitle = null) {
         try {
@@ -385,7 +385,7 @@ class IndexedDBManager {
             const urlObj = new URL(url);
             const storageKey = this.generateStorageKey(url) + '__deep';
             
-            // 获取源URL和页面标题 - 修复深度扫描显示"未知"的问题
+            // URL get title page and 源 - fixeddeep scan显示"未知"的问题
             const actualSourceUrl = sourceUrl || window.location.href || url;
             const actualPageTitle = pageTitle || document.title || urlObj.hostname;
             
@@ -394,9 +394,9 @@ class IndexedDBManager {
                 domain: urlObj.hostname,
                 url: url,
                 results: results,
-                sourceUrl: actualSourceUrl,  // 添加源URL信息
-                pageTitle: actualPageTitle,  // 添加页面标题信息
-                extractedAt: new Date().toISOString(),  // 添加提取时间
+                sourceUrl: actualSourceUrl,  // URL add information 源
+                pageTitle: actualPageTitle,  // add information title page
+                extractedAt: new Date().toISOString(),  // add extracted when 间
                 type: 'deepScan',
                 timestamp: Date.now(),
                 lastSave: Date.now()
@@ -406,24 +406,24 @@ class IndexedDBManager {
             
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
-                    //console.log(`✅ 深度扫描结果已保存到IndexedDB: ${storageKey}`);
+                    //console.log(`✅ deep scan saved results to IndexedDB: ${storageKey}`);
                     resolve(true);
                 };
                 
                 request.onerror = () => {
-                    //console.error('❌ 保存深度扫描结果失败:', request.error);
+                    //console.error('❌ deep scan failed save results:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB保存深度扫描结果失败:', error);
+            console.error('❌ deep scan failed save results IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 读取深度扫描结果
+     * deep scan results read
      */
     async loadDeepScanResults(url) {
         try {
@@ -439,32 +439,32 @@ class IndexedDBManager {
                 request.onsuccess = () => {
                     const result = request.result;
                     if (result) {
-                        //console.log(`✅ 从IndexedDB加载深度扫描结果: ${storageKey}`);
+                        //console.log(`✅ deep scan results load from IndexedDB: ${storageKey}`);
                         resolve({
                             results: result.results || {},
                             timestamp: result.timestamp,
                             lastSave: result.lastSave
                         });
                     } else {
-                        //console.log(`📭 IndexedDB中未找到深度扫描数据: ${storageKey}`);
+                        //console.log(`📭 deep scan not found data in IndexedDB: ${storageKey}`);
                         resolve(null);
                     }
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 读取深度扫描结果失败:', request.error);
+                    console.error('❌ deep scan failed results read:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB读取深度扫描结果失败:', error);
+            console.error('❌ deep scan failed results read IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 保存深度扫描状态
+     * deep scan save status
      */
     async saveDeepScanState(url, state) {
         try {
@@ -490,24 +490,24 @@ class IndexedDBManager {
             
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
-                    //console.log(`✅ 深度扫描状态已保存到IndexedDB: ${storageKey}`);
+                    //console.log(`✅ deep scan saved status to IndexedDB: ${storageKey}`);
                     resolve(true);
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 保存深度扫描状态失败:', request.error);
+                    console.error('❌ deep scan failed save status:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB保存深度扫描状态失败:', error);
+            console.error('❌ deep scan failed save status IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 读取深度扫描状态
+     * deep scan status read
      */
     async loadDeepScanState(url) {
         try {
@@ -523,28 +523,28 @@ class IndexedDBManager {
                 request.onsuccess = () => {
                     const result = request.result;
                     if (result) {
-                        //console.log(`✅ 从IndexedDB加载深度扫描状态: ${storageKey}`);
+                        //console.log(`✅ deep scan load status from IndexedDB: ${storageKey}`);
                         resolve(result.state || {});
                     } else {
-                        console.log(`📭 IndexedDB中未找到深度扫描状态: ${storageKey}`);
+                        console.log(`📭 deep scan not found status in IndexedDB: ${storageKey}`);
                         resolve(null);
                     }
                 };
                 
                 request.onerror = () => {
-                    //console.error('❌ 读取深度扫描状态失败:', request.error);
+                    //console.error('❌ deep scan failed status read:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ IndexedDB读取深度扫描状态失败:', error);
+            console.error('❌ deep scan failed status read IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 删除深度扫描相关数据
+     * deep scan delete data related
      */
     async deleteDeepScanData(url) {
         try {
@@ -568,17 +568,17 @@ class IndexedDBManager {
             });
 
             await Promise.all(promises);
-            console.log(`✅ 已从IndexedDB删除深度扫描数据: ${baseKey}`);
+            console.log(`✅ deep scan delete data from 已IndexedDB: ${baseKey}`);
             return true;
             
         } catch (error) {
-            console.error('❌ IndexedDB删除深度扫描数据失败:', error);
+            console.error('❌ deep scan failed delete data IndexedDB:', error);
             throw error;
         }
     }
 
     /**
-     * 获取所有深度扫描状态
+     * deep scan get all status
      */
     async getAllDeepScanStates() {
         try {
@@ -591,31 +591,31 @@ class IndexedDBManager {
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
                     const allData = request.result || [];
-                    // 过滤出深度扫描状态（以__state结尾的键）
+                    // deep scan filter status 出（with of __state结尾键）
                     const deepScanStates = allData
                         .filter(item => item.id && item.id.endsWith('__state') && item.type === 'deepScanState')
                         .map(item => item.state)
                         .filter(state => state && state.baseUrl)
-                        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)); // 按时间排序
+                        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)); // when by 间排序
                     
-                    console.log(`📖 获取所有深度扫描状态: 找到 ${deepScanStates.length} 个配置`);
+                    console.log(`📖 deep scan get all status: to 找 ${deepScanStates.length} configuration item(s)`);
                     resolve(deepScanStates);
                 };
                 request.onerror = () => {
-                    console.error('❌ 获取所有深度扫描状态失败:', request.error);
+                    console.error('❌ deep scan failed get all status:', request.error);
                     reject(request.error);
                 };
             });
         } catch (error) {
-            console.error('❌ 获取所有深度扫描状态失败:', error);
+            console.error('❌ deep scan failed get all status:', error);
             return [];
         }
     }
 
-    // ==================== JS脚本存储相关方法 ====================
+    // ==================== script method related JS存储 ====================
     
     /**
-     * 保存JS脚本列表
+     * save script column(s) JS表
      */
     async saveJSScripts(scripts) {
         try {
@@ -632,26 +632,26 @@ class IndexedDBManager {
                 });
                 
                 request.onsuccess = () => {
-                    console.log('✅ JS脚本保存成功，共', scripts.length, '个脚本');
+                    console.log('✅ success save script JS，total', scripts.length, 'script item(s)');
                     resolve();
                 };
                 request.onerror = () => {
-                    console.error('❌ JS脚本保存失败:', request.error);
+                    console.error('❌ failed save script JS:', request.error);
                     reject(request.error);
                 };
             });
         } catch (error) {
-            console.error('❌ JS脚本保存失败:', error);
+            console.error('❌ failed save script JS:', error);
             throw error;
         }
     }
 
     /**
-     * 加载JS脚本列表
+     * script load column(s) JS表
      */
     async loadJSScripts() {
         try {
-            //console.log('[IndexedDBManager] 开始加载JS脚本...');
+            //console.log('[IndexedDBManager] start script load JS...');
             await this.init();
             
             const transaction = this.db.transaction(['jsScripts'], 'readonly');
@@ -662,30 +662,30 @@ class IndexedDBManager {
                 
                 request.onsuccess = () => {
                     const result = request.result;
-                    //console.log('[IndexedDBManager] 原始查询结果:', result);
+                    //console.log('[IndexedDBManager] results original query:', result);
                     
                     if (result && result.scripts) {
-                        //console.log('✅ JS脚本加载成功，共', result.scripts.length, '个脚本');
-                        //console.log('[IndexedDBManager] 脚本详情:', result.scripts.map(s => ({ name: s.name, isPreset: s.isPreset, id: s.id })));
+                        //console.log('✅ loaded successfully script JS，total', result.scripts.length, 'script item(s)');
+                        //console.log('[IndexedDBManager] details script:', result.scripts.map(s => ({ name: s.name, isPreset: s.isPreset, id: s.id })));
                         resolve(result.scripts);
                     } else {
-                        console.log('📭 IndexedDB中未找到JS脚本数据，返回空数组');
+                        console.log('📭 not found data script in IndexedDBJS，return array empty');
                         resolve([]);
                     }
                 };
                 request.onerror = () => {
-                    console.error('❌ JS脚本加载失败:', request.error);
+                    console.error('❌ failed to load script JS:', request.error);
                     reject(request.error);
                 };
             });
         } catch (error) {
-            console.error('❌ JS脚本加载失败:', error);
+            console.error('❌ failed to load script JS:', error);
             return [];
         }
     }
 
     /**
-     * 删除所有JS脚本
+     * delete script all JS
      */
     async clearJSScripts() {
         try {
@@ -698,22 +698,22 @@ class IndexedDBManager {
                 const request = store.delete('savedScripts');
                 
                 request.onsuccess = () => {
-                    console.log('✅ JS脚本清除成功');
+                    console.log('✅ success clear script JS');
                     resolve();
                 };
                 request.onerror = () => {
-                    console.error('❌ JS脚本清除失败:', request.error);
+                    console.error('❌ failed clear script JS:', request.error);
                     reject(request.error);
                 };
             });
         } catch (error) {
-            console.error('❌ JS脚本清除失败:', error);
+            console.error('❌ failed clear script JS:', error);
             throw error;
         }
     }
 
     /**
-     * 获取最近的扫描结果
+     * scan results get of 最近
      */
     async getRecentScanResults(limit = 10) {
         try {
@@ -727,44 +727,44 @@ class IndexedDBManager {
                 
                 request.onsuccess = () => {
                     const results = request.result || [];
-                    // 按时间戳排序，最新的在前
+                    // when by 间戳排序，latest of before 在
                     const sortedResults = results.sort((a, b) => {
                         const timeA = new Date(a.extractedAt || a.timestamp || 0).getTime();
                         const timeB = new Date(b.extractedAt || b.timestamp || 0).getTime();
                         return timeB - timeA;
                     });
                     
-                    // 限制返回数量
+                    // return quantity limit
                     const limitedResults = sortedResults.slice(0, limit);
                     resolve(limitedResults);
                 };
                 
                 request.onerror = () => {
-                    console.error('❌ 获取最近扫描结果失败:', request.error);
+                    console.error('❌ scan results failed get 最近:', request.error);
                     reject(request.error);
                 };
             });
             
         } catch (error) {
-            console.error('❌ 获取最近扫描结果操作失败:', error);
+            console.error('❌ scan results operation failed get 最近:', error);
             return [];
         }
     }
 
     /**
-     * 关闭数据库连接
+     * close data connection 库
      */
     close() {
         if (this.db) {
             this.db.close();
             this.db = null;
-            console.log('✅ IndexedDB连接已关闭');
+            console.log('✅ closed connection IndexedDB');
         }
     }
 }
 
-// 创建全局实例
+// instance 创建全局
 const indexedDBManager = new IndexedDBManager();
 
-// 导出实例，使其可以像静态方法一样调用
+// export instance，call method can 使其像静态一样
 window.IndexedDBManager = indexedDBManager;

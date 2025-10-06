@@ -1,4 +1,4 @@
-// 测试窗口脚本 - 独立的JavaScript文件
+// script window test - file of 独立JavaScript
 let testData = null;
 let testResults = [];
 let isTestRunning = false;
@@ -8,17 +8,17 @@ let activeRequests = 0;
 let maxConcurrency = 8;
 let requestTimeout = 5000;
 
-// 页面加载完成后的初始化
+// initialize complete load page of after
 async function initializePage() {
-    //console.log('页面加载完成，准备开始测试');
+    //console.log('complete load page，start test 准备');
     
     try {
-        // 从chrome.storage读取测试配置
+        // configuration test read from chrome.storage
         const result = await chrome.storage.local.get(['testConfig']);
         
         if (!result.testConfig) {
-            console.error('找不到测试配置数据');
-            document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 找不到测试配置数据</div>';
+            console.error('data configuration test to 找不');
+            document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: data configuration test to 找不</div>';
             return;
         }
         
@@ -26,43 +26,43 @@ async function initializePage() {
         maxConcurrency = testData.concurrency || 8;
         requestTimeout = testData.timeout || 5000;
         
-        //console.log('测试配置加载成功:', testData);
+        //console.log('loaded successfully configuration test:', testData);
         
-        // 更新页面信息
+        // update information page
         document.getElementById('testInfo').textContent = 
-            `${testData.categoryTitle} | ${testData.method} | ${testData.items.length} 项`;
+            `${testData.categoryTitle} | ${testData.method} | ${testData.items.length}  item(s)`;
         document.getElementById('totalCount').textContent = testData.items.length;
         
 
-        // 显示base API路径和自定义域名信息
+        // display base API path custom domain information and
         const baseUrlInfo = document.getElementById('baseUrlInfo');
-        let infoText = `基础URL: ${testData.baseUrl}`;
+        let infoText = `URL basic: ${testData.baseUrl}`;
         
         if (testData.customBaseApiPaths && testData.customBaseApiPaths.length > 0) {
             if (testData.customBaseApiPaths.length === 1) {
-                infoText += ` | Base API路径: ${testData.customBaseApiPaths[0]}`;
+                infoText += ` | Base API path: ${testData.customBaseApiPaths[0]}`;
             } else {
-                infoText += ` | Base API路径: ${testData.customBaseApiPaths.length}个 (${testData.customBaseApiPaths.join(', ')})`;
+                infoText += ` | Base API path: ${testData.customBaseApiPaths.length} item(s) (${testData.customBaseApiPaths.join(', ')})`;
             }
         }
         
         if (testData.customDomains && testData.customDomains.length > 0) {
             if (testData.customDomains.length === 1) {
-                infoText += ` | 自定义域名: ${testData.customDomains[0]}`;
+                infoText += ` | custom domain: ${testData.customDomains[0]}`;
             } else {
-                infoText += ` | 自定义域名: ${testData.customDomains.length}个 (${testData.customDomains.join(', ')})`;
+                infoText += ` | custom domain: ${testData.customDomains.length} item(s) (${testData.customDomains.join(', ')})`;
             }
         }
         
         baseUrlInfo.textContent = infoText;
 
     } catch (error) {
-        console.error('读取配置数据失败:', error);
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 读取配置数据失败 - ' + error.message + '</div>';
+        console.error('failed data configuration read:', error);
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: failed data configuration read - ' + error.message + '</div>';
         return;
     }
     
-    // 添加事件监听器
+    // add event listen 器
     document.getElementById('continueBtn').addEventListener('click', continueTest);
     document.getElementById('pauseBtn').addEventListener('click', pauseTest);
     document.getElementById('exportBtn').addEventListener('click', showExportModal);
@@ -71,7 +71,7 @@ async function initializePage() {
     document.getElementById('statusCodeFilter').addEventListener('change', filterResults);
     document.getElementById('domainFilter').addEventListener('change', filterResults);
     
-    // 导出弹窗事件监听器
+    // export event listen 弹窗器
     document.getElementById('closeModal').addEventListener('click', hideExportModal);
     document.getElementById('exportJSON').addEventListener('click', () => {
         hideExportModal();
@@ -82,33 +82,33 @@ async function initializePage() {
         exportAsCSV();
     });
     
-    // 点击弹窗外部关闭
+    // close 点击弹窗外部
     document.getElementById('exportModal').addEventListener('click', (e) => {
         if (e.target.id === 'exportModal') {
             hideExportModal();
         }
     });
     
-    // 添加表头排序事件监听器
+    // add event listen 表头排序器
     const tableHeaders = document.querySelectorAll('th[data-column]');
     tableHeaders.forEach(header => {
         header.addEventListener('click', function() {
             const columnIndex = parseInt(this.getAttribute('data-column'));
-            //console.log('点击表头，列索引:', columnIndex);
+            //console.log('点击表头， column(s) 索引:', columnIndex);
             sortTable(columnIndex);
         });
     });
     
     if (!testData || !testData.items || testData.items.length === 0) {
-        console.error('测试数据无效');
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 没有要测试的项目</div>';
+        console.error('data test 无效');
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: test project of has 没要</div>';
         return;
     }
     
     setTimeout(startTest, 1000);
 }
 
-// 排序相关变量
+// variable related 排序
 let currentSortColumn = -1;
 let sortDirection = 'asc'; // 'asc' 或 'desc'
 
@@ -118,7 +118,7 @@ function sortTable(columnIndex) {
     const tbody = table.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
     
-    // 如果点击的是同一列，切换排序方向
+    // if column(s) of yes 点击同一，切换排序方向
     if (currentSortColumn === columnIndex) {
         sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
@@ -126,22 +126,22 @@ function sortTable(columnIndex) {
         currentSortColumn = columnIndex;
     }
     
-    // 更新排序指示器
+    // update 排序指示器
     updateSortIndicators(columnIndex);
     
-    // 排序行
+    //  line(s) 排序
     rows.sort((a, b) => {
         let aValue = a.cells[columnIndex].textContent.trim();
         let bValue = b.cells[columnIndex].textContent.trim();
         
-        // 根据列类型进行不同的排序处理
+        // process type line(s) column(s) of 根据进不同排序
         switch (columnIndex) {
             case 0: // 序号
                 aValue = parseInt(aValue);
                 bValue = parseInt(bValue);
                 break;
-            case 3: // 状态码
-                // 数字状态码优先，非数字状态码排在后面
+            case 3: // status code
+                // status code digit(s) 优先，status code digit(s) after 非排在面
                 const aIsNum = !isNaN(parseInt(aValue));
                 const bIsNum = !isNaN(parseInt(bValue));
                 
@@ -158,15 +158,15 @@ function sortTable(columnIndex) {
                 aValue = parseSizeToBytes(aValue);
                 bValue = parseSizeToBytes(bValue);
                 break;
-            case 5: // 耗时
+            case 5: // when 耗
                 aValue = parseTimeToMs(aValue);
                 bValue = parseTimeToMs(bValue);
                 break;
-            case 1: // 域名
+            case 1: // domain
             case 2: // URL
-            case 6: // 结果
+            case 6: // results
             default:
-                // 字符串排序
+                // characters 串排序
                 aValue = aValue.toLowerCase();
                 bValue = bValue.toLowerCase();
         }
@@ -178,13 +178,13 @@ function sortTable(columnIndex) {
         return sortDirection === 'asc' ? result : -result;
     });
     
-    // 重新插入排序后的行
+    // re- line(s) of after 插入排序
     rows.forEach(row => tbody.appendChild(row));
 }
 
-// 更新排序指示器
+// update 排序指示器
 function updateSortIndicators(activeColumn) {
-    // 重置所有指示器
+    // reset all 指示器
     for (let i = 0; i <= 5; i++) {
         const indicator = document.getElementById(`sort-${i}`);
         if (indicator) {
@@ -193,7 +193,7 @@ function updateSortIndicators(activeColumn) {
         }
     }
     
-    // 设置当前列的指示器
+    // settings current column(s) of 指示器
     const activeIndicator = document.getElementById(`sort-${activeColumn}`);
     if (activeIndicator) {
         activeIndicator.textContent = sortDirection === 'asc' ? '↑' : '↓';
@@ -201,7 +201,7 @@ function updateSortIndicators(activeColumn) {
     }
 }
 
-// 解析大小为字节数
+// parse as 大小字节数
 function parseSizeToBytes(sizeStr) {
     if (sizeStr === 'N/A' || !sizeStr) return 0;
     
@@ -221,7 +221,7 @@ function parseSizeToBytes(sizeStr) {
     }
 }
 
-// 解析时间为毫秒数
+// parse seconds as when 间毫数
 function parseTimeToMs(timeStr) {
     if (timeStr === 'N/A' || !timeStr) return 0;
     
@@ -231,28 +231,28 @@ function parseTimeToMs(timeStr) {
     return parseFloat(match[1]);
 }
 
-// 页面加载完成后自动初始化
+// initialize complete load auto page after
 document.addEventListener('DOMContentLoaded', initializePage);
 
-// 开始测试
+// start test
 async function startTest() {
-    //console.log('startTest 被调用');
+    //console.log('startTest call 被');
     
     if (!testData || isTestRunning) return;
     
     if (!testData.items || testData.items.length === 0) {
-        console.error('没有要测试的项目');
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">错误: 没有要测试的项目</div>';
+        console.error('test project of has 没要');
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">error: test project of has 没要</div>';
         return;
     }
     
-    //console.log('开始测试，项目数:', testData.items.length);
+    //console.log('start test，project 数:', testData.items.length);
     
-    // 扩展测试项目以支持多个baseapi路径
+    // test items path extension item(s) with 支持多baseapi
     const expandedItems = expandItemsForMultipleBasePaths(testData.items, testData.categoryKey, testData.baseUrl);
     testData.items = expandedItems;
     
-    //console.log(`🔧 原始测试项目数: ${testData.items.length}, 扩展后项目数: ${expandedItems.length}`);
+    //console.log(`🔧 test items original 数: ${testData.items.length}, extension project after 数: ${expandedItems.length}`);
     
     isTestRunning = true;
     isPaused = false;
@@ -269,49 +269,49 @@ async function startTest() {
         updateStatusBar();
         processNextBatch();
     } catch (error) {
-        console.error('启动测试时发生错误:', error);
-        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">启动测试失败: ' + error.message + '</div>';
+        console.error('error test when 启动发生:', error);
+        document.getElementById('loadingDiv').innerHTML = '<div style="color: #ff4757;">failed test 启动: ' + error.message + '</div>';
     }
 }
 
-// 继续测试
+// continue test
 function continueTest() {
     if (isPaused) {
         isPaused = false;
-        document.getElementById('pauseBtn').textContent = '暂停测试';
+        document.getElementById('pauseBtn').textContent = 'pause test';
         document.getElementById('continueBtn').style.display = 'none';
         processNextBatch();
     }
 }
 
-// 暂停测试
+// pause test
 function pauseTest() {
     isPaused = !isPaused;
     
     if (isPaused) {
-        document.getElementById('pauseBtn').textContent = '继续测试';
+        document.getElementById('pauseBtn').textContent = 'continue test';
         document.getElementById('continueBtn').style.display = 'none';
     } else {
-        document.getElementById('pauseBtn').textContent = '暂停测试';
+        document.getElementById('pauseBtn').textContent = 'pause test';
         document.getElementById('continueBtn').style.display = 'none';
         processNextBatch();
     }
 }
 
-// 处理下一批请求
+// process request 下一批
 function processNextBatch() {
-    //console.log('processNextBatch 被调用');
+    //console.log('processNextBatch call 被');
     //console.log('isPaused:', isPaused, 'isTestRunning:', isTestRunning);
     //console.log('activeRequests:', activeRequests, 'maxConcurrency:', maxConcurrency);
     //console.log('currentIndex:', currentIndex, 'items.length:', testData.items.length);
     
     if (isPaused || !isTestRunning) {
-        //console.log('测试被暂停或未运行，退出');
+        //console.log('pause test line(s) 被或未运，退出');
         return;
     }
     
     if (currentIndex >= testData.items.length) {
-        //console.log('所有项目已处理完成');
+        //console.log('complete process all project 已');
         return;
     }
     
@@ -323,11 +323,11 @@ function processNextBatch() {
         activeRequests++;
         batchStarted = true;
         
-        //console.log('开始处理项目:', itemIndex, item);
+        //console.log('start process project:', itemIndex, item);
         
         processSingleRequest(item, itemIndex)
             .then(result => {
-                //console.log('请求完成:', itemIndex, result);
+                //console.log('complete request:', itemIndex, result);
                 activeRequests--;
                 testResults.push(result);
                 addResultToTable(result);
@@ -336,14 +336,14 @@ function processNextBatch() {
                 if (currentIndex < testData.items.length && !isPaused) {
                     processNextBatch();
                 } else if (activeRequests === 0 && currentIndex >= testData.items.length) {
-                    //console.log('所有请求完成，调用 completeTest');
+                    //console.log('complete request all，call completeTest');
                     completeTest();
                 }
             })
             .catch(error => {
-                console.error('请求处理失败:', error);
+                console.error('failed process request:', error);
                 activeRequests--;
-                // 处理扩展后的测试项目
+                // test items process extension of after
                 let displayItem = item;
                 if (typeof item === 'object' && item.displayText) {
                     displayItem = item.displayText;
@@ -366,32 +366,32 @@ function processNextBatch() {
                 if (currentIndex < testData.items.length && !isPaused) {
                     processNextBatch();
                 } else if (activeRequests === 0 && currentIndex >= testData.items.length) {
-                    //console.log('所有请求完成（含错误），调用 completeTest');
+                    //console.log('complete request all（error 含），call completeTest');
                     completeTest();
                 }
             });
     }
     
     if (batchStarted) {
-        //console.log('批次已启动，当前活跃请求数:', activeRequests);
+        //console.log(' time(s) 批已启动，request current 活跃数:', activeRequests);
     } else {
-        //console.log('没有启动新的批次');
+        //console.log('new time(s) has 没启动批');
     }
 }
 
-// 处理单个请求
+// process request item(s) 单
 async function processSingleRequest(item, index) {
     try {
-        // 处理扩展后的测试项目
+        // test items process extension of after
         let displayItem = item;
         let url;
         
         if (typeof item === 'object' && item.fullUrl) {
-            // 这是扩展后的项目
+            // extension project of yes after 这
             displayItem = item.displayText || item.originalItem;
             url = item.fullUrl;
         } else {
-            // 这是原始项目
+            // original project yes 这
             url = buildTestUrl(item, testData.categoryKey, testData.baseUrl);
         }
         
@@ -400,7 +400,7 @@ async function processSingleRequest(item, index) {
                 url: displayItem,
                 fullUrl: 'Invalid URL',
                 status: 'Error',
-                statusText: '无法构建有效URL',
+                statusText: 'URL has 无法构建效',
                 size: 'N/A',
                 time: 'N/A',
                 success: false,
@@ -414,13 +414,13 @@ async function processSingleRequest(item, index) {
         const duration = (endTime - startTime).toFixed(2);
         
         let textContentOuter = '';
-        // 始终尝试获取文本预览
+        // text get 始终尝试预览
         try {
             textContentOuter = await (response.clone ? response.clone().text() : response.text());
         } catch (_) {
             textContentOuter = '';
         }
-        // 计算响应大小：优先后台返回的 byteSize；再使用 Content-Length；否则用 UTF-8 字节长度
+        // response 计算大小：return background of 优先 use byteSize；再 otherwise Content-Length；用 UTF-8 length 字节
         let sizeBytes = 0;
         let sizeFormatted = 'N/A';
         try {
@@ -445,7 +445,7 @@ async function processSingleRequest(item, index) {
         
         const isSuccess = response.ok || (response.status >= 200 && response.status < 300);
 
-        // 提取 headers 与内容预览
+        // extracted headers content 与预览
         let headersObj = {};
         try {
             if (response.headers && typeof response.headers.entries === 'function') {
@@ -478,7 +478,7 @@ async function processSingleRequest(item, index) {
             url: displayItem,
             fullUrl: item,
             status: 'Exception',
-            statusText: error.message || '未知异常',
+            statusText: error.message || 'exception 未知',
             size: 'N/A',
             time: 'N/A',
             success: false,
@@ -487,70 +487,70 @@ async function processSingleRequest(item, index) {
     }
 }
 
-// 构建测试URL
+// URL test 构建
 function buildTestUrl(item, categoryKey, baseUrl) {
     try {
         let url = item;
         
-        // 修复：如果item是对象，提取value属性
+        // fixed：object if yes item，extracted value属性
         if (typeof item === 'object' && item !== null) {
             url = item.value || item.url || item;
-            console.log('buildTestUrl: 从对象提取URL:', url, '原始对象:', item);
+            console.log('buildTestUrl: URL extracted object from:', url, 'object original:', item);
         }
         
-        // 修复：确保url是字符串类型
+        // fixed：type characters yes 确保url串
         if (!url || typeof url !== 'string') {
-            console.error('buildTestUrl: url参数无效:', url);
+            console.error('buildTestUrl: parameters url无效:', url);
             return baseUrl || 'https://example.com';
         }
 
-        // 获取自定义base API路径
+        // custom get base API path
         const customBaseApiPaths = testData.customBaseApiPaths || [];
         
-        console.log(`🔧 [buildTestUrl] 构建URL: 原始="${url}", 分类="${categoryKey}", 基础URL="${baseUrl}", BaseAPI路径=${JSON.stringify(customBaseApiPaths)}`);
+        console.log(`🔧 [buildTestUrl] URL 构建: original="${url}", 分类="${categoryKey}", URL basic="${baseUrl}", API path Base=${JSON.stringify(customBaseApiPaths)}`);
 
         switch (categoryKey) {
             case 'absoluteApis':
             case 'paths':
                 if (baseUrl && url.startsWith('/')) {
-                    // 如果有自定义base API路径，先添加它
+                    // custom if has base API path，add 先它
                     if (customBaseApiPaths.length > 0) {
-                        // 使用第一个baseapi路径（保持向后兼容）
+                        // path use first item(s) baseapi（after 保持向兼容）
                         const baseApiPath = customBaseApiPaths[0];
-                        // 确保baseApiPath以/开头但不以/结尾（除非是根路径）
+                        // starts with with with 确保baseApiPath/但不/结尾（path yes 除非根）
                         const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
                         url = baseUrl + normalizedBasePath + url;
-                        console.log(`🔧 [buildTestUrl] 绝对路径+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "${item}" = "${url}"`);
+                        console.log(`🔧 [buildTestUrl] absolute path API +Base: "${baseUrl}" + "${normalizedBasePath}" + "${item}" = "${url}"`);
                     } else {
                         url = baseUrl + url;
-                        console.log(`🔧 [buildTestUrl] 绝对路径: "${baseUrl}" + "${item}" = "${url}"`);
+                        console.log(`🔧 [buildTestUrl] absolute path: "${baseUrl}" + "${item}" = "${url}"`);
                     }
                 }
                 break;
                 
             case 'relativeApis':
                 if (baseUrl && !url.startsWith('http')) {
-                    // 🔥 修复：自动去除相对路径开头的"."
+                    // 🔥 fixed：自动去除relative path开头的"."
                     let cleanedUrl = url;
                     if (cleanedUrl.startsWith('./')) {
                         cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
-                        console.log(`🔧 [buildTestUrl] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                        console.log(`🔧 [buildTestUrl] 去除relative path开头的"./": "${url}" -> "${cleanedUrl}"`);
                     } else if (cleanedUrl.startsWith('.')) {
-                        cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
-                        console.log(`🔧 [buildTestUrl] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                        cleanedUrl = cleanedUrl.substring(1); // of 去除单独 "."
+                        console.log(`🔧 [buildTestUrl] 去除relative path开头的".": "${url}" -> "${cleanedUrl}"`);
                     }
                     
-                    // 如果有自定义base API路径，先添加它
+                    // custom if has base API path，add 先它
                     if (customBaseApiPaths.length > 0) {
-                        // 使用第一个baseapi路径（保持向后兼容）
+                        // path use first item(s) baseapi（after 保持向兼容）
                         const baseApiPath = customBaseApiPaths[0];
-                        // 确保baseApiPath以/开头但不以/结尾（除非是根路径）
+                        // starts with with with 确保baseApiPath/但不/结尾（path yes 除非根）
                         const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
                         url = baseUrl + normalizedBasePath + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
-                        console.log(`🔧 [buildTestUrl] 相对路径+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${cleanedUrl}" = "${url}"`);
+                        console.log(`🔧 [buildTestUrl] relative path API +Base: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${cleanedUrl}" = "${url}"`);
                     } else {
                         url = baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
-                        console.log(`🔧 [buildTestUrl] 相对路径: "${baseUrl}" + "/" + "${cleanedUrl}" = "${url}"`);
+                        console.log(`🔧 [buildTestUrl] relative path: "${baseUrl}" + "/" + "${cleanedUrl}" = "${url}"`);
                     }
                 }
                 break;
@@ -558,7 +558,7 @@ function buildTestUrl(item, categoryKey, baseUrl) {
             case 'urls':
                 if (!url.startsWith('http')) {
                     url = 'http://' + url;
-                    console.log(`🔧 [buildTestUrl] 完整URL: "http://" + "${item}" = "${url}"`);
+                    console.log(`🔧 [buildTestUrl] URL 完整: "http://" + "${item}" = "${url}"`);
                 }
                 break;
                 
@@ -567,28 +567,28 @@ function buildTestUrl(item, categoryKey, baseUrl) {
             case 'images':
                 if (baseUrl && !url.startsWith('http')) {
                     if (url.startsWith('/')) {
-                        // 如果有自定义base API路径，先添加它
+                        // custom if has base API path，add 先它
                         if (customBaseApiPaths.length > 0) {
-                            // 使用第一个baseapi路径（保持向后兼容）
+                            // path use first item(s) baseapi（after 保持向兼容）
                             const baseApiPath = customBaseApiPaths[0];
                             const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
                             url = baseUrl + normalizedBasePath + url;
-                            console.log(`🔧 [buildTestUrl] 文件路径+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "${item}" = "${url}"`);
+                            console.log(`🔧 [buildTestUrl] file path API +Base: "${baseUrl}" + "${normalizedBasePath}" + "${item}" = "${url}"`);
                         } else {
                             url = baseUrl + url;
-                            console.log(`🔧 [buildTestUrl] 文件路径: "${baseUrl}" + "${item}" = "${url}"`);
+                            console.log(`🔧 [buildTestUrl] file path: "${baseUrl}" + "${item}" = "${url}"`);
                         }
                     } else {
-                        // 如果有自定义base API路径，先添加它
+                        // custom if has base API path，add 先它
                         if (customBaseApiPaths.length > 0) {
-                            // 使用第一个baseapi路径（保持向后兼容）
+                            // path use first item(s) baseapi（after 保持向兼容）
                             const baseApiPath = customBaseApiPaths[0];
                             const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
                             url = baseUrl + normalizedBasePath + '/' + url;
-                            console.log(`🔧 [buildTestUrl] 相对文件+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${item}" = "${url}"`);
+                            console.log(`🔧 [buildTestUrl] API file 相对+Base: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${item}" = "${url}"`);
                         } else {
                             url = baseUrl + '/' + url;
-                            console.log(`🔧 [buildTestUrl] 相对文件: "${baseUrl}" + "/" + "${item}" = "${url}"`);
+                            console.log(`🔧 [buildTestUrl] file 相对: "${baseUrl}" + "/" + "${item}" = "${url}"`);
                         }
                     }
                 }
@@ -596,46 +596,46 @@ function buildTestUrl(item, categoryKey, baseUrl) {
                 
             default:
                 if (baseUrl && !url.startsWith('http')) {
-                    // 如果有自定义base API路径，先添加它
+                    // custom if has base API path，add 先它
                     if (customBaseApiPaths.length > 0) {
-                        // 使用第一个baseapi路径（保持向后兼容）
+                        // path use first item(s) baseapi（after 保持向兼容）
                         const baseApiPath = customBaseApiPaths[0];
                         const normalizedBasePath = baseApiPath === '/' ? '' : (baseApiPath.startsWith('/') ? baseApiPath : '/' + baseApiPath);
                         url = baseUrl + normalizedBasePath + (url.startsWith('/') ? '' : '/') + url;
-                        console.log(`🔧 [buildTestUrl] 默认+BaseAPI: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${item}" = "${url}"`);
+                        console.log(`🔧 [buildTestUrl] API default +Base: "${baseUrl}" + "${normalizedBasePath}" + "/" + "${item}" = "${url}"`);
                     } else {
                         url = baseUrl + (url.startsWith('/') ? '' : '/') + url;
-                        console.log(`🔧 [buildTestUrl] 默认: "${baseUrl}" + "/" + "${item}" = "${url}"`);
+                        console.log(`🔧 [buildTestUrl] default: "${baseUrl}" + "/" + "${item}" = "${url}"`);
                     }
                 }
         }
         
-        // 清理多余的斜杠
+        // cleanup of 多余斜杠
         url = url.replace(/([^:]\/)\/+/g, '$1');
         
-        console.log(`✅ [buildTestUrl] 最终URL: "${url}"`);
+        console.log(`✅ [buildTestUrl] URL final: "${url}"`);
         
         new URL(url);
         return url;
     } catch (error) {
-        console.error('构建URL失败:', error, item);
+        console.error('URL failed 构建:', error, item);
         return null;
     }
 }
 
 /**
- * 为多个baseapi路径和自定义域名生成测试项目
- * @param {Array} items - 原始测试项目
- * @param {string} categoryKey - 分类键
- * @param {string} baseUrl - 基础URL
- * @returns {Array} - 扩展后的测试项目
+ * test items custom path domain item(s) as and 多baseapi生成
+ * @param {Array} items - test items original
+ * @param {string} categoryKey - class 分键
+ * @param {string} baseUrl - URL basic
+ * @returns {Array} - test items extension of after
  */
 function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
     const customBaseApiPaths = testData.customBaseApiPaths || [];
     const customDomains = testData.customDomains || [];
     
-    // 总是需要扩展项目，因为我们需要同时处理原始域名和自定义域名
-    // 如果既没有多个baseapi路径，也没有自定义域名，直接返回原始项目
+    // extension project yes 总需要，custom domain domain process original as and when 因我们需要同
+    // path if item(s) has 既没多baseapi，custom domain has 也没，return original directly project
     if (customBaseApiPaths.length <= 1 && customDomains.length === 0) {
         return items;
     }
@@ -643,22 +643,22 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
     const expandedItems = [];
     
     items.forEach(item => {
-        // 处理自定义域名
+        // custom domain process
         if (customDomains.length > 0) {
             customDomains.forEach(customDomain => {
-                // 如果有自定义Base API路径，为每个自定义域名添加每个Base API路径
+                // custom if has Base API path，custom add domain item(s) item(s) as 每每Base API path
                 if (customBaseApiPaths.length > 0) {
                     customBaseApiPaths.forEach(basePath => {
                         let url = item;
                         
-                        // 修复：如果item是对象，提取value属性
+                        // fixed：object if yes item，extracted value属性
                         if (typeof item === 'object' && item !== null) {
                             url = item.value || item.url || item;
                         }
                         
-                        // 修复：确保url是字符串类型
+                        // fixed：type characters yes 确保url串
                         if (!url || typeof url !== 'string') {
-                            console.error('expandItemsForMultipleBasePaths: url参数无效:', url);
+                            console.error('expandItemsForMultipleBasePaths: parameters url无效:', url);
                             return;
                         }
                         
@@ -672,14 +672,14 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                                 
                             case 'relativeApis':
                                 if (typeof url === 'string' && !url.startsWith('http')) {
-                                    // 🔥 修复：自动去除相对路径开头的"."
+                                    // 🔥 fixed：自动去除relative path开头的"."
                                     let cleanedUrl = url;
                                     if (cleanedUrl.startsWith('./')) {
                                         cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
-                                        console.log(`🔧 [expandItems-customDomain] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                                        console.log(`🔧 [expandItems-customDomain] 去除relative path开头的"./": "${url}" -> "${cleanedUrl}"`);
                                     } else if (cleanedUrl.startsWith('.')) {
-                                        cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
-                                        console.log(`🔧 [expandItems-customDomain] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                                        cleanedUrl = cleanedUrl.substring(1); // of 去除单独 "."
+                                        console.log(`🔧 [expandItems-customDomain] 去除relative path开头的".": "${url}" -> "${cleanedUrl}"`);
                                     }
                                     
                                     url = customDomain + basePath + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
@@ -704,7 +704,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                                 }
                         }
                         
-                        // 添加自定义域名+Base API路径的测试项目
+                        // custom add domain +Base API path test items of
                         expandedItems.push({
                             originalItem: item,
                             customDomain: customDomain,
@@ -714,24 +714,24 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                         });
                     });
                 } else {
-                    // 没有自定义Base API路径，直接使用自定义域名
+                    // custom has 没Base API path，custom domain use directly
                     let url = item;
                     
-                    // 修复：如果item是对象，提取value属性
+                    // fixed：object if yes item，extracted value属性
                     if (typeof item === 'object' && item !== null) {
                         url = item.value || item.url || item;
                     }
                     
-                    // 修复：确保url是字符串类型
+                    // fixed：type characters yes 确保url串
                     if (!url || typeof url !== 'string') {
-                        console.error('expandItemsForMultipleBasePaths: url参数无效:', url);
+                        console.error('expandItemsForMultipleBasePaths: parameters url无效:', url);
                         return;
                     }
                     
                     switch (categoryKey) {
                         case 'absoluteApis':
                         case 'paths':
-                            // 修复：确保url是字符串类型
+                            // fixed：type characters yes 确保url串
                             if (typeof url === 'string' && url.startsWith('/')) {
                                 url = customDomain + url;
                             }
@@ -739,14 +739,14 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                             
                         case 'relativeApis':
                             if (typeof url === 'string' && !url.startsWith('http')) {
-                                // 🔥 修复：自动去除相对路径开头的"."
+                                // 🔥 fixed：自动去除relative path开头的"."
                                 let cleanedUrl = url;
                                 if (cleanedUrl.startsWith('./')) {
                                     cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
-                                    console.log(`🔧 [expandItems-customDomain-noBP] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                                    console.log(`🔧 [expandItems-customDomain-noBP] 去除relative path开头的"./": "${url}" -> "${cleanedUrl}"`);
                                 } else if (cleanedUrl.startsWith('.')) {
-                                    cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
-                                    console.log(`🔧 [expandItems-customDomain-noBP] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                                    cleanedUrl = cleanedUrl.substring(1); // of 去除单独 "."
+                                    console.log(`🔧 [expandItems-customDomain-noBP] 去除relative path开头的".": "${url}" -> "${cleanedUrl}"`);
                                 }
                                 
                                 url = customDomain + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
@@ -771,7 +771,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                             }
                     }
                     
-                    // 添加自定义域名的测试项目
+                    // test items custom add domain of
                     expandedItems.push({
                         originalItem: item,
                         customDomain: customDomain,
@@ -782,7 +782,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
             });
         }
         
-        // 处理Base API路径（如果有多个）
+        // process Base API path（if item(s) has 多）
         if (customBaseApiPaths.length > 1) {
             customBaseApiPaths.forEach(basePath => {
                 let url = item;
@@ -797,14 +797,14 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                         
                     case 'relativeApis':
                         if (baseUrl && !url.startsWith('http')) {
-                            // 🔥 修复：自动去除相对路径开头的"."
+                            // 🔥 fixed：自动去除relative path开头的"."
                             let cleanedUrl = url;
                             if (cleanedUrl.startsWith('./')) {
                                 cleanedUrl = cleanedUrl.substring(2); // 去除 "./"
-                                console.log(`🔧 [expandItems-basePath] 去除相对路径开头的"./": "${url}" -> "${cleanedUrl}"`);
+                                console.log(`🔧 [expandItems-basePath] 去除relative path开头的"./": "${url}" -> "${cleanedUrl}"`);
                             } else if (cleanedUrl.startsWith('.')) {
-                                cleanedUrl = cleanedUrl.substring(1); // 去除单独的 "."
-                                console.log(`🔧 [expandItems-basePath] 去除相对路径开头的".": "${url}" -> "${cleanedUrl}"`);
+                                cleanedUrl = cleanedUrl.substring(1); // of 去除单独 "."
+                                console.log(`🔧 [expandItems-basePath] 去除relative path开头的".": "${url}" -> "${cleanedUrl}"`);
                             }
                             
                             url = baseUrl + basePath + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
@@ -829,7 +829,7 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                         }
                 }
                 
-                // 添加扩展后的项目，包含原始项目和对应的baseapi路径信息
+                // add extension project of after，path information contains original project of and 对应baseapi
                 expandedItems.push({
                     originalItem: item,
                     baseApiPath: basePath,
@@ -839,21 +839,21 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
             });
         }
         
-        // 总是添加原始项目（使用原始域名）
+        // add original project yes 总（domain original use）
         let originalUrl = item;
         
-        // 修复：如果item是对象，提取value属性
+        // fixed：object if yes item，extracted value属性
         if (typeof item === 'object' && item !== null) {
             originalUrl = item.value || item.url || item;
         }
         
-        // 修复：确保originalUrl是字符串类型
+        // fixed：type characters yes 确保originalUrl串
         if (!originalUrl || typeof originalUrl !== 'string') {
-            console.warn('originalUrl不是字符串类型:', originalUrl);
-            return expandedItems; // 跳过这个项目
+            console.warn('type characters yes originalUrl不串:', originalUrl);
+            return expandedItems; // skip project item(s) 这
         }
         
-        // 🔥 修复：处理原始域名的URL构建，确保正确显示baseapi+路径
+        // 🔥 fixed：URL domain process original of 构建，path display 确保正确baseapi+
         switch (categoryKey) {
             case 'absoluteApis':
             case 'paths':
@@ -870,14 +870,14 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                 
             case 'relativeApis':
                 if (baseUrl && !originalUrl.startsWith('http')) {
-                    // 🔥 修复：自动去除相对路径开头的"."
+                    // 🔥 fixed：自动去除relative path开头的"."
                     let cleanedOriginalUrl = originalUrl;
                     if (cleanedOriginalUrl.startsWith('./')) {
                         cleanedOriginalUrl = cleanedOriginalUrl.substring(2); // 去除 "./"
-                        console.log(`🔧 [expandItems] 去除相对路径开头的"./": "${originalUrl}" -> "${cleanedOriginalUrl}"`);
+                        console.log(`🔧 [expandItems] 去除relative path开头的"./": "${originalUrl}" -> "${cleanedOriginalUrl}"`);
                     } else if (cleanedOriginalUrl.startsWith('.')) {
-                        cleanedOriginalUrl = cleanedOriginalUrl.substring(1); // 去除单独的 "."
-                        console.log(`🔧 [expandItems] 去除相对路径开头的".": "${originalUrl}" -> "${cleanedOriginalUrl}"`);
+                        cleanedOriginalUrl = cleanedOriginalUrl.substring(1); // of 去除单独 "."
+                        console.log(`🔧 [expandItems] 去除relative path开头的".": "${originalUrl}" -> "${cleanedOriginalUrl}"`);
                     }
                     
                     if (customBaseApiPaths.length > 0) {
@@ -926,23 +926,23 @@ function expandItemsForMultipleBasePaths(items, categoryKey, baseUrl) {
                 }
         }
         
-        // 清理多余的斜杠
+        // cleanup of 多余斜杠
         originalUrl = originalUrl.replace(/([^:]\/)\/+/g, '$1');
         
-        // 添加原始域名的测试项目
+        // test items add domain original of
         expandedItems.push({
             originalItem: item,
             fullUrl: originalUrl,
-            displayText: `${item} (原始域名)`
+            displayText: `${item} (domain original)`
         });
     });
     
     return expandedItems;
 }
 
-// 发送请求 - 通过后台脚本
+// request send - script background via
 async function makeRequest(url, method, timeout = 5000) {
-    //console.log(`🌐 测试窗口通过后台脚本请求: ${url}`);
+    //console.log(`🌐 request script window background via test: ${url}`);
     
     const requestOptions = {
         method: method,
@@ -960,23 +960,23 @@ async function makeRequest(url, method, timeout = 5000) {
     }
     
     try {
-        // 通过后台脚本发送请求（会自动使用保存的Cookie）
+        // request script background send via（save auto use of 会Cookie）
         const response = await makeRequestViaBackground(url, requestOptions);
         return response;
     } catch (error) {
-        console.error(`❌ 测试窗口请求失败: ${error.message}`);
+        console.error(`❌ failed request window test: ${error.message}`);
         
-        // 返回错误响应对象
+        // error return response object
         return {
             status: 'Error',
-            statusText: error.message || '请求失败',
+            statusText: error.message || 'failed request',
             ok: false,
             headers: new Headers()
         };
     }
 }
 
-// 通过后台脚本发送请求
+// request script background send via
 async function makeRequestViaBackground(url, options = {}) {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({
@@ -987,7 +987,7 @@ async function makeRequestViaBackground(url, options = {}) {
             if (chrome.runtime.lastError) {
                 reject(new Error(chrome.runtime.lastError.message));
             } else if (response && response.success) {
-                // 模拟fetch响应对象
+                // response object 模拟fetch
                 const mockHeaders = new Map(Object.entries(response.data.headers || {}));
                 
                 resolve({
@@ -1029,41 +1029,41 @@ async function makeRequestViaBackground(url, options = {}) {
     });
 }
 
-// 添加结果到表格
+// add results to 表格
 function addResultToTable(result) {
     const tbody = document.getElementById('resultsBody');
     const row = document.createElement('tr');
     
     const statusClass = result.success ? 'status-success' : 'status-error';
     
-    // 🔥 修复：正确显示完整的URL路径，包括baseapi+路径
+    // 🔥 fixed：URL path display of 正确完整，path 包括baseapi+
     let displayUrl = (result.fullUrl || result.url || '');
-    let fullDisplayUrl = displayUrl; // 保存完整URL用于title显示
+    let fullDisplayUrl = displayUrl; // URL save display for 完整title
     
     try {
         if (displayUrl.startsWith('http')) {
             const u = new URL(displayUrl);
-            // 显示完整的路径部分，包括baseapi路径
+            // path display of 完整部分，path 包括baseapi
             displayUrl = u.pathname + (u.search || '') + (u.hash || '');
-            fullDisplayUrl = u.href; // 完整URL
+            fullDisplayUrl = u.href; // URL 完整
         }
     } catch (_) {
-        // 如果URL解析失败，保持原样
+        // URL parsing failed if，保持原样
         fullDisplayUrl = displayUrl;
     }
     
-    // 提取域名信息
-    let domainInfo = '原始域名';
+    // domain information extracted
+    let domainInfo = 'domain original';
     try {
         if (result.fullUrl && result.fullUrl.startsWith('http')) {
             const urlObj = new URL(result.fullUrl);
             domainInfo = urlObj.hostname + (urlObj.port ? ':' + urlObj.port : '');
         }
     } catch (e) {
-        domainInfo = '未知域名';
+        domainInfo = 'domain 未知';
     }
     
-    // 🔥 修复：确保URL列显示完整的路径信息
+    // 🔥 fixed：URL path information display column(s) of 确保完整
     row.innerHTML = 
         '<td>' + (result.index + 1) + '</td>' +
         '<td class="url-cell" title="' + domainInfo + '">' + domainInfo + '</td>' +
@@ -1071,27 +1071,27 @@ function addResultToTable(result) {
         '<td class="' + statusClass + '">' + result.status + '</td>' +
         '<td>' + result.size + '</td>' +
         '<td>' + result.time + '</td>' +
-        '<td class="' + statusClass + '">' + (result.success ? '成功' : '失败') + '</td>' +
+        '<td class="' + statusClass + '">' + (result.success ? 'success' : 'failed') + '</td>' +
         '<td><button class="btn btn-primary btn-view" data-index="' + result.index + '">查看</button></td>';
     
     tbody.appendChild(row);
     
-    // 更新域名筛选选项
+    // update domain options 筛选
     updateDomainFilter();
 
-    // 查看响应内容按钮
+    // content response button 查看
     const viewBtn = row.querySelector('.btn-view');
     if (viewBtn) {
         viewBtn.addEventListener('click', () => {
             const idx = parseInt(viewBtn.getAttribute('data-index'));
             const res = testResults.find(r => r.index === idx) || result;
 
-            // 动态创建弹窗，复用页面的 .modal/.modal-content 样式
+            // dynamic 创建弹窗，page of 复用 .modal/.modal-content 样式
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.style.display = 'flex';
 
-            // 构建内容（仅展示原始响应报文：状态行 + 头 + 原始Body；不渲染HTML）
+            // content 构建（response original 仅展示报文：status line(s) + 头 + original Body；不渲染HTML）
             const modalContent = document.createElement('div');
             modalContent.className = 'modal-content';
             modalContent.style.maxWidth = '900px';
@@ -1100,7 +1100,7 @@ function addResultToTable(result) {
             const modalHeader = document.createElement('div');
             modalHeader.className = 'modal-header';
             const titleEl = document.createElement('h3');
-            titleEl.textContent = '响应详情';
+            titleEl.textContent = 'details response';
             const closeBtnEl = document.createElement('span');
             closeBtnEl.className = 'close';
             closeBtnEl.textContent = '×';
@@ -1121,7 +1121,7 @@ function addResultToTable(result) {
             `;
             modalBody.appendChild(metaDiv);
 
-            // 组装原始响应报文
+            // response original 组装报文
             const headerLines = [];
             if (res.headers && typeof res.headers === 'object') {
                 for (const [k, v] of Object.entries(res.headers)) {
@@ -1140,7 +1140,7 @@ function addResultToTable(result) {
             pre.style.padding = '10px';
             pre.style.borderRadius = '8px';
             pre.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-            pre.textContent = rawResponse; // 仅文本，避免HTML渲染
+            pre.textContent = rawResponse; // text 仅，避免HTML渲染
             modalBody.appendChild(pre);
 
             if (res.rawBodyTruncated) {
@@ -1148,7 +1148,7 @@ function addResultToTable(result) {
                 tip.style.fontSize = '12px';
                 tip.style.color = '#ccc';
                 tip.style.marginTop = '6px';
-                tip.textContent = '内容已截断展示（前 256 KB）';
+                tip.textContent = 'content 已截断展示（before 256 KB）';
                 modalBody.appendChild(tip);
             }
 
@@ -1165,7 +1165,7 @@ function addResultToTable(result) {
     }
 }
 
-// 更新状态栏
+// update status 栏
 function updateStatusBar() {
     const total = testData ? testData.items.length : 0;
     const completed = testResults.length;
@@ -1178,21 +1178,21 @@ function updateStatusBar() {
     document.getElementById('errorCount').textContent = failed;
 }
 
-// 完成测试
+// complete test
 function completeTest() {
     isTestRunning = false;
     isPaused = false;
     document.getElementById('pauseBtn').disabled = true;
-    document.getElementById('pauseBtn').textContent = '暂停测试';
+    document.getElementById('pauseBtn').textContent = 'pause test';
     document.getElementById('continueBtn').style.display = 'none';
     
     const successCount = testResults.filter(r => r.success).length;
     const totalCount = testResults.length;
     
 
-    let completionMessage = '测试完成! 成功: ' + successCount + '/' + totalCount + ' | ' + testData.categoryTitle + ' | ' + testData.method;
+    let completionMessage = 'complete test! success: ' + successCount + '/' + totalCount + ' | ' + testData.categoryTitle + ' | ' + testData.method;
     
-    // 添加base API路径信息
+    // add base API path information
             if (testData.customBaseApiPaths && testData.customBaseApiPaths.length > 0) {
             if (testData.customBaseApiPaths.length === 1) {
                 completionMessage += ' | Base API: ' + testData.customBaseApiPaths[0];
@@ -1205,13 +1205,13 @@ function completeTest() {
 
 }
 
-// 更新域名筛选选项
+// update domain options 筛选
 function updateDomainFilter() {
     const domainFilter = document.getElementById('domainFilter');
     const rows = document.querySelectorAll('#resultsBody tr');
     const domains = new Set();
     
-    // 收集所有唯一的域名
+    // domain collected all of 唯一
     rows.forEach(row => {
         if (row.cells && row.cells.length > 1) {
             const domain = row.cells[1].textContent.trim();
@@ -1221,13 +1221,13 @@ function updateDomainFilter() {
         }
     });
     
-    // 保存当前选择的值
+    // save select current of 值
     const currentValue = domainFilter.value;
     
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
     
-    // 添加域名选项
+    // add domain options
     Array.from(domains).sort().forEach(domain => {
         const option = document.createElement('option');
         option.value = domain;
@@ -1235,51 +1235,13 @@ function updateDomainFilter() {
         domainFilter.appendChild(option);
     });
     
-    // 恢复之前的选择（如果还存在）
+    // select resume of before 之（if 还存在）
     if (currentValue && Array.from(domains).includes(currentValue)) {
         domainFilter.value = currentValue;
     }
 }
 
-// 更新域名筛选选项
-function updateDomainFilter() {
-    const domainFilter = document.getElementById('domainFilter');
-    if (!domainFilter) return;
-    
-    const rows = document.querySelectorAll('#resultsBody tr');
-    const domains = new Set();
-    
-    // 收集所有唯一的域名
-    rows.forEach(row => {
-        if (row.cells && row.cells.length > 1) {
-            const domain = row.cells[1].textContent.trim();
-            if (domain) {
-                domains.add(domain);
-            }
-        }
-    });
-    
-    // 保存当前选择的值
-    const currentValue = domainFilter.value;
-    
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
-    
-    // 添加域名选项
-    Array.from(domains).sort().forEach(domain => {
-        const option = document.createElement('option');
-        option.value = domain;
-        option.textContent = domain;
-        domainFilter.appendChild(option);
-    });
-    
-    // 恢复之前的选择（如果还存在）
-    if (currentValue && Array.from(domains).includes(currentValue)) {
-        domainFilter.value = currentValue;
-    }
-}
-
-// 更新域名筛选选项
+// update domain options 筛选
 function updateDomainFilter() {
     const domainFilter = document.getElementById('domainFilter');
     if (!domainFilter) return;
@@ -1287,7 +1249,7 @@ function updateDomainFilter() {
     const rows = document.querySelectorAll('#resultsBody tr');
     const domains = new Set();
     
-    // 收集所有唯一的域名
+    // domain collected all of 唯一
     rows.forEach(row => {
         if (row.cells && row.cells.length > 1) {
             const domain = row.cells[1].textContent.trim();
@@ -1297,13 +1259,13 @@ function updateDomainFilter() {
         }
     });
     
-    // 保存当前选择的值
+    // save select current of 值
     const currentValue = domainFilter.value;
     
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
     
-    // 添加域名选项
+    // add domain options
     Array.from(domains).sort().forEach(domain => {
         const option = document.createElement('option');
         option.value = domain;
@@ -1311,13 +1273,13 @@ function updateDomainFilter() {
         domainFilter.appendChild(option);
     });
     
-    // 恢复之前的选择（如果还存在）
+    // select resume of before 之（if 还存在）
     if (currentValue && Array.from(domains).includes(currentValue)) {
         domainFilter.value = currentValue;
     }
 }
 
-// 更新域名筛选选项
+// update domain options 筛选
 function updateDomainFilter() {
     const domainFilter = document.getElementById('domainFilter');
     if (!domainFilter) return;
@@ -1325,7 +1287,7 @@ function updateDomainFilter() {
     const rows = document.querySelectorAll('#resultsBody tr');
     const domains = new Set();
     
-    // 收集所有唯一的域名
+    // domain collected all of 唯一
     rows.forEach(row => {
         if (row.cells && row.cells.length > 1) {
             const domain = row.cells[1].textContent.trim();
@@ -1335,13 +1297,13 @@ function updateDomainFilter() {
         }
     });
     
-    // 保存当前选择的值
+    // save select current of 值
     const currentValue = domainFilter.value;
     
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
     
-    // 添加域名选项
+    // add domain options
     Array.from(domains).sort().forEach(domain => {
         const option = document.createElement('option');
         option.value = domain;
@@ -1349,13 +1311,13 @@ function updateDomainFilter() {
         domainFilter.appendChild(option);
     });
     
-    // 恢复之前的选择（如果还存在）
+    // select resume of before 之（if 还存在）
     if (currentValue && Array.from(domains).includes(currentValue)) {
         domainFilter.value = currentValue;
     }
 }
 
-// 更新域名筛选选项
+// update domain options 筛选
 function updateDomainFilter() {
     const domainFilter = document.getElementById('domainFilter');
     if (!domainFilter) return;
@@ -1363,7 +1325,7 @@ function updateDomainFilter() {
     const rows = document.querySelectorAll('#resultsBody tr');
     const domains = new Set();
     
-    // 收集所有唯一的域名
+    // domain collected all of 唯一
     rows.forEach(row => {
         if (row.cells && row.cells.length > 1) {
             const domain = row.cells[1].textContent.trim();
@@ -1373,13 +1335,13 @@ function updateDomainFilter() {
         }
     });
     
-    // 保存当前选择的值
+    // save select current of 值
     const currentValue = domainFilter.value;
     
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
     
-    // 添加域名选项
+    // add domain options
     Array.from(domains).sort().forEach(domain => {
         const option = document.createElement('option');
         option.value = domain;
@@ -1387,13 +1349,13 @@ function updateDomainFilter() {
         domainFilter.appendChild(option);
     });
     
-    // 恢复之前的选择（如果还存在）
+    // select resume of before 之（if 还存在）
     if (currentValue && Array.from(domains).includes(currentValue)) {
         domainFilter.value = currentValue;
     }
 }
 
-// 更新域名筛选选项
+// update domain options 筛选
 function updateDomainFilter() {
     const domainFilter = document.getElementById('domainFilter');
     if (!domainFilter) return;
@@ -1401,7 +1363,7 @@ function updateDomainFilter() {
     const rows = document.querySelectorAll('#resultsBody tr');
     const domains = new Set();
     
-    // 收集所有唯一的域名
+    // domain collected all of 唯一
     rows.forEach(row => {
         if (row.cells && row.cells.length > 1) {
             const domain = row.cells[1].textContent.trim();
@@ -1411,13 +1373,13 @@ function updateDomainFilter() {
         }
     });
     
-    // 保存当前选择的值
+    // save select current of 值
     const currentValue = domainFilter.value;
     
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
     
-    // 添加域名选项
+    // add domain options
     Array.from(domains).sort().forEach(domain => {
         const option = document.createElement('option');
         option.value = domain;
@@ -1425,13 +1387,13 @@ function updateDomainFilter() {
         domainFilter.appendChild(option);
     });
     
-    // 恢复之前的选择（如果还存在）
+    // select resume of before 之（if 还存在）
     if (currentValue && Array.from(domains).includes(currentValue)) {
         domainFilter.value = currentValue;
     }
 }
 
-// 更新域名筛选选项
+// update domain options 筛选
 function updateDomainFilter() {
     const domainFilter = document.getElementById('domainFilter');
     if (!domainFilter) return;
@@ -1439,7 +1401,7 @@ function updateDomainFilter() {
     const rows = document.querySelectorAll('#resultsBody tr');
     const domains = new Set();
     
-    // 收集所有唯一的域名
+    // domain collected all of 唯一
     rows.forEach(row => {
         if (row.cells && row.cells.length > 1) {
             const domain = row.cells[1].textContent.trim();
@@ -1449,13 +1411,13 @@ function updateDomainFilter() {
         }
     });
     
-    // 保存当前选择的值
+    // save select current of 值
     const currentValue = domainFilter.value;
     
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
     
-    // 添加域名选项
+    // add domain options
     Array.from(domains).sort().forEach(domain => {
         const option = document.createElement('option');
         option.value = domain;
@@ -1463,13 +1425,13 @@ function updateDomainFilter() {
         domainFilter.appendChild(option);
     });
     
-    // 恢复之前的选择（如果还存在）
+    // select resume of before 之（if 还存在）
     if (currentValue && Array.from(domains).includes(currentValue)) {
         domainFilter.value = currentValue;
     }
 }
 
-// 更新域名筛选选项
+// update domain options 筛选
 function updateDomainFilter() {
     const domainFilter = document.getElementById('domainFilter');
     if (!domainFilter) return;
@@ -1477,7 +1439,7 @@ function updateDomainFilter() {
     const rows = document.querySelectorAll('#resultsBody tr');
     const domains = new Set();
     
-    // 收集所有唯一的域名
+    // domain collected all of 唯一
     rows.forEach(row => {
         if (row.cells && row.cells.length > 1) {
             const domain = row.cells[1].textContent.trim();
@@ -1487,13 +1449,13 @@ function updateDomainFilter() {
         }
     });
     
-    // 保存当前选择的值
+    // save select current of 值
     const currentValue = domainFilter.value;
     
-    // 清空现有选项（除了"全部域名"）
-    domainFilter.innerHTML = '<option value="all">全部域名</option>';
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
     
-    // 添加域名选项
+    // add domain options
     Array.from(domains).sort().forEach(domain => {
         const option = document.createElement('option');
         option.value = domain;
@@ -1501,13 +1463,51 @@ function updateDomainFilter() {
         domainFilter.appendChild(option);
     });
     
-    // 恢复之前的选择（如果还存在）
+    // select resume of before 之（if 还存在）
     if (currentValue && Array.from(domains).includes(currentValue)) {
         domainFilter.value = currentValue;
     }
 }
 
-// 筛选结果
+// update domain options 筛选
+function updateDomainFilter() {
+    const domainFilter = document.getElementById('domainFilter');
+    if (!domainFilter) return;
+    
+    const rows = document.querySelectorAll('#resultsBody tr');
+    const domains = new Set();
+    
+    // domain collected all of 唯一
+    rows.forEach(row => {
+        if (row.cells && row.cells.length > 1) {
+            const domain = row.cells[1].textContent.trim();
+            if (domain) {
+                domains.add(domain);
+            }
+        }
+    });
+    
+    // save select current of 值
+    const currentValue = domainFilter.value;
+    
+    // clear options has 现（除了"all domains"）
+    domainFilter.innerHTML = '<option value="all">all domains</option>';
+    
+    // add domain options
+    Array.from(domains).sort().forEach(domain => {
+        const option = document.createElement('option');
+        option.value = domain;
+        option.textContent = domain;
+        domainFilter.appendChild(option);
+    });
+    
+    // select resume of before 之（if 还存在）
+    if (currentValue && Array.from(domains).includes(currentValue)) {
+        domainFilter.value = currentValue;
+    }
+}
+
+// results 筛选
 function filterResults() {
     const statusFilter = document.getElementById('statusFilter').value;
     const statusCodeFilter = document.getElementById('statusCodeFilter').value;
@@ -1516,27 +1516,27 @@ function filterResults() {
     
     rows.forEach(row => {
         let show = true;
-        const domainCell = row.cells[1].textContent.trim(); // 域名列是第1列（索引1）
-        const statusCell = row.cells[3].textContent.trim(); // 状态码列现在是第3列（索引3）
-        const resultCell = row.cells[6].textContent.trim(); // 结果列现在是第6列（索引6）
+        const domainCell = row.cells[1].textContent.trim(); // domain column(s) column(s) yes # 1（索引1）
+        const statusCell = row.cells[3].textContent.trim(); // status code column(s) column(s) yes # 现在3（索引3）
+        const resultCell = row.cells[6].textContent.trim(); // results column(s) column(s) yes # 现在6（索引6）
         
-        // 域名筛选
+        // domain 筛选
         if (domainFilter !== 'all' && domainCell !== domainFilter) {
             show = false;
         }
         
-        // 状态筛选
-        if (show && statusFilter === 'success' && resultCell !== '成功') {
+        // status 筛选
+        if (show && statusFilter === 'success' && resultCell !== 'success') {
             show = false;
-        } else if (show && statusFilter === 'error' && resultCell !== '失败') {
+        } else if (show && statusFilter === 'error' && resultCell !== 'failed') {
             show = false;
         }
         
-        // 状态码筛选 - 修复逻辑，只对数字状态码进行筛选
+        // status code 筛选 - fixed 逻辑，status code digit(s) line(s) 只对进筛选
         if (show && statusCodeFilter !== 'all') {
             const statusCode = parseInt(statusCell);
             
-            // 只对有效的数字状态码进行筛选，非数字状态码（如Timeout、Error等）不显示
+            // status code digit(s) line(s) of has 只对效进筛选，status code digit(s) 非（如Timeout、, etc. Error）display 不
             if (isNaN(statusCode)) {
                 show = false;
             } else {
@@ -1563,22 +1563,22 @@ function filterResults() {
     });
 }
 
-// 显示导出弹窗
+// export display 弹窗
 function showExportModal() {
     if (testResults.length === 0) {
-        alert('没有测试结果可以导出');
+        alert('export results can test has 没');
         return;
     }
     
     document.getElementById('exportModal').style.display = 'flex';
 }
 
-// 隐藏导出弹窗
+// export hide 弹窗
 function hideExportModal() {
     document.getElementById('exportModal').style.display = 'none';
 }
 
-// 导出为JSON
+// export as JSON
 function exportAsJSON() {
     const data = {
         testInfo: {
@@ -1600,9 +1600,9 @@ function exportAsJSON() {
     downloadFile(blob, 'api-test-results-' + Date.now() + '.json');
 }
 
-// 导出为CSV
+// export as CSV
 function exportAsCSV() {
-    const headers = ['序号', 'url', '状态码', '状态文本', '大小', '耗时', '结果'];
+    const headers = ['序号', 'url', 'status code', 'text status', '大小', 'when 耗', 'results'];
     const csvContent = [
         headers.join(','),
         ...testResults.map(result => [
@@ -1612,7 +1612,7 @@ function exportAsCSV() {
             '"' + result.statusText + '"',
             result.size,
             result.time,
-            result.success ? '成功' : '失败'
+            result.success ? 'success' : 'failed'
         ].join(','))
     ].join('\n');
     
@@ -1620,7 +1620,7 @@ function exportAsCSV() {
     downloadFile(blob, 'api-test-results-' + Date.now() + '.csv');
 }
 
-// 下载文件
+// download file
 function downloadFile(blob, filename) {
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -1630,13 +1630,13 @@ function downloadFile(blob, filename) {
     document.body.removeChild(link);
 }
 
-// 清空结果
+// clear results
 function clearResults() {
-    if (confirm('确定要清空所有测试结果吗？')) {
+    if (confirm('clear results all test 确定要吗？')) {
         testResults = [];
         document.getElementById('resultsBody').innerHTML = '';
         updateStatusBar();
-        document.getElementById('testInfo').textContent = '结果已清空';
+        document.getElementById('testInfo').textContent = 'clear results 已';
     }
 }
 
@@ -1654,7 +1654,7 @@ function formatHeaders(h) {
         return String(h);
     } catch(_) { return ''; }
 }
-// 格式化字节大小
+// format 化字节大小
 function formatBytes(bytes, decimals = 2) {
     if (bytes === 0 || bytes === 'N/A') return 'N/A';
     
