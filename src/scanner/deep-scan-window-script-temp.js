@@ -1,22 +1,22 @@
-// 完成扫描函数的修改版本
+// completescan函数修改version
 async function completeScan() {
-    //console.log('🔍 [DEBUG] completeScan函数被调用');
+    //console.log('🔍 [DEBUG] completeScan函数by调for');
     
     isScanRunning = false;
     isPaused = false;
     
-    addLogEntry('深度扫描完成！', 'success');
+    addLogEntry('deepscan complete！', 'success');
     
-    // 最终保存完整结果到storage
+    // 最终保存completeresulttostorage
     await saveResultsToStorage();
     
-    // 检查DOM元素并更新UI状态
+    // checkDOM元素and更newUIstate
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const stopBtn = document.getElementById('stopBtn');
     const headerTitle = document.querySelector('.header h1');
     
-    console.log('🔍 [DEBUG] completeScan DOM元素检查:', {
+    console.log('🔍 [DEBUG] completeScan DOM元素check:', {
         startBtn: !!startBtn,
         pauseBtn: !!pauseBtn,
         stopBtn: !!stopBtn,
@@ -26,27 +26,27 @@ async function completeScan() {
     if (startBtn) startBtn.disabled = false;
     if (pauseBtn) {
         pauseBtn.disabled = true;
-        pauseBtn.textContent = '暂停扫描';
+        pauseBtn.textContent = '暂停scan';
     }
     if (stopBtn) stopBtn.disabled = true;
     
-    // 更新标题
+    // 更new标题
     if (headerTitle) {
-        headerTitle.textContent = '✅ 深度扫描完成';
+        headerTitle.textContent = '✅ deepscan complete';
     }
     
     const totalScanned = scannedUrls.size;
     const totalResults = Object.values(scanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0);
     
-    addLogEntry(`扫描完成！扫描了 ${totalScanned} 个文件，提取了 ${totalResults} 个项目，结果已保存到存储`, 'success');
+    addLogEntry(`scan complete！scan了 ${totalScanned} 个文件，extract了 ${totalResults} 个项目，resultalready保存tostorage`, 'success');
     
-    console.log('🔍 [DEBUG] 扫描完成统计:', {
+    console.log('🔍 [DEBUG] scan complete统计:', {
         totalScanned,
         totalResults,
         scanResults: Object.keys(scanResults).map(key => `${key}: ${scanResults[key]?.length || 0}`)
     });
     
-    // 可选：通知主扩展扫描完成（用于实时更新，但不依赖消息传递）
+    // 可选：notify主扩展scan complete（for实时更new，butnot依赖message传递）
     try {
         chrome.runtime.sendMessage({
             action: 'deepScanCompleted',
@@ -57,6 +57,6 @@ async function completeScan() {
             }
         });
     } catch (error) {
-        //console.log('通知主扩展失败（可能已关闭），但结果已保存到storage:', error);
+        //console.log('notify主扩展failed（可能already关闭），butresultalready保存tostorage:', error);
     }
 }

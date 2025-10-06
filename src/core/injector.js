@@ -1,9 +1,9 @@
-// injector.js - 在页面上下文中执行的用户脚本注入器
-// 这个文件会被注入到页面中，绕过CSP限制
+// injector.js - inpage面上下文inexecuteuser脚本injection器
+// 这个文件会byinjectiontopage面in，绕throughCSP限制
 
 (async () => {
     try {
-        // 监听来自content script的消息
+        // listenfromcontent scriptmessage
         window.addEventListener('message', async (event) => {
             if (event.source !== window) return;
             
@@ -11,7 +11,7 @@
                 const { scriptContent, scriptId } = event.data;
                 
                 try {
-                    // 使用Blob URL方式注入脚本，绕过CSP限制
+                    // useBlob URL方式injection脚本，绕throughCSP限制
                     const blob = new Blob([scriptContent], { type: 'application/javascript' });
                     const url = URL.createObjectURL(blob);
                     
@@ -21,31 +21,31 @@
                     
                     script.onload = () => {
                         URL.revokeObjectURL(url);
-                        // 通知注入成功
+                        // notifyinjectionsuccess
                         window.postMessage({
                             type: 'PHANTOM_SCRIPT_INJECTED',
                             scriptId: scriptId,
                             success: true,
-                            message: '脚本注入成功'
+                            message: '脚本injectionsuccess'
                         }, '*');
                     };
                     
                     script.onerror = () => {
                         URL.revokeObjectURL(url);
-                        // 通知注入失败
+                        // notifyinjectionfailed
                         window.postMessage({
                             type: 'PHANTOM_SCRIPT_INJECTED',
                             scriptId: scriptId,
                             success: false,
-                            message: '脚本加载失败'
+                            message: '脚本loadfailed'
                         }, '*');
                     };
                     
-                    // 添加到页面
+                    // addtopage面
                     (document.head || document.documentElement).appendChild(script);
                     
                 } catch (error) {
-                    // 通知注入失败
+                    // notifyinjectionfailed
                     window.postMessage({
                         type: 'PHANTOM_SCRIPT_INJECTED',
                         scriptId: scriptId,
@@ -56,7 +56,7 @@
             }
         });
         
-        // 通知injector已准备就绪
+        // notifyinjectoralready准备就绪
         window.postMessage({
             type: 'PHANTOM_INJECTOR_READY'
         }, '*');

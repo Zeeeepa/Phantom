@@ -1,9 +1,9 @@
 // ==========================================================
-// 深度扫描窗口脚本（统一正则版本）
-// 所有正则统一通过 SettingsManager 获取，无任何硬编码
+// deep scan窗口脚本（unifiedregexversion）
+// allregexunified通through SettingsManager get，无任何硬编code
 // ==========================================================
 
-//console.log('🚀 [DEBUG] 深度扫描窗口脚本（统一正则版本）开始加载...');
+//console.log('🚀 [DEBUG] deep scan窗口脚本（unifiedregexversion）startload...');
 
 // -------------------- 全局变量 --------------------
 let scanConfig         = null;
@@ -15,15 +15,15 @@ let scannedUrls        = new Set();
 let pendingUrls        = new Set();
 let urlContentCache    = new Map();
 let activeRequests     = 0;
-let maxConcurrency     = 4; // 默认值，会从扩展设置中读取
-let requestTimeout     = 3000; // 默认值，会从扩展设置中读取
+let maxConcurrency     = 4; // 默认value，会from扩展settingsinread
+let requestTimeout     = 3000; // 默认value，会from扩展settingsinread
 
-// 日志相关变量 - 优化版本
+// day志相关变量 - 优化version
 let logEntries         = [];
-let maxLogEntries      = 100; // 减少到100条，避免内存占用
-let logBuffer          = []; // 日志缓冲区
+let maxLogEntries      = 100; // reduceto100条，避免内存占for
+let logBuffer          = []; // day志缓冲区
 let logFlushTimer      = null;
-const LOG_FLUSH_INTERVAL = 500; // 500ms批量刷新日志
+const LOG_FLUSH_INTERVAL = 500; // 500ms批量刷newday志
 
 // 筛选器实例
 let apiFilter          = null;
@@ -35,9 +35,9 @@ let patternExtractor   = null;
 let updateQueue        = [];
 let isUpdating         = false;
 let lastUpdateTime     = 0;
-const UPDATE_THROTTLE  = 300; // 🚀 增加到300ms节流，减少更新频率
+const UPDATE_THROTTLE  = 300; // 🚀 addto300ms节流，reduce更new频率
 let pendingResults     = {};
-let batchSize          = 15; // 🚀 增加批量处理大小
+let batchSize          = 15; // 🚀 add批量处理大小
 let updateTimer        = null;
 let displayUpdateCount = 0;
 
@@ -49,29 +49,29 @@ const MEMORY_CLEANUP_INTERVAL = 30000; // 30秒清理一次内存
 
 // 🚀 内存清理函数
 function performMemoryCleanup() {
-    //console.log('🧹 执行内存清理...');
+    //console.log('🧹 execute内存清理...');
     
-    // 清理URL内容缓存，只保留最近的50个
+    // 清理URL内容缓存，只keep最近50个
     if (urlContentCache.size > 50) {
         const entries = Array.from(urlContentCache.entries());
         const toKeep = entries.slice(-50);
         urlContentCache.clear();
         toKeep.forEach(([key, value]) => urlContentCache.set(key, value));
-        //console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
+        //console.log(`🧹 清理URL缓存，keep ${toKeep.length} 个条目`);
     }
     
-    // 清理日志缓冲区
+    // 清理day志缓冲区
     if (logBuffer && logBuffer.length > 0) {
         flushLogBuffer();
     }
     
-    // 强制垃圾回收（如果可用）
+    // 强制垃圾回收（if可for）
     if (window.gc) {
         window.gc();
     }
 }
 
-// 启动内存清理定时器
+// start内存清理定时器
 function startMemoryCleanup() {
     if (memoryCleanupTimer) {
         clearInterval(memoryCleanupTimer);
@@ -107,38 +107,38 @@ function loadScript(src) {
     });
 }
 
-// -------------------- 统一筛选器加载 --------------------
+// -------------------- unified筛选器load --------------------
 async function loadFilters() {
-    //console.log('🔍 [DEBUG] 开始加载统一筛选器...');
+    //console.log('🔍 [DEBUG] startloadunified筛选器...');
 
     try {
-        // 加载 SettingsManager（必须）
+        // load SettingsManager（必须）
         if (typeof window.SettingsManager === 'undefined') {
             await loadScript('src/utils/SettingsManager.js');
         }
 
-        // 加载 PatternExtractor（必须）
+        // load PatternExtractor（必须）
         if (typeof window.PatternExtractor === 'undefined') {
             await loadScript('src/scanner/PatternExtractor.js');
         }
 
-        // 等待脚本解析
+        // wait脚本解析
         await new Promise(r => setTimeout(r, 100));
 
         // 实例化
         if (typeof window.PatternExtractor === 'undefined') {
-            throw new Error('PatternExtractor 未加载成功');
+            throw new Error('PatternExtractor 未loadsuccess');
         }
         patternExtractor = new window.PatternExtractor();
 
-        // 强制加载自定义正则
+        // 强制loadcustomregex
         if (typeof patternExtractor.ensureCustomPatternsLoaded === 'function') {
             patternExtractor.ensureCustomPatternsLoaded();
         }
 
-        // 监听设置页正则更新
+        // listensettingspageregex更new
         window.addEventListener('regexConfigUpdated', (e) => {
-            //console.log('🔄 [DEBUG] 收到正则配置更新事件');
+            //console.log('🔄 [DEBUG] receivedregexconfiguration更newevent');
             if (patternExtractor?.updatePatterns) {
                 patternExtractor.updatePatterns(e.detail);
             } else if (patternExtractor?.loadCustomPatterns) {
@@ -147,30 +147,30 @@ async function loadFilters() {
         });
 
         filtersLoaded = true;
-        //console.log('✅ [DEBUG] 统一筛选器加载完毕');
+        //console.log('✅ [DEBUG] unified筛选器load完毕');
     } catch (err) {
-        console.error('❌ [DEBUG] 筛选器加载失败:', err);
+        console.error('❌ [DEBUG] 筛选器loadfailed:', err);
         filtersLoaded = false;
     }
 }
 
-// -------------------- 统一内容提取 --------------------
+// -------------------- unified内容extract --------------------
 async function extractFromContent(content, sourceUrl = 'unknown') {
-    //console.log('🔍 [DEBUG] 开始统一内容提取...');
+    //console.log('🔍 [DEBUG] startunified内容extract...');
 
     if (!patternExtractor || typeof patternExtractor.extractPatterns !== 'function') {
-        throw new Error('PatternExtractor.extractPatterns 不可用');
+        throw new Error('PatternExtractor.extractPatterns not可for');
     }
 
-    // 确保配置已加载
+    // 确保configurationalreadyload
     if (typeof patternExtractor.ensureCustomPatternsLoaded === 'function') {
         await patternExtractor.ensureCustomPatternsLoaded();
     }
 
-    // 使用统一入口提取
+    // useunified入口extract
     const results = await patternExtractor.extractPatterns(content, sourceUrl);
 
-    // 🔥 修复：使用 IndexedDB 数据进行智能相对路径解析
+    // 🔥 fix：use IndexedDB data进行智能相对路径解析
     await enhanceRelativePathsWithIndexedDB(results, sourceUrl);
 
     return results;
@@ -178,79 +178,79 @@ async function extractFromContent(content, sourceUrl = 'unknown') {
 
 // -------------------- 智能相对路径解析 --------------------
 async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
-    console.log('🔍 [DEBUG] 开始智能相对路径解析，当前源URL:', currentSourceUrl);
+    console.log('🔍 [DEBUG] start智能相对路径解析，当before源URL:', currentSourceUrl);
     
     if (!results.relativeApis || results.relativeApis.length === 0) {
-        console.log('⚠️ 没有相对路径API需要解析');
+        console.log('⚠️ without相对路径APIrequire解析');
         return;
     }
     
     try {
-        // 🔥 修复：严格按照IndexedDB数据获取提取来源路径
+        // 🔥 fix：严格按照IndexedDBdatagetextract来源路径
         const baseUrl = scanConfig?.baseUrl || window.location.origin;
-        console.log('🔍 [DEBUG] 基础URL:', baseUrl);
+        console.log('🔍 [DEBUG] basicURL:', baseUrl);
         
-        // 获取所有扫描结果数据，包括深度扫描结果
+        // getallscanresultdata，includingdeep scanresult
         let allScanData = [];
         
-        // 方法1：尝试获取当前域名的扫描结果
+        // 方法1：尝试get当beforedomainscanresult
         try {
             const currentScanData = await window.IndexedDBManager.loadScanResults(baseUrl);
             if (currentScanData && currentScanData.results) {
                 allScanData.push(currentScanData);
-                console.log('✅ [DEBUG] 获取到当前域名扫描结果');
+                console.log('✅ [DEBUG] getto当beforedomainscanresult');
             }
         } catch (e) {
-            console.warn('⚠️ 获取当前域名扫描结果失败:', e);
+            console.warn('⚠️ get当beforedomainscanresultfailed:', e);
         }
         
-        // 方法2：获取所有扫描结果作为备选
+        // 方法2：getallscanresult作为备选
         try {
             const allResults = await window.IndexedDBManager.getAllScanResults();
             if (allResults && Array.isArray(allResults)) {
                 allScanData = allScanData.concat(allResults);
-                console.log('✅ [DEBUG] 获取到所有扫描结果，共', allResults.length, '个');
+                console.log('✅ [DEBUG] gettoallscanresult，共', allResults.length, '个');
             }
         } catch (e) {
-            console.warn('⚠️ 获取所有扫描结果失败:', e);
+            console.warn('⚠️ getallscanresultfailed:', e);
         }
         
         if (allScanData.length === 0) {
-            console.log('⚠️ 未找到任何 IndexedDB 数据，使用传统拼接方式');
+            console.log('⚠️ 未found任何 IndexedDB data，use传统拼接方式');
             return;
         }
         
-        // 🔥 修复：严格按照IndexedDB中每个数据项的sourceUrl进行路径解析
+        // 🔥 fix：严格按照IndexedDBin每个data项sourceUrl进行路径解析
         const sourceUrlToBasePath = new Map();
-        const itemToSourceUrlMap = new Map(); // 新增：建立数据项到sourceUrl的映射
+        const itemToSourceUrlMap = new Map(); // new增：建立data项tosourceUrl映射
         
-        console.log('🔍 [DEBUG] 开始分析IndexedDB数据，共', allScanData.length, '个数据源');
+        console.log('🔍 [DEBUG] start分析IndexedDBdata，共', allScanData.length, '个data源');
         
-        // 遍历所有扫描数据，建立完整的映射关系
+        // 遍历allscandata，建立complete映射关系
         allScanData.forEach((scanData, dataIndex) => {
             if (!scanData.results) return;
             
-            console.log(`🔍 [DEBUG] 分析数据源 ${dataIndex + 1}:`, {
+            console.log(`🔍 [DEBUG] 分析data源 ${dataIndex + 1}:`, {
                 url: scanData.url,
                 sourceUrl: scanData.sourceUrl,
                 domain: scanData.domain,
                 pageTitle: scanData.pageTitle
             });
             
-            // 遍历所有类型的数据
+            // 遍历allclass型data
             Object.entries(scanData.results).forEach(([category, items]) => {
                 if (!Array.isArray(items)) return;
                 
                 items.forEach(item => {
                     if (typeof item === 'object' && item !== null && item.sourceUrl) {
-                        // 🔥 关键修复：使用数据项自己的sourceUrl
+                        // 🔥 关键fix：usedata项自己sourceUrl
                         const itemSourceUrl = item.sourceUrl;
                         const itemValue = item.value || item.text || item.content;
                         
                         if (itemValue && itemSourceUrl) {
                             try {
                                 const sourceUrlObj = new URL(itemSourceUrl);
-                                // 提取基础路径（去掉文件名）
+                                // extractbasic路径（remove文件名）
                                 const basePath = sourceUrlObj.pathname.substring(0, sourceUrlObj.pathname.lastIndexOf('/') + 1);
                                 const fullBasePath = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
                                 
@@ -259,11 +259,11 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                                 
                                 console.log(`📋 [DEBUG] 映射建立: "${itemValue}" -> "${itemSourceUrl}" -> "${fullBasePath}"`);
                             } catch (e) {
-                                console.warn('⚠️ 无效的sourceUrl:', itemSourceUrl, e);
+                                console.warn('⚠️ 无效sourceUrl:', itemSourceUrl, e);
                             }
                         }
                     } else if (typeof item === 'string') {
-                        // 对于字符串格式的数据，使用扫描结果的sourceUrl
+                        // 对于字符串formatdata，usescanresultsourceUrl
                         const fallbackSourceUrl = scanData.sourceUrl || scanData.url;
                         if (fallbackSourceUrl) {
                             try {
@@ -276,7 +276,7 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                                 
                                 console.log(`📋 [DEBUG] 备选映射: "${item}" -> "${fallbackSourceUrl}" -> "${fullBasePath}"`);
                             } catch (e) {
-                                console.warn('⚠️ 无效的备选sourceUrl:', fallbackSourceUrl, e);
+                                console.warn('⚠️ 无效备选sourceUrl:', fallbackSourceUrl, e);
                             }
                         }
                     }
@@ -284,12 +284,12 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
             });
         });
         
-        console.log('📊 [DEBUG] 映射建立完成:', {
+        console.log('📊 [DEBUG] 映射建立complete:', {
             sourceUrlToBasePath: sourceUrlToBasePath.size,
             itemToSourceUrlMap: itemToSourceUrlMap.size
         });
         
-        // 🔥 修复：严格按照每个相对路径API的来源进行解析
+        // 🔥 fix：严格按照每个相对路径API来源进行解析
         const enhancedRelativeApis = [];
         
         for (const apiItem of results.relativeApis) {
@@ -301,26 +301,26 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
             let resolvedUrl = null;
             let usedSourceUrl = null;
             
-            // 🔥 方法1：严格按照数据项的sourceUrl进行解析
+            // 🔥 方法1：严格按照data项sourceUrl进行解析
             if (itemToSourceUrlMap.has(apiValue)) {
                 const exactSourceUrl = itemToSourceUrlMap.get(apiValue);
                 if (sourceUrlToBasePath.has(exactSourceUrl)) {
                     const basePath = sourceUrlToBasePath.get(exactSourceUrl);
                     resolvedUrl = resolveRelativePath(apiValue, basePath);
                     usedSourceUrl = exactSourceUrl;
-                    console.log('✅ [精确匹配] 找到数据项的确切来源:', apiValue, '->', resolvedUrl, '(源:', exactSourceUrl, ')');
+                    console.log('✅ [精确match] founddata项确切来源:', apiValue, '->', resolvedUrl, '(源:', exactSourceUrl, ')');
                 }
             }
             
-            // 🔥 方法2：如果精确匹配失败，使用API项目自带的sourceUrl
+            // 🔥 方法2：if精确matchfailed，useAPI项目自带sourceUrl
             if (!resolvedUrl && apiSourceUrl && sourceUrlToBasePath.has(apiSourceUrl)) {
                 const basePath = sourceUrlToBasePath.get(apiSourceUrl);
                 resolvedUrl = resolveRelativePath(apiValue, basePath);
                 usedSourceUrl = apiSourceUrl;
-                console.log('✅ [直接匹配] 使用API项目的sourceUrl:', apiValue, '->', resolvedUrl, '(源:', apiSourceUrl, ')');
+                console.log('✅ [directlymatch] useAPI项目sourceUrl:', apiValue, '->', resolvedUrl, '(源:', apiSourceUrl, ')');
             }
             
-            // 🔥 方法3：如果还是失败，尝试查找相似的源URL（域名匹配）
+            // 🔥 方法3：if还是failed，尝试查找相似源URL（domainmatch）
             if (!resolvedUrl && sourceUrlToBasePath.size > 0) {
                 const targetDomain = baseUrl ? new URL(baseUrl).hostname : null;
                 
@@ -332,7 +332,7 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                             if (testUrl) {
                                 resolvedUrl = testUrl;
                                 usedSourceUrl = sourceUrl;
-                                console.log('✅ [域名匹配] 找到同域名的源URL:', apiValue, '->', resolvedUrl, '(源:', sourceUrl, ')');
+                                console.log('✅ [domainmatch] found同domain源URL:', apiValue, '->', resolvedUrl, '(源:', sourceUrl, ')');
                                 break;
                             }
                         }
@@ -342,11 +342,11 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                 }
             }
             
-            // 🔥 方法4：最后的备选方案，使用基础URL拼接
+            // 🔥 方法4：最后备选方案，usebasicURL拼接
             if (!resolvedUrl) {
                 try {
                     if (apiValue.startsWith('./')) {
-                        resolvedUrl = baseUrl + apiValue.substring(1); // 去掉.，保留/
+                        resolvedUrl = baseUrl + apiValue.substring(1); // remove.，keep/
                     } else if (apiValue.startsWith('../')) {
                         // 简单处理上级目录
                         const upLevels = (apiValue.match(/\.\.\//g) || []).length;
@@ -354,7 +354,7 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                         const baseUrlObj = new URL(baseUrl);
                         const pathParts = baseUrlObj.pathname.split('/').filter(p => p);
                         
-                        // 向上移动指定层级
+                        // 向上mobile指定层级
                         for (let i = 0; i < upLevels && pathParts.length > 0; i++) {
                             pathParts.pop();
                         }
@@ -366,24 +366,24 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                         resolvedUrl = apiValue;
                     }
                     
-                    // 清理多余的斜杠
+                    // 清理多余斜杠
                     resolvedUrl = resolvedUrl.replace(/\/+/g, '/').replace(':/', '://');
                     usedSourceUrl = baseUrl;
                     
-                    console.log('🔄 [备选解析] 使用基础URL拼接:', apiValue, '->', resolvedUrl);
+                    console.log('🔄 [备选解析] usebasicURL拼接:', apiValue, '->', resolvedUrl);
                 } catch (e) {
-                    resolvedUrl = apiValue; // 保持原值
+                    resolvedUrl = apiValue; // keep原value
                     usedSourceUrl = currentSourceUrl;
-                    console.warn('⚠️ [解析失败] 保持原值:', apiValue, e.message);
+                    console.warn('⚠️ [解析failed] keep原value:', apiValue, e.message);
                 }
             }
             
-            // 保持原始格式，添加解析后的 URL 和实际使用的源URL
+            // keep原始format，add解析后 URL and实际use源URL
             if (typeof apiItem === 'object') {
                 enhancedRelativeApis.push({
                     ...apiItem,
                     resolvedUrl: resolvedUrl,
-                    actualSourceUrl: usedSourceUrl || apiItem.sourceUrl // 记录实际使用的源URL
+                    actualSourceUrl: usedSourceUrl || apiItem.sourceUrl // record实际use源URL
                 });
             } else {
                 enhancedRelativeApis.push({
@@ -395,10 +395,10 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
             }
         }
         
-        // 更新结果
+        // 更newresult
         results.relativeApis = enhancedRelativeApis;
         
-        console.log('✅ [智能解析] 相对路径解析完成，处理了', enhancedRelativeApis.length, '个相对路径');
+        console.log('✅ [智能解析] 相对路径解析complete，处理了', enhancedRelativeApis.length, '个相对路径');
         console.log('📊 [智能解析] 解析统计:', {
             总数: enhancedRelativeApis.length,
             成功解析: enhancedRelativeApis.filter(item => item.resolvedUrl && item.resolvedUrl !== item.value).length,
@@ -406,8 +406,8 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
         });
         
     } catch (error) {
-        console.error('❌ 智能相对路径解析失败:', error);
-        // 出错时保持原始数据不变
+        console.error('❌ 智能相对路径解析failed:', error);
+        // 出错时keep原始datanot变
     }
 }
 
@@ -415,13 +415,13 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
 function resolveRelativePath(relativePath, basePath) {
     try {
         if (!relativePath || !basePath) {
-            console.warn('⚠️ 相对路径解析参数无效:', { relativePath, basePath });
+            console.warn('⚠️ 相对路径解析parameter无效:', { relativePath, basePath });
             return null;
         }
         
-        console.log(`🔧 [解析] 开始解析相对路径: "${relativePath}" 基于 "${basePath}"`);
+        console.log(`🔧 [解析] start解析相对路径: "${relativePath}" 基于 "${basePath}"`);
         
-        // 确保basePath以/结尾
+        // 确保basePath以/ending
         if (!basePath.endsWith('/')) {
             basePath += '/';
         }
@@ -429,11 +429,11 @@ function resolveRelativePath(relativePath, basePath) {
         let resolvedPath;
         
         if (relativePath.startsWith('./')) {
-            // 当前目录：./file.js -> basePath + file.js
+            // 当before目录：./file.js -> basePath + file.js
             resolvedPath = basePath + relativePath.substring(2);
-            console.log(`🔧 [解析] 当前目录解析: "${relativePath}" -> "${resolvedPath}"`);
+            console.log(`🔧 [解析] 当before目录解析: "${relativePath}" -> "${resolvedPath}"`);
         } else if (relativePath.startsWith('../')) {
-            // 上级目录：../file.js -> 需要处理路径层级
+            // 上级目录：../file.js -> require处理路径层级
             const upLevels = (relativePath.match(/\.\.\//g) || []).length;
             const remainingPath = relativePath.replace(/\.\.\//g, '');
             
@@ -443,19 +443,19 @@ function resolveRelativePath(relativePath, basePath) {
                 const baseUrlObj = new URL(basePath);
                 const pathParts = baseUrlObj.pathname.split('/').filter(p => p);
                 
-                console.log(`🔧 [解析] 基础路径部分:`, pathParts);
+                console.log(`🔧 [解析] basic路径部分:`, pathParts);
                 
-                // 向上移动指定层级
+                // 向上mobile指定层级
                 for (let i = 0; i < upLevels && pathParts.length > 0; i++) {
                     pathParts.pop();
                 }
                 
-                console.log(`🔧 [解析] 向上移动后路径部分:`, pathParts);
+                console.log(`🔧 [解析] 向上mobile后路径部分:`, pathParts);
                 
                 resolvedPath = `${baseUrlObj.protocol}//${baseUrlObj.host}/${pathParts.join('/')}${pathParts.length > 0 ? '/' : ''}${remainingPath}`;
                 console.log(`🔧 [解析] 上级目录最终解析: "${relativePath}" -> "${resolvedPath}"`);
             } catch (e) {
-                console.warn('⚠️ 上级目录解析失败，使用简单方法:', e);
+                console.warn('⚠️ 上级目录解析failed，use简单方法:', e);
                 // 简单处理方式
                 const baseUrl = basePath.split('/').slice(0, 3).join('/'); // protocol://host
                 resolvedPath = baseUrl + '/' + remainingPath;
@@ -465,47 +465,47 @@ function resolveRelativePath(relativePath, basePath) {
             resolvedPath = basePath + relativePath;
             console.log(`🔧 [解析] 相对路径解析: "${relativePath}" -> "${resolvedPath}"`);
         } else {
-            // 已经是绝对路径
+            // already经是绝对路径
             resolvedPath = relativePath;
-            console.log(`🔧 [解析] 已是绝对路径: "${relativePath}"`);
+            console.log(`🔧 [解析] already是绝对路径: "${relativePath}"`);
         }
         
-        // 清理多余的斜杠
+        // 清理多余斜杠
         const cleanedPath = resolvedPath.replace(/\/+/g, '/').replace(':/', '://');
         
         if (cleanedPath !== resolvedPath) {
             console.log(`🔧 [解析] 路径清理: "${resolvedPath}" -> "${cleanedPath}"`);
         }
         
-        console.log(`✅ [解析] 相对路径解析完成: "${relativePath}" -> "${cleanedPath}"`);
+        console.log(`✅ [解析] 相对路径解析complete: "${relativePath}" -> "${cleanedPath}"`);
         return cleanedPath;
         
     } catch (error) {
-        console.warn('❌ 相对路径解析失败:', error, { relativePath, basePath });
+        console.warn('❌ 相对路径解析failed:', error, { relativePath, basePath });
         return null;
     }
 }
 
-// -------------------- 传统结果处理（备用） --------------------
+// -------------------- 传统result处理（备for） --------------------
 function convertRelativeApisToAbsolute(results) {
-    // 🔥 修复：完全移除自动转换逻辑，保持绝对路径API和相对路径API的独立性
-    // 不再将相对路径API自动转换并添加到绝对路径API中
-    // 这样可以避免意外添加不符合绝对路径API正则要求的数据
+    // 🔥 fix：完全移除automaticconvert逻辑，keep绝对路径APIand相对路径API独立性
+    // not再将相对路径APIautomaticconvertandaddto绝对路径APIin
+    // 这样可以避免意外addnot符合绝对路径APIregex要求data
     
-    //console.log('🔍 [DEBUG] API转换完成（已禁用自动转换）:');
-    //console.log('  - 保留的相对路径API:', results.relativeApis?.length || 0, '个');
-    //console.log('  - 保留的绝对路径API:', results.absoluteApis?.length || 0, '个');
+    //console.log('🔍 [DEBUG] APIconvertcomplete（already禁forautomaticconvert）:');
+    //console.log('  - keep相对路径API:', results.relativeApis?.length || 0, '个');
+    //console.log('  - keep绝对路径API:', results.absoluteApis?.length || 0, '个');
     
-    // 如果需要转换功能，应该在PatternExtractor中通过正则表达式来实现
-    // 而不是在这里进行强制转换
+    // ifrequireconvert功能，应该inPatternExtractorin通throughregexexpression来实现
+    // 而not是in这里进行强制convert
 }
 
 // -------------------- 性能优化函数 --------------------
-// 节流更新显示
+// 节流更new显示
 function throttledUpdateDisplay() {
     const now = Date.now();
     if (now - lastUpdateTime < UPDATE_THROTTLE) {
-        // 如果距离上次更新时间太短，延迟更新
+        // if距离上次更new时间太短，延迟更new
         if (updateTimer) {
             clearTimeout(updateTimer);
         }
@@ -518,7 +518,7 @@ function throttledUpdateDisplay() {
     performDisplayUpdate();
 }
 
-// 执行显示更新
+// execute显示更new
 function performDisplayUpdate() {
     if (isUpdating) return;
     
@@ -527,32 +527,32 @@ function performDisplayUpdate() {
     displayUpdateCount++;
     
     try {
-        // 使用 requestAnimationFrame 确保在下一帧更新
+        // use requestAnimationFrame 确保in下一帧更new
         requestAnimationFrame(() => {
             updateResultsDisplay();
             updateStatusDisplay();
             isUpdating = false;
         });
     } catch (error) {
-        console.error('显示更新失败:', error);
+        console.error('显示更newfailed:', error);
         isUpdating = false;
     }
 }
 
-// 批量处理结果合并
+// 批量处理result合and
 function batchMergeResults(newResults) {
     let hasNewData = false;
     
-    // 将新结果添加到待处理队列
+    // 将newresultaddto待处理队列
     Object.keys(newResults).forEach(key => {
         if (!pendingResults[key]) {
-            pendingResults[key] = new Map(); // 使用Map来存储对象，以value为键避免重复
+            pendingResults[key] = new Map(); // useMap来storageobject，以value为键避免重复
         }
         
         if (Array.isArray(newResults[key])) {
             newResults[key].forEach(item => {
                 if (item) {
-                    // 处理结构化对象（带sourceUrl）和简单字符串
+                    // 处理结构化object（带sourceUrl）and简单字符串
                     const itemKey = typeof item === 'object' ? item.value : item;
                     const itemData = typeof item === 'object' ? item : { value: item, sourceUrl: 'unknown' };
                     
@@ -565,7 +565,7 @@ function batchMergeResults(newResults) {
         }
     });
     
-    // 如果有新数据，触发节流更新
+    // if有newdata，触发节流更new
     if (hasNewData) {
         throttledUpdateDisplay();
     }
@@ -573,21 +573,21 @@ function batchMergeResults(newResults) {
     return hasNewData;
 }
 
-// 将待处理结果合并到主结果中
+// 将待处理result合andto主resultin
 function flushPendingResults() {
     Object.keys(pendingResults).forEach(key => {
         if (!scanResults[key]) {
             scanResults[key] = [];
         }
         
-        // 创建现有结果的键集合，用于去重
+        // create现有result键集合，for去重
         const existingKeys = new Set();
         scanResults[key].forEach(item => {
             const itemKey = typeof item === 'object' ? item.value : item;
             existingKeys.add(itemKey);
         });
         
-        // 添加新的结果项
+        // addnewresult项
         pendingResults[key].forEach((itemData, itemKey) => {
             if (!existingKeys.has(itemKey)) {
                 scanResults[key].push(itemData);
@@ -599,48 +599,48 @@ function flushPendingResults() {
     });
 }
 
-// -------------------- 页面初始化 --------------------
+// -------------------- page面initialize --------------------
 async function initializePage() {
-    //console.log('🔍 [DEBUG] 页面初始化中...');
+    //console.log('🔍 [DEBUG] page面initializein...');
 
     if (typeof chrome === 'undefined' || !chrome.storage) {
-        console.error('❌ Chrome扩展API不可用');
+        console.error('❌ Chrome扩展APInot可for');
         return;
     }
 
     await loadFilters();
 
     try {
-        // 获取baseUrl（从扫描配置中的baseUrl或当前窗口的opener）
+        // getbaseUrl（fromscanconfigurationinbaseUrlor当before窗口opener）
         let baseUrl = '';
         if (window.opener) {
             try {
-                // 尝试从opener窗口获取URL
+                // 尝试fromopener窗口getURL
                 baseUrl = window.opener.location.origin;
             } catch (e) {
-                // 如果跨域访问失败，使用默认方式
-                console.warn('无法从opener获取URL，使用默认方式');
+                // if跨域访问failed，use默认方式
+                console.warn('无法fromopenergetURL，use默认方式');
             }
         }
         
-        // 从IndexedDB加载深度扫描配置
+        // fromIndexedDBloaddeep scanconfiguration
         let deepScanConfig = null;
         if (baseUrl) {
             deepScanConfig = await window.IndexedDBManager.loadDeepScanState(baseUrl);
         }
         
-        // 如果没有找到配置，尝试获取所有可用的配置
+        // ifwithoutfoundconfiguration，尝试getall可forconfiguration
         if (!deepScanConfig) {
-            console.warn('⚠️ 未找到指定URL的扫描配置，尝试获取所有可用配置...');
+            console.warn('⚠️ 未found指定URLscanconfiguration，尝试getall可forconfiguration...');
             const allConfigs = await window.IndexedDBManager.getAllDeepScanStates();
             if (allConfigs && allConfigs.length > 0) {
-                // 使用最新的配置
+                // use最newconfiguration
                 deepScanConfig = allConfigs[allConfigs.length - 1];
-                console.log('✅ 找到可用配置:', deepScanConfig.baseUrl);
+                console.log('✅ found可forconfiguration:', deepScanConfig.baseUrl);
             }
         }
         
-        if (!deepScanConfig) throw new Error('未找到扫描配置');
+        if (!deepScanConfig) throw new Error('未foundscanconfiguration');
         scanConfig = deepScanConfig;
 
         maxConcurrency = scanConfig.concurrency || 8;
@@ -649,17 +649,17 @@ async function initializePage() {
         updateConfigDisplay();
         initializeScanResults();
     } catch (err) {
-        console.error('❌ 初始化失败:', err);
+        console.error('❌ initializefailed:', err);
     }
 
-    // 绑定按钮事件
+    // 绑定buttonevent
     document.getElementById('startBtn')?.addEventListener('click', startScan);
     document.getElementById('pauseBtn')?.addEventListener('click', pauseScan);
     document.getElementById('stopBtn')?.addEventListener('click', stopScan);
     document.getElementById('exportBtn')?.addEventListener('click', exportResults);
     document.getElementById('toggleAllBtn')?.addEventListener('click', toggleAllCategories);
     
-    // 🚀 添加滚动优化：检测用户是否在滚动
+    // 🚀 add滚动优化：detectuser是否in滚动
     const logSection = document.getElementById('logSection');
     if (logSection) {
         let scrollTimeout;
@@ -668,15 +668,15 @@ async function initializePage() {
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
                 logSection.isUserScrolling = false;
-            }, 1000); // 1秒后认为用户停止滚动
+            }, 1000); // 1秒后认为user停止滚动
         });
         
         // 🚀 优化滚动性能
         logSection.style.willChange = 'scroll-position';
-        logSection.style.transform = 'translateZ(0)'; // 启用硬件加速
+        logSection.style.transform = 'translateZ(0)'; // 启for硬件加速
     }
 
-    // 监听扩展消息
+    // listen扩展message
     chrome.runtime.onMessage.addListener((msg, sender, reply) => {
         if (msg.action === 'stopDeepScan') {
             stopScan();
@@ -684,11 +684,11 @@ async function initializePage() {
         }
     });
 
-    // 自动开始
+    // automaticstart
     setTimeout(startScan, 1000);
 }
 
-// -------------------- 配置显示 --------------------
+// -------------------- configuration显示 --------------------
 function updateConfigDisplay() {
     if (!scanConfig) return;
 
@@ -698,14 +698,14 @@ function updateConfigDisplay() {
     
     const scanTypes = [];
     if (scanConfig.scanJsFiles) scanTypes.push('JS文件');
-    if (scanConfig.scanHtmlFiles) scanTypes.push('HTML页面');
+    if (scanConfig.scanHtmlFiles) scanTypes.push('HTMLpage面');
     if (scanConfig.scanApiFiles) scanTypes.push('API接口');
     
     document.getElementById('scanTypesDisplay').textContent = scanTypes.join(', ') || '全部';
     document.getElementById('scanInfo').textContent = `目标: ${scanConfig.baseUrl}`;
 }
 
-// -------------------- 扫描结果初始化 --------------------
+// -------------------- scanresultinitialize --------------------
 function initializeScanResults() {
     scanResults = {
         absoluteApis: [],
@@ -744,11 +744,11 @@ function initializeScanResults() {
     };
 }
 
-// -------------------- 扫描控制 --------------------
+// -------------------- scan控制 --------------------
 async function startScan() {
     if (isScanRunning) return;
     
-    //console.log('🚀 [DEBUG] 开始深度扫描...');
+    //console.log('🚀 [DEBUG] startdeep scan...');
     isScanRunning = true;
     isPaused = false;
     currentDepth = 0;
@@ -756,42 +756,42 @@ async function startScan() {
     pendingUrls.clear();
     urlContentCache.clear();
     
-    // 更新UI状态
+    // 更newUIstate
     updateButtonStates();
     updateStatusDisplay();
     
-    // 隐藏加载提示
+    // 隐藏load提示
     document.getElementById('loadingDiv').style.display = 'none';
     
     try {
-        // 收集初始URL
+        // 收集initialURL
         const initialUrls = await collectInitialUrls();
-        //console.log(`📋 [DEBUG] 收集到 ${initialUrls.length} 个初始URL`);
-        addLogEntry(`📋 收集到 ${initialUrls.length} 个初始扫描URL`, 'info');
+        //console.log(`📋 [DEBUG] 收集to ${initialUrls.length} 个initialURL`);
+        addLogEntry(`📋 收集to ${initialUrls.length} 个initialscanURL`, 'info');
         
         if (initialUrls.length === 0) {
-            addLogEntry('⚠️ 没有找到可扫描的URL', 'warning');
+            addLogEntry('⚠️ withoutfound可scanURL', 'warning');
             return;
         }
         
-        // 🔥 记录初始URL列表（前几个）
+        // 🔥 recordinitialURL列表（before几个）
         if (initialUrls.length > 0) {
             const urlsToShow = initialUrls.slice(0, 5);
-            addLogEntry(`🎯 初始扫描目标: ${urlsToShow.join(', ')}${initialUrls.length > 5 ? ` 等${initialUrls.length}个URL` : ''}`, 'info');
+            addLogEntry(`🎯 initialscan目标: ${urlsToShow.join(', ')}${initialUrls.length > 5 ? ` 等${initialUrls.length}个URL` : ''}`, 'info');
         }
         
-        // 记录扫描配置
-        addLogEntry(`⚙️ 扫描配置 - 最大深度: ${scanConfig.maxDepth}, 并发数: ${scanConfig.concurrency}, 超时: ${scanConfig.timeout}ms`, 'info');
+        // recordscanconfiguration
+        addLogEntry(`⚙️ scanconfiguration - 最大deep: ${scanConfig.maxDepth}, and发数: ${scanConfig.concurrency}, 超时: ${scanConfig.timeout}ms`, 'info');
         
-        // 开始分层扫描
+        // start分层scan
         await performLayeredScan(initialUrls);
         
-        // 完成扫描
+        // completescan
         completeScan();
         
     } catch (error) {
-        console.error('❌ 扫描失败:', error);
-        addLogEntry(`❌ 扫描失败: ${error.message}`, 'error');
+        console.error('❌ scanfailed:', error);
+        addLogEntry(`❌ scanfailed: ${error.message}`, 'error');
     } finally {
         isScanRunning = false;
         updateButtonStates();
@@ -801,42 +801,42 @@ async function startScan() {
 function pauseScan() {
     isPaused = !isPaused;
     const pauseBtn = document.getElementById('pauseBtn');
-    pauseBtn.textContent = isPaused ? '继续扫描' : '暂停扫描';
+    pauseBtn.textContent = isPaused ? '继续scan' : '暂停scan';
     
     if (isPaused) {
-        addLogEntry('⏸️ 扫描已暂停', 'warning');
-        addLogEntry(`📊 暂停时状态: 已扫描${scannedUrls.size}个URL，当前深度${currentDepth}`, 'info');
+        addLogEntry('⏸️ scanalready暂停', 'warning');
+        addLogEntry(`📊 暂停时state: alreadyscan${scannedUrls.size}个URL，当beforedeep${currentDepth}`, 'info');
     } else {
-        addLogEntry('▶️ 扫描已继续', 'success');
+        addLogEntry('▶️ scanalready继续', 'success');
     }
 }
 
 function stopScan() {
     isScanRunning = false;
     isPaused = false;
-    addLogEntry('⏹️ 用户手动停止扫描', 'warning');
-    addLogEntry(`📊 停止时状态: 已扫描${scannedUrls.size}个URL，当前深度${currentDepth}`, 'info');
+    addLogEntry('⏹️ user手动停止scan', 'warning');
+    addLogEntry(`📊 停止时state: alreadyscan${scannedUrls.size}个URL，当beforedeep${currentDepth}`, 'info');
     updateButtonStates();
     completeScan();
 }
 
-// -------------------- 初始URL收集 --------------------
+// -------------------- initialURL收集 --------------------
 async function collectInitialUrls() {
-    //console.log('📋 [DEBUG] 开始收集初始URL - 从普通扫描结果中获取');
+    //console.log('📋 [DEBUG] start收集initialURL - from普通scanresultinget');
     
     const urls = new Set();
     
     try {
-        // 从深度扫描配置中获取普通扫描的结果
+        // fromdeep scanconfigurationinget普通scanresult
         if (!scanConfig.initialResults) {
-            console.warn('⚠️ 深度扫描配置中未找到普通扫描结果，将扫描当前页面');
+            console.warn('⚠️ deep scanconfigurationin未found普通scanresult，将scan当beforepage面');
             urls.add(scanConfig.baseUrl);
             return Array.from(urls);
         }
         
         const initialResults = scanConfig.initialResults;
-        //console.log('📊 [DEBUG] 找到普通扫描结果:', Object.keys(initialResults));
-        console.log('📊 [DEBUG] 普通扫描结果统计:', {
+        //console.log('📊 [DEBUG] found普通scanresult:', Object.keys(initialResults));
+        console.log('📊 [DEBUG] 普通scanresult统计:', {
             absoluteApis: initialResults.absoluteApis?.length || 0,
             jsFiles: initialResults.jsFiles?.length || 0,
             urls: initialResults.urls?.length || 0,
@@ -844,95 +844,95 @@ async function collectInitialUrls() {
             emails: initialResults.emails?.length || 0
         });
         
-        // 将普通扫描结果作为深度扫描的起始结果
+        // 将普通scanresult作为deep scan起始result
         Object.keys(initialResults).forEach(key => {
             if (scanResults[key] && Array.isArray(initialResults[key])) {
                 scanResults[key] = [...initialResults[key]];
             }
         });
         
-        // 从普通扫描结果中收集JS文件进行深度扫描
+        // from普通scanresultin收集JS文件进行deep scan
         if (scanConfig.scanJsFiles && initialResults.jsFiles) {
-            //console.log(`📁 [DEBUG] 从普通扫描结果收集JS文件: ${initialResults.jsFiles.length} 个`);
+            //console.log(`📁 [DEBUG] from普通scanresult收集JS文件: ${initialResults.jsFiles.length} 个`);
             for (const jsFile of initialResults.jsFiles) {
-                // 兼容新格式（对象）和旧格式（字符串）
+                // 兼容newformat（object）and旧format（字符串）
                 const url = typeof jsFile === 'object' ? jsFile.value : jsFile;
                 const sourceUrl = typeof urlItem === 'object' ? urlItem.sourceUrl : null;
                 const fullUrl = await resolveUrl(url, scanConfig.baseUrl, sourceUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                     urls.add(fullUrl);
-                    //console.log(`✅ [DEBUG] 添加JS文件: ${fullUrl}`);
+                    //console.log(`✅ [DEBUG] addJS文件: ${fullUrl}`);
                 }
             }
         }
         
-        // 从普通扫描结果中收集HTML页面进行深度扫描
+        // from普通scanresultin收集HTMLpage面进行deep scan
         if (scanConfig.scanHtmlFiles && initialResults.urls) {
-            //console.log(`🌐 [DEBUG] 从普通扫描结果收集URL: ${initialResults.urls.length} 个`);
+            //console.log(`🌐 [DEBUG] from普通scanresult收集URL: ${initialResults.urls.length} 个`);
             for (const urlItem of initialResults.urls) {
-                // 兼容新格式（对象）和旧格式（字符串）
+                // 兼容newformat（object）and旧format（字符串）
                 const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
                 const sourceUrl = typeof urlItem === 'object' ? urlItem.sourceUrl : null;
                 const fullUrl = await resolveUrl(url, scanConfig.baseUrl, sourceUrl);
                 if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl) && isValidPageUrl(fullUrl)) {
                     urls.add(fullUrl);
-                    //console.log(`✅ [DEBUG] 添加页面URL: ${fullUrl}`);
+                    //console.log(`✅ [DEBUG] addpage面URL: ${fullUrl}`);
                 }
             }
         }
         
-        // 从普通扫描结果中收集API接口进行深度扫描
+        // from普通scanresultin收集API接口进行deep scan
         if (scanConfig.scanApiFiles) {
             // 绝对路径API
             if (initialResults.absoluteApis) {
-                //console.log(`🔗 [DEBUG] 从普通扫描结果收集绝对API: ${initialResults.absoluteApis.length} 个`);
+                //console.log(`🔗 [DEBUG] from普通scanresult收集绝对API: ${initialResults.absoluteApis.length} 个`);
                 for (const apiItem of initialResults.absoluteApis) {
-                    // 兼容新格式（对象）和旧格式（字符串）
+                    // 兼容newformat（object）and旧format（字符串）
                     const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const sourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : null;
                     const fullUrl = await resolveUrl(api, scanConfig.baseUrl, sourceUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
-                        //console.log(`✅ [DEBUG] 添加绝对API: ${fullUrl}`);
+                        //console.log(`✅ [DEBUG] add绝对API: ${fullUrl}`);
                     }
                 }
             }
             
             // 相对路径API
             if (initialResults.relativeApis) {
-                //console.log(`🔗 [DEBUG] 从普通扫描结果收集相对API: ${initialResults.relativeApis.length} 个`);
+                //console.log(`🔗 [DEBUG] from普通scanresult收集相对API: ${initialResults.relativeApis.length} 个`);
                 for (const apiItem of initialResults.relativeApis) {
-                    // 兼容新格式（对象）和旧格式（字符串）
+                    // 兼容newformat（object）and旧format（字符串）
                     const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const sourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : null;
                     const fullUrl = await resolveUrl(api, scanConfig.baseUrl, sourceUrl);
                     if (fullUrl && await isSameDomain(fullUrl, scanConfig.baseUrl)) {
                         urls.add(fullUrl);
-                        //console.log(`✅ [DEBUG] 添加相对API: ${fullUrl}`);
+                        //console.log(`✅ [DEBUG] add相对API: ${fullUrl}`);
                     }
                 }
             }
         }
         
-        // 如果没有收集到任何URL，添加当前页面作为备用
+        // ifwithout收集to任何URL，add当beforepage面作为备for
         if (urls.size === 0) {
-            console.warn('⚠️ 从普通扫描结果中未收集到任何URL，添加当前页面');
+            console.warn('⚠️ from普通scanresultin未收集to任何URL，add当beforepage面');
             urls.add(scanConfig.baseUrl);
         }
         
-        //console.log(`📊 [DEBUG] 初始URL收集完成，共收集到 ${urls.size} 个URL`);
-        //console.log(`📊 [DEBUG] 初始结果数量: ${Object.values(scanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0)}`);
+        //console.log(`📊 [DEBUG] initialURL收集complete，共收集to ${urls.size} 个URL`);
+        //console.log(`📊 [DEBUG] initialresult数量: ${Object.values(scanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0)}`);
         return Array.from(urls);
         
     } catch (error) {
-        console.error('❌ 收集初始URL失败:', error);
-        // 出错时添加当前页面作为备用
+        console.error('❌ 收集initialURLfailed:', error);
+        // 出错时add当beforepage面作为备for
         urls.add(scanConfig.baseUrl);
         return Array.from(urls);
     }
 }
 
-// -------------------- 分层扫描 --------------------
+// -------------------- 分层scan --------------------
 async function performLayeredScan(initialUrls) {
     let currentUrls = [...initialUrls];
     
@@ -940,52 +940,52 @@ async function performLayeredScan(initialUrls) {
         currentDepth = depth;
         
         if (currentUrls.length === 0) {
-            //console.log(`第 ${depth} 层没有URL需要扫描`);
+            //console.log(`第 ${depth} 层withoutURLrequirescan`);
             break;
         }
         
-        //console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
-        addLogEntry(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`, 'info');
+        //console.log(`🔍 start第 ${depth} 层scan，URL数量: ${currentUrls.length}`);
+        addLogEntry(`🔍 start第 ${depth} 层scan，URL数量: ${currentUrls.length}`, 'info');
         
-        // 🔥 记录当前层要扫描的URL列表（前几个）
+        // 🔥 record当before层要scanURL列表（before几个）
         if (currentUrls.length > 0) {
             const urlsToShow = currentUrls.slice(0, 3);
-            addLogEntry(`📋 第 ${depth} 层扫描目标: ${urlsToShow.join(', ')}${currentUrls.length > 3 ? ` 等${currentUrls.length}个URL` : ''}`, 'info');
+            addLogEntry(`📋 第 ${depth} 层scan目标: ${urlsToShow.join(', ')}${currentUrls.length > 3 ? ` 等${currentUrls.length}个URL` : ''}`, 'info');
         }
         
-        // 批量扫描URL
+        // 批量scanURL
         const newUrls = await scanUrlBatch(currentUrls, depth);
         
         // 准备下一层URL
         currentUrls = newUrls.filter(url => !scannedUrls.has(url));
         
-        //console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
-        addLogEntry(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`, 'success');
+        //console.log(`✅ 第 ${depth} 层scan complete，发现newURL: ${currentUrls.length} 个`);
+        addLogEntry(`✅ 第 ${depth} 层scan complete，发现newURL: ${currentUrls.length} 个`, 'success');
         
-        // 🔥 记录下一层将要扫描的URL数量
+        // 🔥 record下一层将要scanURL数量
         if (currentUrls.length > 0 && depth < scanConfig.maxDepth) {
-            addLogEntry(`🔄 准备第 ${depth + 1} 层扫描，待扫描URL: ${currentUrls.length} 个`, 'info');
+            addLogEntry(`🔄 准备第 ${depth + 1} 层scan，待scanURL: ${currentUrls.length} 个`, 'info');
         }
         
-        // 更新显示
+        // 更new显示
         updateResultsDisplay();
         updateStatusDisplay();
     }
 }
 
-// -------------------- 批量URL扫描 --------------------
+// -------------------- 批量URLscan --------------------
 async function scanUrlBatch(urls, depth) {
     const newUrls = new Set();
     let processedCount = 0;
     const totalUrls = urls.length;
     
-    // 使用队列和并发控制
+    // use队列andand发控制
     const queue = [...urls];
     const activeWorkers = new Set();
     
     // 实时显示计数器
     let lastDisplayUpdate = 0;
-    const displayUpdateInterval = 500; // 每0.5秒最多更新一次显示，提高响应速度
+    const displayUpdateInterval = 500; // 每0.5秒最多更new一次显示，提高响应速度
     
     const processQueue = async () => {
         while (queue.length > 0 && isScanRunning && !isPaused) {
@@ -993,7 +993,7 @@ async function scanUrlBatch(urls, depth) {
             
             if (scannedUrls.has(url)) {
                 processedCount++;
-                updateProgressDisplay(processedCount, totalUrls, `第 ${depth} 层扫描`);
+                updateProgressDisplay(processedCount, totalUrls, `第 ${depth} 层scan`);
                 continue;
             }
             
@@ -1001,7 +1001,7 @@ async function scanUrlBatch(urls, depth) {
             
             const workerPromise = (async () => {
                 try {
-                    // 获取URL内容
+                    // getURL内容
                     let content;
                     if (urlContentCache.has(url)) {
                         content = urlContentCache.get(url);
@@ -1013,48 +1013,48 @@ async function scanUrlBatch(urls, depth) {
                     }
                     
                         if (content) {
-                            // 🚀 性能优化：移除频繁的扫描日志
-                            // addLogEntry(`🔍 正在扫描: ${url}`, 'info');
+                            // 🚀 性能优化：移除频繁scanday志
+                            // addLogEntry(`🔍 正inscan: ${url}`, 'info');
                             
-                            // 提取信息
+                            // extractinformation
                             const extractedData = await extractFromContent(content, url);
                             const hasNewData = mergeResults(extractedData);
                             
-                            // 🔥 记录提取结果日志
+                            // 🔥 recordextractresultday志
                             if (hasNewData) {
                                 const newDataCount = Object.values(extractedData).reduce((sum, arr) => sum + (arr?.length || 0), 0);
-                                addLogEntry(`✅ 从 ${url} 提取到 ${newDataCount} 个新数据项`, 'success');
+                                addLogEntry(`✅ from ${url} extractto ${newDataCount} 个newdata项`, 'success');
                             } else {
-                                addLogEntry(`ℹ️ 从 ${url} 未发现新数据`, 'info');
+                                addLogEntry(`ℹ️ from ${url} 未发现newdata`, 'info');
                             }
                             
-                            // 🚀 性能优化：减少显示更新频率，只在批量处理时更新
+                            // 🚀 性能优化：reduce显示更new频率，只in批量处理时更new
                             if (hasNewData) {
-                                // 每处理10个URL才更新一次显示
+                                // 每处理10个URL才更new一次显示
                                 if (processedCount % 10 === 0) {
                                     throttledUpdateDisplay();
                                 }
                             }
                             
-                            // 收集新URL
+                            // 收集newURL
                             const discoveredUrls = await collectUrlsFromContent(content, scanConfig.baseUrl);
                             if (discoveredUrls.length > 0) {
-                                addLogEntry(`🔗 从 ${url} 发现 ${discoveredUrls.length} 个新URL`, 'info');
+                                addLogEntry(`🔗 from ${url} 发现 ${discoveredUrls.length} 个newURL`, 'info');
                             }
                             discoveredUrls.forEach(newUrl => newUrls.add(newUrl));
                         } else {
-                            // 🔥 记录无内容的情况
-                            addLogEntry(`⚠️ ${url} 返回空内容或无法访问`, 'warning');
+                            // 🔥 record无内容情况
+                            addLogEntry(`⚠️ ${url} return空内容or无法访问`, 'warning');
                         }
                     } catch (error) {
-                        console.error(`扫描 ${url} 失败:`, error);
-                        // 🔥 添加错误日志记录
-                        addLogEntry(`❌ 扫描失败: ${url} - ${error.message}`, 'error');
+                        console.error(`scan ${url} failed:`, error);
+                        // 🔥 add错误day志record
+                        addLogEntry(`❌ scanfailed: ${url} - ${error.message}`, 'error');
                     } finally {
                         processedCount++;
-                        // 🚀 性能优化：减少进度更新频率，每5个URL更新一次
+                        // 🚀 性能优化：reduceprogress更new频率，每5个URL更new一次
                         if (processedCount % 5 === 0 || processedCount === totalUrls) {
-                            updateProgressDisplay(processedCount, totalUrls, `第 ${depth} 层扫描`);
+                            updateProgressDisplay(processedCount, totalUrls, `第 ${depth} 层scan`);
                         }
                         activeWorkers.delete(workerPromise);
                     }
@@ -1062,21 +1062,21 @@ async function scanUrlBatch(urls, depth) {
             
             activeWorkers.add(workerPromise);
             
-            // 🚀 性能优化：控制并发数并添加延迟
+            // 🚀 性能优化：控制and发数andadd延迟
             if (activeWorkers.size >= maxConcurrency) {
                 await Promise.race(Array.from(activeWorkers));
             }
             
-            // 添加延迟，避免过快请求导致系统卡顿
+            // add延迟，避免through快request导致系统卡顿
             if (activeWorkers.size >= maxConcurrency) {
-                await new Promise(resolve => setTimeout(resolve, 100)); // 🚀 增加到200ms延迟
+                await new Promise(resolve => setTimeout(resolve, 100)); // 🚀 addto200ms延迟
             }
         }
     };
     
     await processQueue();
     
-    // 等待所有工作完成
+    // waitall工作complete
     if (activeWorkers.size > 0) {
         await Promise.all(Array.from(activeWorkers));
     }
@@ -1084,10 +1084,10 @@ async function scanUrlBatch(urls, depth) {
     return Array.from(newUrls);
 }
 
-// -------------------- URL内容获取 --------------------
+// -------------------- URL内容get --------------------
 async function fetchUrlContent(url) {
     try {
-        //console.log(`🔥 深度扫描 - 准备通过后台脚本请求: ${url}`);
+        //console.log(`🔥 deep scan - 准备通throughbackground脚本request: ${url}`);
         
         const requestOptions = {
             method: 'GET',
@@ -1103,40 +1103,40 @@ async function fetchUrlContent(url) {
         
         if (!response.ok) {
             console.warn(`HTTP ${response.status} for ${url}`);
-            // 🔥 添加HTTP错误日志
+            // 🔥 addHTTP错误day志
             addLogEntry(`⚠️ HTTP ${response.status} - ${url}`, 'warning');
             return null;
         }
         
         const contentType = response.headers.get('content-type') || '';
-        // 过滤非文本内容
+        // through滤非文本内容
         if (contentType.includes('image/') || 
             contentType.includes('audio/') || 
             contentType.includes('video/') || 
             contentType.includes('application/octet-stream') ||
             contentType.includes('application/zip') ||
             contentType.includes('application/pdf')) {
-            // 🔥 添加内容类型过滤日志
-            addLogEntry(`🚫 跳过非文本内容 (${contentType}) - ${url}`, 'info');
+            // 🔥 add内容class型through滤day志
+            addLogEntry(`🚫 skip非文本内容 (${contentType}) - ${url}`, 'info');
             return null;
         }
         
         const text = await response.text();
-        // 🔥 添加成功获取内容的日志
+        // 🔥 addsuccessget内容day志
         const contentSize = text.length;
         const sizeText = contentSize > 1024 ? `${Math.round(contentSize / 1024)}KB` : `${contentSize}B`;
-        addLogEntry(`📥 成功获取内容 (${sizeText}) - ${url}`, 'info');
+        addLogEntry(`📥 successget内容 (${sizeText}) - ${url}`, 'info');
         return text;
         
     } catch (error) {
         console.error(`无法访问 ${url}:`, error);
-        // 🔥 添加网络错误日志
-        addLogEntry(`❌ 网络错误: ${error.message} - ${url}`, 'error');
+        // 🔥 addnetwork错误day志
+        addLogEntry(`❌ network错误: ${error.message} - ${url}`, 'error');
         return null;
     }
 }
 
-// -------------------- 后台请求 --------------------
+// -------------------- backgroundrequest --------------------
 async function makeRequestViaBackground(url, options = {}) {
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({
@@ -1177,7 +1177,7 @@ async function makeRequestViaBackground(url, options = {}) {
     });
 }
 
-// -------------------- 从内容收集URL --------------------
+// -------------------- from内容收集URL --------------------
 async function collectUrlsFromContent(content, baseUrl) {
     const urls = new Set();
     
@@ -1196,7 +1196,7 @@ async function collectUrlsFromContent(content, baseUrl) {
             }
         }
         
-        // 收集HTML页面
+        // 收集HTMLpage面
         if (scanConfig.scanHtmlFiles && extractedData.urls) {
             for (const urlItem of extractedData.urls) {
                 const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
@@ -1208,7 +1208,7 @@ async function collectUrlsFromContent(content, baseUrl) {
             }
         }
         
-        // 收集API接口 - 使用智能解析
+        // 收集API接口 - use智能解析
         if (scanConfig.scanApiFiles) {
             if (extractedData.absoluteApis) {
                 for (const apiItem of extractedData.absoluteApis) {
@@ -1223,16 +1223,16 @@ async function collectUrlsFromContent(content, baseUrl) {
             
             if (extractedData.relativeApis) {
                 for (const apiItem of extractedData.relativeApis) {
-                    // 🔥 优先使用智能解析的 URL
+                    // 🔥 优先use智能解析 URL
                     let fullUrl;
                     if (typeof apiItem === 'object' && apiItem.resolvedUrl) {
                         fullUrl = apiItem.resolvedUrl;
-                        //console.log('🎯 [DEBUG] 使用智能解析URL:', apiItem.value, '->', fullUrl);
+                        //console.log('🎯 [DEBUG] use智能解析URL:', apiItem.value, '->', fullUrl);
                     } else {
                         const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                         const sourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : null;
                         fullUrl = await resolveUrl(api, baseUrl, sourceUrl);
-                        //console.log('🔄 [DEBUG] 使用传统解析URL:', api, '->', fullUrl);
+                        //console.log('🔄 [DEBUG] use传统解析URL:', api, '->', fullUrl);
                     }
                     
                     if (fullUrl && await isSameDomain(fullUrl, baseUrl)) {
@@ -1242,54 +1242,54 @@ async function collectUrlsFromContent(content, baseUrl) {
             }
         }
     } catch (error) {
-        console.error('❌ 从内容收集URL失败:', error);
+        console.error('❌ from内容收集URLfailed:', error);
     }
     
     return Array.from(urls);
 }
 
-// -------------------- 结果合并 --------------------
+// -------------------- result合and --------------------
 function mergeResults(newResults) {
-    // 使用批量合并，避免频繁的DOM更新
+    // use批量合and，避免频繁DOM更new
     return batchMergeResults(newResults);
 }
 
-// -------------------- 结果保存 --------------------
+// -------------------- result保存 --------------------
 async function saveResultsToStorage() {
     try {
-        // 生成域名键
+        // generatedomain键
         let domainKey = 'unknown__results';
         if (scanConfig?.baseUrl) {
             try {
                 const hostname = new URL(scanConfig.baseUrl).hostname;
                 domainKey = `${hostname}__results`;
             } catch (e) {
-                console.warn('解析域名失败，使用默认键:', e);
+                console.warn('解析domainfailed，use默认键:', e);
             }
         }
         
-        //console.log('📝 [DEBUG] 使用存储键:', domainKey);
+        //console.log('📝 [DEBUG] usestorage键:', domainKey);
         
-        // 从IndexedDB获取当前的普通扫描结果
+        // fromIndexedDBget当before普通scanresult
         const existingResults = await window.IndexedDBManager.loadScanResults(scanConfig.baseUrl) || {};
         
-        // 合并深度扫描结果到普通扫描结果中
+        // 合anddeep scanresultto普通scanresultin
         const mergedResults = { ...existingResults };
         
-        // 将深度扫描的结果合并到普通扫描结果中
+        // 将deep scanresult合andto普通scanresultin
         Object.keys(scanResults).forEach(key => {
             if (!mergedResults[key]) {
                 mergedResults[key] = [];
             }
             
-            // 创建现有结果的键集合，用于去重
+            // create现有result键集合，for去重
             const existingKeys = new Set();
             mergedResults[key].forEach(item => {
                 const itemKey = typeof item === 'object' ? item.value : item;
                 existingKeys.add(itemKey);
             });
             
-            // 合并新的结果项
+            // 合andnewresult项
             scanResults[key].forEach(item => {
                 if (item) {
                     const itemKey = typeof item === 'object' ? item.value : item;
@@ -1301,7 +1301,7 @@ async function saveResultsToStorage() {
             });
         });
         
-        // 添加扫描元数据
+        // addscan元data
         mergedResults.scanMetadata = {
             ...existingResults.scanMetadata,
             lastScanType: 'deep',
@@ -1311,14 +1311,14 @@ async function saveResultsToStorage() {
             totalScanned: scannedUrls.size
         };
         
-        // 保存合并后的结果到IndexedDB，包含URL位置信息
+        // 保存合and后resulttoIndexedDB，containsURL位置information
         const pageTitle = scanConfig.pageTitle || document.title || 'Deep Scan Results';
-        // 使用基础URL作为存储键，但保持每个结果项的具体来源URL
+        // usebasicURL作为storage键，butkeep每个result项具体来源URL
         await window.IndexedDBManager.saveScanResults(scanConfig.baseUrl, mergedResults, scanConfig.baseUrl, pageTitle);
         
-        //console.log('✅ 深度扫描结果已合并到主扫描结果中');
-        //console.log('📊 存储键:', domainKey);
-        console.log('📊 合并后结果统计:', {
+        //console.log('✅ deep scanresultalready合andto主scanresultin');
+        //console.log('📊 storage键:', domainKey);
+        console.log('📊 合and后result统计:', {
             总数: Object.values(mergedResults).reduce((sum, arr) => {
                 return sum + (Array.isArray(arr) ? arr.length : 0);
             }, 0),
@@ -1326,44 +1326,44 @@ async function saveResultsToStorage() {
         });
         
     } catch (error) {
-        console.error('❌ 保存结果失败:', error);
+        console.error('❌ 保存resultfailed:', error);
     }
 }
 
-// -------------------- 扫描完成 --------------------
+// -------------------- scan complete --------------------
 async function completeScan() {
-    //console.log('🎉 深度扫描完成！');
+    //console.log('🎉 deepscan complete！');
     
-    // 🔥 优化：确保所有待处理结果都被合并
+    // 🔥 优化：确保all待处理result都by合and
     flushPendingResults();
     
     const totalResults = Object.values(scanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0);
     const totalScanned = scannedUrls.size;
     
-    addLogEntry('🎉 深度扫描完成！', 'success');
-    addLogEntry(`📊 扫描统计: 扫描了 ${totalScanned} 个文件，提取了 ${totalResults} 个项目`, 'success');
+    addLogEntry('🎉 deepscan complete！', 'success');
+    addLogEntry(`📊 scan统计: scan了 ${totalScanned} 个文件，extract了 ${totalResults} 个项目`, 'success');
     
-    // 🔥 优化：减少详细统计日志，避免卡顿
+    // 🔥 优化：reduce详细统计day志，避免卡顿
     const nonEmptyCategories = Object.entries(scanResults).filter(([key, items]) => items && items.length > 0);
     if (nonEmptyCategories.length > 0) {
         const topCategories = nonEmptyCategories
             .sort(([,a], [,b]) => b.length - a.length)
-            .slice(0, 5) // 只显示前5个最多的类别
+            .slice(0, 5) // 只显示before5个最多class别
             .map(([key, items]) => `${key}: ${items.length}个`);
         addLogEntry(`📈 主要发现: ${topCategories.join(', ')}`, 'success');
     }
     
-    // 🔥 记录扫描耗时
+    // 🔥 recordscan耗时
     const scanDuration = Date.now() - (scanConfig.timestamp || Date.now());
     const durationText = scanDuration > 60000 ? 
         `${Math.floor(scanDuration / 60000)}分${Math.floor((scanDuration % 60000) / 1000)}秒` : 
         `${Math.floor(scanDuration / 1000)}秒`;
-    addLogEntry(`⏱️ 扫描耗时: ${durationText}`, 'info');
+    addLogEntry(`⏱️ scan耗时: ${durationText}`, 'info');
     
-    // 保存结果到存储（合并到主扫描结果中）
+    // 保存resulttostorage（合andto主scanresultin）
     await saveResultsToStorage();
     
-    // 通知主页面深度扫描完成，让其更新显示
+    // notify主page面deepscan complete，让其更new显示
     try {
         chrome.runtime.sendMessage({
             action: 'deepScanComplete',
@@ -1375,22 +1375,22 @@ async function completeScan() {
             }
         }, (response) => {
             if (chrome.runtime.lastError) {
-                //console.log('主页面可能已关闭，无法发送完成通知');
+                //console.log('主page面可能already关闭，无法sendcompletenotify');
             } else {
-                //console.log('✅ 已通知主页面深度扫描完成');
+                //console.log('✅ alreadynotify主page面deepscan complete');
             }
         });
     } catch (error) {
-        //console.log('发送完成通知失败:', error);
+        //console.log('sendcompletenotifyfailed:', error);
     }
     
-    // 🔥 优化：最终更新UI
+    // 🔥 优化：最终更newUI
     performDisplayUpdate();
     
-    // 更新进度显示
+    // 更newprogress显示
     const progressText = document.getElementById('progressText');
     if (progressText) {
-        progressText.textContent = '✅ 深度扫描完成！';
+        progressText.textContent = '✅ deepscan complete！';
         progressText.classList.add('success');
     }
     
@@ -1399,10 +1399,10 @@ async function completeScan() {
         progressBar.style.width = '100%';
     }
     
-    // 更新按钮状态
+    // 更newbuttonstate
     updateButtonStates();
     
-    // 🔥 优化：清理内存和缓存
+    // 🔥 优化：清理内存and缓存
     setTimeout(() => {
         cleanupMemory();
     }, 5000); // 5秒后清理内存
@@ -1410,25 +1410,25 @@ async function completeScan() {
 
 // 内存清理函数
 function cleanupMemory() {
-    //console.log('🧹 开始清理内存...');
+    //console.log('🧹 start清理内存...');
     
-    // 清理URL内容缓存，只保留最近的100个
+    // 清理URL内容缓存，只keep最近100个
     if (urlContentCache.size > 100) {
         const entries = Array.from(urlContentCache.entries());
         const toKeep = entries.slice(-100);
         urlContentCache.clear();
         toKeep.forEach(([key, value]) => urlContentCache.set(key, value));
-        //console.log(`🧹 清理URL缓存，保留 ${toKeep.length} 个条目`);
+        //console.log(`🧹 清理URL缓存，keep ${toKeep.length} 个条目`);
     }
     
-    // 清理待处理结果
+    // 清理待处理result
     Object.keys(pendingResults).forEach(key => {
         if (pendingResults[key]) {
             pendingResults[key].clear();
         }
     });
     
-    // 清理更新队列
+    // 清理更new队列
     updateQueue.length = 0;
     
     // 清理定时器
@@ -1437,10 +1437,10 @@ function cleanupMemory() {
         updateTimer = null;
     }
     
-    //console.log('✅ 内存清理完成');
+    //console.log('✅ 内存清理complete');
 }
 
-// -------------------- UI更新函数 --------------------
+// -------------------- UI更new函数 --------------------
 function updateButtonStates() {
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
@@ -1450,14 +1450,14 @@ function updateButtonStates() {
         startBtn.disabled = true;
         pauseBtn.disabled = false;
         stopBtn.disabled = false;
-        startBtn.textContent = '扫描中...';
-        pauseBtn.textContent = isPaused ? '继续扫描' : '暂停扫描';
+        startBtn.textContent = 'scanning...';
+        pauseBtn.textContent = isPaused ? '继续scan' : '暂停scan';
     } else {
         startBtn.disabled = false;
         pauseBtn.disabled = true;
         stopBtn.disabled = true;
-        startBtn.textContent = '开始扫描';
-        pauseBtn.textContent = '暂停扫描';
+        startBtn.textContent = 'startscan';
+        pauseBtn.textContent = '暂停scan';
     }
 }
 
@@ -1471,11 +1471,11 @@ function updateStatusDisplay() {
 }
 
 function updateProgressDisplay(current, total, stage) {
-    // 🚀 防抖处理：避免频繁更新进度条
+    // 🚀 防抖处理：避免频繁更newprogress条
     if (updateProgressDisplay.pending) return;
     updateProgressDisplay.pending = true;
     
-    // 🚀 使用requestAnimationFrame延迟更新，避免阻塞滚动
+    // 🚀 userequestAnimationFrame延迟更new，避免阻塞滚动
     requestAnimationFrame(() => {
         const progressText = document.getElementById('progressText');
         const progressBar = document.getElementById('progressBar');
@@ -1491,25 +1491,25 @@ function updateProgressDisplay(current, total, stage) {
 }
 
 function updateResultsDisplay() {
-    // 先合并所有待处理的结果
+    // 先合andall待处理result
     flushPendingResults();
     
-    //console.log(`🔍 [DEBUG] 开始更新深度扫描结果显示... (第${displayUpdateCount}次更新)`);
+    //console.log(`🔍 [DEBUG] start更newdeep scanresult显示... (第${displayUpdateCount}次更new)`);
     
-    // 🔥 减少调试日志输出，避免控制台卡顿
-    if (displayUpdateCount % 10 === 0) { // 每10次更新才输出详细日志
-        //console.log('🔍 [DEBUG] API数据检查:');
+    // 🔥 reduce调试day志输出，避免控制台卡顿
+    if (displayUpdateCount % 10 === 0) { // 每10次更new才输出详细day志
+        //console.log('🔍 [DEBUG] APIdatacheck:');
         //console.log('  - absoluteApis:', scanResults.absoluteApis?.length || 0, '个');
         //console.log('  - relativeApis:', scanResults.relativeApis?.length || 0, '个');
         if (scanResults.absoluteApis?.length > 0) {
-            //console.log('  - absoluteApis 示例:', scanResults.absoluteApis.slice(0, 3));
+            //console.log('  - absoluteApis example:', scanResults.absoluteApis.slice(0, 3));
         }
         if (scanResults.relativeApis?.length > 0) {
-            //console.log('  - relativeApis 示例:', scanResults.relativeApis.slice(0, 3));
+            //console.log('  - relativeApis example:', scanResults.relativeApis.slice(0, 3));
         }
     }
     
-    // 🔥 修复API显示问题：正确的元素ID映射
+    // 🔥 fixAPI显示issue：正确元素ID映射
     const categoryMapping = {
         absoluteApis: { containerId: 'absoluteApisResult', countId: 'absoluteApisCount', listId: 'absoluteApisList' },
         relativeApis: { containerId: 'relativeApisResult', countId: 'relativeApisCount', listId: 'relativeApisList' },
@@ -1546,14 +1546,14 @@ function updateResultsDisplay() {
         cryptoUsage: { containerId: 'cryptoUsageResult', countId: 'cryptoUsageCount', listId: 'cryptoUsageList' }
     };
     
-    // 🔥 修复显示逻辑：使用正确的元素ID
+    // 🔥 fix显示逻辑：use正确元素ID
     Object.keys(categoryMapping).forEach(key => {
         const items = scanResults[key] || [];
         const mapping = categoryMapping[key];
         
-        // 🔥 优化：减少调试日志，只在必要时输出
+        // 🔥 优化：reduce调试day志，只in必要时输出
         if (displayUpdateCount % 20 === 0) {
-            //console.log(`🔍 [DEBUG] 处理类别 ${key}: ${items.length} 个项目`);
+            //console.log(`🔍 [DEBUG] 处理class别 ${key}: ${items.length} 个项目`);
         }
         
         if (items.length > 0) {
@@ -1563,44 +1563,44 @@ function updateResultsDisplay() {
                 resultDiv.style.display = 'block';
             }
             
-            // 更新计数
+            // 更new计数
             const countElement = document.getElementById(mapping.countId);
             if (countElement && countElement.textContent !== items.length.toString()) {
                 countElement.textContent = items.length;
             }
             
-            // 🔥 优化：只在列表内容真正改变时才更新DOM
+            // 🔥 优化：只in列表内容真正改变时才更newDOM
             const listElement = document.getElementById(mapping.listId);
             if (listElement) {
                 const currentItemCount = listElement.children.length;
                 if (currentItemCount !== items.length) {
-                    // 使用文档片段批量更新DOM
+                    // usedocument片段批量更newDOM
                     const fragment = document.createDocumentFragment();
                     items.forEach((item, index) => {
                         const li = document.createElement('li');
                         li.className = 'result-item';
                         
-                        // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示，支持智能解析的URL
+                        // 🔥 fix：use每个项目自己sourceUrl进行悬停显示，support智能解析URL
                         if (typeof item === 'object' && item !== null) {
-                            // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
+                            // 处理带有sourceUrl结构化object {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
                             if (item.value !== undefined && item.sourceUrl) {
                                 const itemValue = String(item.value);
                                 const itemSourceUrl = String(item.sourceUrl);
                                 
-                                // 🔥 新增：如果是相对路径API且有智能解析的URL，显示额外信息
+                                // 🔥 new增：if是相对路径API且有智能解析URL，显示额外information
                                 if (key === 'relativeApis' && item.resolvedUrl) {
                                     li.innerHTML = `<span class="result-value">${itemValue}</span> <span class="resolved-url" style="color: #666; font-size: 0.9em;">→ ${item.resolvedUrl}</span>`;
                                     li.title = `原始值: ${itemValue}
 智能解析: ${item.resolvedUrl}
 来源: ${itemSourceUrl}`;
                                 } else {
-                                    // 只显示值，不直接显示来源URL，仅在悬停时显示
+                                    // 只显示value，notdirectly显示来源URL，仅in悬停时显示
                                     li.innerHTML = `<span class="result-value">${itemValue}</span>`;
                                     li.title = `来源: ${itemSourceUrl}`;
                                 }
                                 li.style.cssText = 'padding: 5px 0;';
                             } else if (item.url || item.path || item.value || item.content) {
-                                // 兼容其他对象格式
+                                // 兼容其他objectformat
                                 const displayValue = item.url || item.path || item.value || item.content || JSON.stringify(item);
                                 li.textContent = String(displayValue);
                                 li.title = String(displayValue);
@@ -1610,7 +1610,7 @@ function updateResultsDisplay() {
                                 li.title = jsonStr;
                             }
                         } else {
-                            // 如果是字符串或其他基本类型，直接显示
+                            // if是字符串or其他基本class型，directly显示
                             const displayValue = String(item);
                             li.textContent = displayValue;
                             li.title = displayValue;
@@ -1619,7 +1619,7 @@ function updateResultsDisplay() {
                         fragment.appendChild(li);
                     });
                     
-                    // 一次性更新DOM
+                    // 一次性更newDOM
                     listElement.innerHTML = '';
                     listElement.appendChild(fragment);
                 }
@@ -1627,20 +1627,20 @@ function updateResultsDisplay() {
         }
     });
     
-    // 🔥 处理自定义正则结果 - 恢复被删除的功能
-    //console.log('🔍 [DEBUG] 开始处理自定义正则结果...');
+    // 🔥 处理customregexresult - 恢复by删除功能
+    //console.log('🔍 [DEBUG] start处理customregexresult...');
     Object.keys(scanResults).forEach(key => {
         if (key.startsWith('custom_') && scanResults[key]?.length > 0) {
-            //console.log(`🎯 [DEBUG] 发现自定义正则结果: ${key}, 数量: ${scanResults[key].length}`);
+            //console.log(`🎯 [DEBUG] 发现customregexresult: ${key}, 数量: ${scanResults[key].length}`);
             createCustomResultCategory(key, scanResults[key]);
         }
     });
     
-    // 🔥 处理其他未预定义的结果类别
+    // 🔥 处理其他未预定义resultclass别
     Object.keys(scanResults).forEach(key => {
-        // 跳过已处理的预定义类别和自定义正则
+        // skipalready处理预定义class别andcustomregex
         if (!categoryMapping[key] && !key.startsWith('custom_') && scanResults[key]?.length > 0) {
-            //console.log(`🆕 [DEBUG] 发现新的结果类别: ${key}, 数量: ${scanResults[key].length}`);
+            //console.log(`🆕 [DEBUG] 发现newresultclass别: ${key}, 数量: ${scanResults[key].length}`);
             createCustomResultCategory(key, scanResults[key]);
         }
     });
@@ -1657,7 +1657,7 @@ function createCustomResultCategory(key, items) {
         resultDiv.className = 'result-category';
         
         const title = document.createElement('h3');
-        title.innerHTML = `🔍 ${key.replace('custom_', '自定义-')} (<span id="${key}Count">0</span>)`;
+        title.innerHTML = `🔍 ${key.replace('custom_', 'custom-')} (<span id="${key}Count">0</span>)`;
         
         const list = document.createElement('ul');
         list.id = key + 'List';
@@ -1682,33 +1682,33 @@ function createCustomResultCategory(key, items) {
             const li = document.createElement('li');
             li.className = 'result-item';
             
-            // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示，支持智能解析的URL
+            // 🔥 fix：use每个项目自己sourceUrl进行悬停显示，support智能解析URL
             if (typeof item === 'object' && item !== null) {
-                // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
+                // 处理带有sourceUrl结构化object {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
                 if (item.value !== undefined && item.sourceUrl) {
                     const itemValue = String(item.value);
                     const itemSourceUrl = String(item.sourceUrl);
                     
-                    // 🔥 新增：如果是相对路径API且有智能解析的URL，显示额外信息
+                    // 🔥 new增：if是相对路径API且有智能解析URL，显示额外information
                     if (key === 'relativeApis' && item.resolvedUrl) {
                         li.innerHTML = `<span class="result-value">${itemValue}</span> <span class="resolved-url" style="color: #666; font-size: 0.9em;">→ ${item.resolvedUrl}</span>`;
                         li.title = `原始值: ${itemValue}
 智能解析: ${item.resolvedUrl}
 来源: ${itemSourceUrl}`;
                     } else {
-                        // 只显示值，不直接显示来源URL，仅在悬停时显示
+                        // 只显示value，notdirectly显示来源URL，仅in悬停时显示
                         li.innerHTML = `<span class="result-value">${itemValue}</span>`;
                         li.title = `来源: ${itemSourceUrl}`;
                     }
                     li.style.cssText = 'padding: 5px 0;';
                 } else {
-                    // 兼容其他对象格式
+                    // 兼容其他objectformat
                     const jsonStr = JSON.stringify(item);
                     li.textContent = jsonStr;
                     li.title = jsonStr;
                 }
             } else {
-                // 如果是字符串或其他基本类型，直接显示
+                // if是字符串or其他基本class型，directly显示
                 const displayValue = String(item);
                 li.textContent = displayValue;
                 li.title = displayValue;
@@ -1723,25 +1723,25 @@ function addLogEntry(message, type = 'info') {
     const logSection = document.getElementById('logSection');
     if (!logSection) return;
     
-    // 🚀 性能优化：只过滤最频繁的日志，保留重要信息
+    // 🚀 性能优化：只through滤最频繁day志，keep重要information
     if (type === 'info' && (
-        message.includes('成功获取内容') ||
-        message.includes('跳过非文本内容')
+        message.includes('successget内容') ||
+        message.includes('skip非文本内容')
     )) {
-        return; // 只跳过这些最频繁的日志
+        return; // 只skip这些最频繁day志
     }
     
     if (!logEntries) {
         logEntries = [];
     }
     
-    // 添加到缓冲区
+    // addto缓冲区
     if (!logBuffer) {
         logBuffer = [];
     }
     logBuffer.push({ message, type, time: new Date().toLocaleTimeString() });
     
-    // 批量刷新日志（降低频率）
+    // 批量刷newday志（降低频率）
     if (!logFlushTimer) {
         logFlushTimer = setTimeout(() => {
             flushLogBuffer();
@@ -1750,45 +1750,45 @@ function addLogEntry(message, type = 'info') {
     }
 }
 
-// 批量刷新日志缓冲区
+// 批量刷newday志缓冲区
 function flushLogBuffer() {
     if (!logBuffer || logBuffer.length === 0) return;
     
-    // 将缓冲区内容添加到主日志数组
+    // 将缓冲区内容addto主day志数组
     logEntries.push(...logBuffer);
     logBuffer = [];
     
-    // 限制日志条目数量
+    // 限制day志条目数量
     if (logEntries.length > maxLogEntries) {
         logEntries = logEntries.slice(-maxLogEntries);
     }
     
-    // 更新显示
+    // 更new显示
     updateLogDisplay();
 }
 
-// 🚀 优化的日志显示函数 - 减少DOM操作频率
+// 🚀 优化day志显示函数 - reduceDOM操作频率
 function updateLogDisplay() {
     const logSection = document.getElementById('logSection');
     if (!logSection || !logEntries) return;
     
-    // 🚀 防抖处理：避免频繁更新DOM
+    // 🚀 防抖处理：避免频繁更newDOM
     if (updateLogDisplay.pending) return;
     updateLogDisplay.pending = true;
     
-    // 只显示最近的20条日志，进一步减少DOM负载
+    // 只显示最近20条day志，进一步reduceDOM负载
     const recentLogs = logEntries.slice(-20);
     
-    // 检查是否需要更新（避免不必要的DOM操作）
+    // check是否require更new（避免not必要DOM操作）
     const currentLogCount = logSection.children.length;
     if (currentLogCount === recentLogs.length) {
         updateLogDisplay.pending = false;
-        return; // 没有新日志，跳过更新
+        return; // withoutnewday志，skip更new
     }
     
-    // 🚀 使用setTimeout延迟更新，避免阻塞滚动
+    // 🚀 usesetTimeout延迟更new，避免阻塞滚动
     setTimeout(() => {
-        // 使用文档片段批量更新
+        // usedocument片段批量更new
         const fragment = document.createDocumentFragment();
         recentLogs.forEach(log => {
             const logEntry = document.createElement('div');
@@ -1797,19 +1797,19 @@ function updateLogDisplay() {
             fragment.appendChild(logEntry);
         });
         
-        // 使用requestAnimationFrame优化DOM更新
+        // userequestAnimationFrame优化DOM更new
         requestAnimationFrame(() => {
             logSection.innerHTML = '';
             logSection.appendChild(fragment);
             
-            // 🚀 优化滚动：只在必要时滚动
+            // 🚀 优化滚动：只in必要时滚动
             if (!logSection.isUserScrolling) {
                 logSection.scrollTop = logSection.scrollHeight;
             }
             
             updateLogDisplay.pending = false;
         });
-    }, 100); // 100ms延迟，避免频繁更新
+    }, 100); // 100ms延迟，避免频繁更new
 }
 
 // -------------------- 工具函数 --------------------
@@ -1819,16 +1819,16 @@ function resolveRelativePath(relativePath, basePath) {
     try {
         if (!relativePath || !basePath) return null;
         
-        // 确保basePath以/结尾
+        // 确保basePath以/ending
         if (!basePath.endsWith('/')) {
             basePath += '/';
         }
         
-        // 使用URL构造函数进行标准解析
+        // useURL构造函数进行标准解析
         const resolved = new URL(relativePath, basePath);
         return resolved.href;
     } catch (error) {
-        console.warn('相对路径解析失败:', error);
+        console.warn('相对路径解析failed:', error);
         return null;
     }
 }
@@ -1837,11 +1837,11 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
     try {
         if (!url) return null;
         
-        console.log(`🔍 [URL解析] 开始解析: "${url}", 基础URL: "${baseUrl}", 源URL: "${sourceUrl}"`);
+        console.log(`🔍 [URL解析] start解析: "${url}", basicURL: "${baseUrl}", 源URL: "${sourceUrl}"`);
         
-        // 如果已经是绝对URL，直接返回
+        // ifalready经是绝对URL，directlyreturn
         if (url.startsWith('http://') || url.startsWith('https://')) {
-            console.log(`✅ [URL解析] 已是绝对URL: "${url}"`);
+            console.log(`✅ [URL解析] already是绝对URL: "${url}"`);
             return url;
         }
         
@@ -1851,72 +1851,72 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
             return result;
         }
         
-        // 🔥 修复：严格按照IndexedDB数据获取提取来源路径进行相对路径解析
+        // 🔥 fix：严格按照IndexedDBdatagetextract来源路径进行相对路径解析
         if (sourceUrl && (url.startsWith('./') || url.startsWith('../') || !url.startsWith('/'))) {
-            console.log(`🔍 [URL解析] 检测到相对路径，尝试使用IndexedDB数据解析`);
+            console.log(`🔍 [URL解析] detectto相对路径，尝试useIndexedDBdata解析`);
             
             try {
-                // 获取所有IndexedDB扫描数据
+                // getallIndexedDBscandata
                 let allScanData = [];
                 
-                // 方法1: 直接从IndexedDBManager获取当前域名数据
+                // 方法1: directlyfromIndexedDBManagerget当beforedomaindata
                 try {
                     if (window.IndexedDBManager && window.IndexedDBManager.loadScanResults) {
                         const currentData = await window.IndexedDBManager.loadScanResults(baseUrl);
                         if (currentData && currentData.results) {
                             allScanData.push(currentData);
-                            console.log(`✅ [URL解析] 获取到当前域名数据`);
+                            console.log(`✅ [URL解析] getto当beforedomaindata`);
                         }
                     }
                 } catch (error) {
-                    console.warn('获取当前域名IndexedDB数据失败:', error);
+                    console.warn('get当beforedomainIndexedDBdatafailed:', error);
                 }
                 
-                // 方法2: 获取所有扫描数据作为备选
+                // 方法2: getallscandata作为备选
                 try {
                     if (window.IndexedDBManager && window.IndexedDBManager.getAllScanResults) {
                         const allData = await window.IndexedDBManager.getAllScanResults();
                         if (Array.isArray(allData)) {
                             allScanData = allScanData.concat(allData);
-                            console.log(`✅ [URL解析] 获取到所有扫描数据，共 ${allData.length} 个`);
+                            console.log(`✅ [URL解析] gettoallscandata，共 ${allData.length} 个`);
                         }
                     }
                 } catch (error) {
-                    console.warn('获取所有IndexedDB数据失败:', error);
+                    console.warn('getallIndexedDBdatafailed:', error);
                 }
                 
                 if (allScanData.length > 0) {
-                    // 构建sourceUrl到basePath的映射
+                    // 构建sourceUrltobasePath映射
                     const sourceUrlToBasePath = new Map();
                     
-                    console.log(`🔍 [URL解析] 开始分析 ${allScanData.length} 个扫描数据源`);
+                    console.log(`🔍 [URL解析] start分析 ${allScanData.length} 个scandata源`);
                     
-                    // 遍历所有扫描数据，建立映射关系
+                    // 遍历allscandata，建立映射关系
                     allScanData.forEach((scanData, dataIndex) => {
                         if (!scanData.results) return;
                         
-                        // 遍历所有类型的数据，建立 sourceUrl 映射
+                        // 遍历allclass型data，建立 sourceUrl 映射
                         Object.values(scanData.results).forEach(items => {
                             if (Array.isArray(items)) {
                                 items.forEach(item => {
                                     if (typeof item === 'object' && item.sourceUrl) {
                                         try {
                                             const sourceUrlObj = new URL(item.sourceUrl);
-                                            // 提取基础路径（去掉文件名）
+                                            // extractbasic路径（remove文件名）
                                             const basePath = sourceUrlObj.pathname.substring(0, sourceUrlObj.pathname.lastIndexOf('/') + 1);
                                             const correctBaseUrl = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
                                             sourceUrlToBasePath.set(item.sourceUrl, correctBaseUrl);
                                             
                                             console.log(`📋 [URL解析] 映射建立: ${item.sourceUrl} → ${correctBaseUrl}`);
                                         } catch (e) {
-                                            console.warn('无效的sourceUrl:', item.sourceUrl, e);
+                                            console.warn('无效sourceUrl:', item.sourceUrl, e);
                                         }
                                     }
                                 });
                             }
                         });
                         
-                        // 也添加扫描数据本身的sourceUrl作为备选
+                        // 也addscandata本身sourceUrl作为备选
                         if (scanData.sourceUrl) {
                             try {
                                 const sourceUrlObj = new URL(scanData.sourceUrl);
@@ -1926,24 +1926,24 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                                 
                                 console.log(`📋 [URL解析] 备选映射: ${scanData.sourceUrl} → ${correctBaseUrl}`);
                             } catch (e) {
-                                console.warn('无效的备选sourceUrl:', scanData.sourceUrl, e);
+                                console.warn('无效备选sourceUrl:', scanData.sourceUrl, e);
                             }
                         }
                     });
                     
-                    console.log(`📊 [URL解析] 映射建立完成，共 ${sourceUrlToBasePath.size} 个映射`);
+                    console.log(`📊 [URL解析] 映射建立complete，共 ${sourceUrlToBasePath.size} 个映射`);
                     
-                    // 🔥 方法1：精确匹配sourceUrl
+                    // 🔥 方法1：精确matchsourceUrl
                     if (sourceUrlToBasePath.has(sourceUrl)) {
                         const correctBasePath = sourceUrlToBasePath.get(sourceUrl);
                         const resolvedUrl = resolveRelativePath(url, correctBasePath);
                         if (resolvedUrl) {
-                            console.log(`🎯 [URL解析] 精确匹配成功: ${url} → ${resolvedUrl} (基于源: ${sourceUrl})`);
+                            console.log(`🎯 [URL解析] 精确matchsuccess: ${url} → ${resolvedUrl} (基于源: ${sourceUrl})`);
                             return resolvedUrl;
                         }
                     }
                     
-                    // 🔥 方法2：域名匹配
+                    // 🔥 方法2：domainmatch
                     const targetDomain = baseUrl ? new URL(baseUrl).hostname : null;
                     if (targetDomain) {
                         for (const [storedSourceUrl, basePath] of sourceUrlToBasePath.entries()) {
@@ -1952,7 +1952,7 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                                 if (sourceDomain === targetDomain) {
                                     const testUrl = resolveRelativePath(url, basePath);
                                     if (testUrl) {
-                                        console.log(`🎯 [URL解析] 域名匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
+                                        console.log(`🎯 [URL解析] domainmatchsuccess: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
                                         return testUrl;
                                     }
                                 }
@@ -1962,108 +1962,108 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                         }
                     }
                     
-                    // 🔥 方法3：尝试任何可用的源URL
+                    // 🔥 方法3：尝试任何可for源URL
                     for (const [storedSourceUrl, basePath] of sourceUrlToBasePath.entries()) {
                         const testUrl = resolveRelativePath(url, basePath);
                         if (testUrl) {
-                            console.log(`🎯 [URL解析] 通用匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
+                            console.log(`🎯 [URL解析] generalmatchsuccess: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
                             return testUrl;
                         }
                     }
                 }
                 
-                console.log(`⚠️ [URL解析] IndexedDB智能解析未找到匹配，使用默认方法`);
+                console.log(`⚠️ [URL解析] IndexedDB智能解析未foundmatch，use默认方法`);
                 
             } catch (error) {
-                console.warn('IndexedDB智能路径解析失败，使用默认方法:', error);
+                console.warn('IndexedDB智能路径解析failed，use默认方法:', error);
             }
         }
         
-        // 🔥 默认方法：直接基于baseUrl解析
+        // 🔥 默认方法：directly基于baseUrl解析
         try {
             const resolvedUrl = new URL(url, baseUrl).href;
             console.log(`📍 [URL解析] 默认解析: ${url} → ${resolvedUrl} (基于: ${baseUrl})`);
             return resolvedUrl;
         } catch (error) {
-            console.warn('默认URL解析失败:', error);
+            console.warn('默认URL解析failed:', error);
             return null;
         }
         
     } catch (error) {
-        console.warn('URL解析完全失败:', error);
+        console.warn('URL解析完全failed:', error);
         return null;
     }
 }
 
-// 检查是否为同一域名 - 支持子域名和全部域名设置
+// check是否为同一domain - support子domainand全部domainsettings
 async function isSameDomain(url, baseUrl) {
     try {
         const urlObj = new URL(url);
         const baseUrlObj = new URL(baseUrl);
         
-        // 获取域名扫描设置
+        // getdomainscansettings
         const domainSettings = await getDomainScanSettings();
-        //console.log('🔍 [深度扫描] 当前域名设置:', domainSettings);
-        //console.log('🔍 [深度扫描] 检查URL:', url, '基准URL:', baseUrl);
+        //console.log('🔍 [deep scan] 当beforedomainsettings:', domainSettings);
+        //console.log('🔍 [deep scan] checkURL:', url, '基准URL:', baseUrl);
         
-        // 如果允许扫描所有域名
+        // if允许scanalldomain
         if (domainSettings.allowAllDomains) {
-            //console.log(`🌐 [深度扫描] 允许所有域名: ${urlObj.hostname}`);
-            addLogEntry(`🌐 允许所有域名: ${urlObj.hostname}`, 'info');
+            //console.log(`🌐 [deep scan] 允许alldomain: ${urlObj.hostname}`);
+            addLogEntry(`🌐 允许alldomain: ${urlObj.hostname}`, 'info');
             return true;
         }
         
-        // 如果允许扫描子域名
+        // if允许scan子domain
         if (domainSettings.allowSubdomains) {
             const baseHostname = baseUrlObj.hostname;
             const urlHostname = urlObj.hostname;
             
-            // 检查是否为同一域名或子域名
+            // check是否为同一domainor子domain
             const isSameOrSubdomain = urlHostname === baseHostname || 
                                     urlHostname.endsWith('.' + baseHostname) ||
                                     baseHostname.endsWith('.' + urlHostname);
             
             if (isSameOrSubdomain) {
-                //console.log(`🔗 [深度扫描] 允许子域名: ${urlHostname} (基于 ${baseHostname})`);
-                //addLogEntry(`🔗 允许子域名: ${urlHostname}`, 'info');
+                //console.log(`🔗 [deep scan] 允许子domain: ${urlHostname} (基于 ${baseHostname})`);
+                //addLogEntry(`🔗 允许子domain: ${urlHostname}`, 'info');
                 return true;
             }
         }
         
-        // 默认：只允许完全相同的域名
+        // 默认：只允许完全相同domain
         const isSame = urlObj.hostname === baseUrlObj.hostname;
         if (isSame) {
-            //console.log(`✅ [深度扫描] 同域名: ${urlObj.hostname}`);
+            //console.log(`✅ [deep scan] 同domain: ${urlObj.hostname}`);
         } else {
-            //console.log(`❌ [深度扫描] 不同域名: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
+            //console.log(`❌ [deep scan] not同domain: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
         }
         return isSame;
         
     } catch (error) {
-        console.error('[深度扫描] 域名检查失败:', error);
+        console.error('[deep scan] domaincheckfailed:', error);
         return false;
     }
 }
 
-// 获取域名扫描设置
+// getdomainscansettings
 async function getDomainScanSettings() {
     try {
-        // 如果SettingsManager可用，使用它获取设置
+        // ifSettingsManager可for，use它getsettings
         if (typeof window.SettingsManager !== 'undefined' && window.SettingsManager.getDomainScanSettings) {
             return await window.SettingsManager.getDomainScanSettings();
         }
         
-        // 备用方案：直接从chrome.storage获取
+        // 备for方案：directlyfromchrome.storageget
         const result = await chrome.storage.local.get(['domainScanSettings']);
         const domainSettings = result.domainScanSettings || {
             allowSubdomains: false,
             allowAllDomains: false
         };
-        //console.log('🔍 [深度扫描] 从storage获取的域名设置:', domainSettings);
+        //console.log('🔍 [deep scan] fromstoragegetdomainsettings:', domainSettings);
         return domainSettings;
     } catch (error) {
-        console.error('[深度扫描] 获取域名扫描设置失败:', error);
-        // 默认设置：只允许同域名
+        console.error('[deep scan] getdomainscansettingsfailed:', error);
+        // 默认settings：只允许同domain
         return {
             allowSubdomains: false,
             allowAllDomains: false
@@ -2080,7 +2080,7 @@ function isValidPageUrl(url) {
     return !resourceExtensions.test(url.toLowerCase());
 }
 
-// -------------------- 导出功能 --------------------
+// -------------------- export功能 --------------------
 function exportResults() {
     const modal = document.getElementById('exportModal');
     if (modal) {
@@ -2097,10 +2097,10 @@ function toggleAllCategories() {
     });
 }
 
-// -------------------- 事件监听器 --------------------
+// -------------------- eventlistener --------------------
 document.addEventListener('DOMContentLoaded', initializePage);
 
-// 导出弹窗事件
+// exportpopupevent
 document.addEventListener('click', (e) => {
     if (e.target.id === 'closeExportModal' || e.target.id === 'exportModal') {
         document.getElementById('exportModal').style.display = 'none';
@@ -2128,9 +2128,9 @@ async function exportAsJSON() {
         link.download = filename;
         link.click();
         
-        addLogEntry(`✅ JSON导出成功: ${filename}`, 'success');
+        addLogEntry(`✅ JSONexportsuccess: ${filename}`, 'success');
     } catch (error) {
-        addLogEntry(`❌ JSON导出失败: ${error.message}`, 'error');
+        addLogEntry(`❌ JSONexportfailed: ${error.message}`, 'error');
     }
 }
 
@@ -2138,17 +2138,17 @@ async function exportAsExcel() {
     try {
         const filename = await generateFileName('xlsx');
         
-        // 检查是否有数据可导出
+        // check是否有data可export
         const hasData = Object.keys(scanResults).some(key => 
             scanResults[key] && Array.isArray(scanResults[key]) && scanResults[key].length > 0
         );
         
         if (!hasData) {
-            addLogEntry(`⚠️ 没有数据可导出`, 'warning');
+            addLogEntry(`⚠️ withoutdata可export`, 'warning');
             return;
         }
         
-        // 生成Excel XML格式内容
+        // generateExcel XMLformat内容
         let xlsContent = `<?xml version="1.0"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -2180,7 +2180,7 @@ async function exportAsExcel() {
   </Style>
  </Styles>`;
 
-        // 为每个分类创建工作表
+        // 为每个分classcreate工作表
         const categories = Object.keys(scanResults);
         let dataExported = false;
 
@@ -2217,10 +2217,10 @@ async function exportAsExcel() {
             }
         });
 
-        // 如果没有数据，创建一个空的工作表
+        // ifwithoutdata，create一个空工作表
         if (!dataExported) {
             xlsContent += `
- <Worksheet ss:Name="无数据">
+ <Worksheet ss:Name="无data">
   <Table>
    <Column ss:Width="200"/>
    <Row>
@@ -2236,7 +2236,7 @@ async function exportAsExcel() {
         xlsContent += `
 </Workbook>`;
 
-        // 创建并下载文件
+        // createanddownload文件
         const blob = new Blob([xlsContent], { 
             type: 'application/vnd.ms-excel;charset=utf-8' 
         });
@@ -2249,17 +2249,17 @@ async function exportAsExcel() {
         
         URL.revokeObjectURL(url);
         
-        addLogEntry(`✅ Excel文件导出成功: ${filename}.xls`, 'success');
+        addLogEntry(`✅ Excel文件exportsuccess: ${filename}.xls`, 'success');
         
     } catch (error) {
-        addLogEntry(`❌ Excel导出失败: ${error.message}`, 'error');
-        console.error('Excel导出错误:', error);
+        addLogEntry(`❌ Excelexportfailed: ${error.message}`, 'error');
+        console.error('Excelexport错误:', error);
     }
 }
 
-// 清理工作表名称（Excel工作表名称有特殊字符限制）
+// 清理工作表名称（Excel工作表名称有special字符限制）
 function sanitizeSheetName(name) {
-    // 移除或替换Excel不允许的字符
+    // 移除or替换Excelnot允许字符
     let sanitized = name.replace(/[\\\/\?\*\[\]:]/g, '_');
     // 限制长度（Excel工作表名称最大31个字符）
     if (sanitized.length > 31) {
@@ -2268,7 +2268,7 @@ function sanitizeSheetName(name) {
     return sanitized || '未命名';
 }
 
-// XML转义函数
+// XMLconvert义函数
 function escapeXml(text) {
     return String(text)
         .replace(/&/g, '&amp;')
@@ -2278,41 +2278,41 @@ function escapeXml(text) {
         .replace(/'/g, '&apos;');
 }
 
-// 生成文件名：域名__随机数
+// generate文件名：domain__random数
 async function generateFileName(extension = 'json') {
     let domain = 'deep-scan';
     
     try {
-        // 优先从扫描配置中获取目标域名
+        // 优先fromscanconfigurationinget目标domain
         if (scanConfig && scanConfig.baseUrl) {
             const url = new URL(scanConfig.baseUrl);
             domain = url.hostname;
-            //console.log('从扫描配置获取到域名:', domain);
+            //console.log('fromscanconfigurationgettodomain:', domain);
         } else {
-            // 备选方案：从当前窗口URL参数中提取目标域名
+            // 备选方案：from当before窗口URLparameterinextract目标domain
             if (window.location && window.location.href) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const targetUrl = urlParams.get('url');
                 if (targetUrl) {
                     const url = new URL(targetUrl);
                     domain = url.hostname;
-                    //console.log('从URL参数获取到域名:', domain);
+                    //console.log('fromURLparametergettodomain:', domain);
                 }
             }
         }
     } catch (e) {
-        //console.log('获取域名失败，使用默认名称:', e);
-        // 使用时间戳作为标识
+        //console.log('getdomainfailed，use默认名称:', e);
+        // use时间戳作为标识
         domain = `deep-scan_${Date.now()}`;
     }
     
-    // 清理域名，移除特殊字符
+    // 清理domain，移除special字符
     domain = domain.replace(/[^a-zA-Z0-9.-]/g, '_');
     
-    // 生成随机数（6位）
+    // generaterandom数（6位）
     const randomNum = Math.floor(100000 + Math.random() * 900000);
     
     return `${domain}__${randomNum}`;
 }
 
-//console.log('✅ [DEBUG] 深度扫描窗口脚本（统一正则版本）加载完成');
+//console.log('✅ [DEBUG] deep scan窗口脚本（unifiedregexversion）loadcomplete');

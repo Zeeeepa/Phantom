@@ -1,10 +1,10 @@
 /**
- * 模式提取器 - 只使用设置界面配置的正则表达式
- * 统一化版本 - 去除所有内置正则和降级机制
+ * patternextract器 - 只usesettings界面configurationregexexpression
+ * unified化version - 去除all内置regexand降级机制
  */
 class PatternExtractor {
     constructor() {
-        // 静态文件扩展名列表 - 用于过滤绝对路径和相对路径API
+        // 静态文件扩展名列表 - forthrough滤绝对路径and相对路径API
         this.staticFileExtensions = [
             // 图片文件
             '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff', '.tif',
@@ -20,7 +20,7 @@ class PatternExtractor {
             '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'
         ];
 
-        // 域名黑名单：不会展示以下域名
+        // domain黑名单：not会展示以下domain
         this.DOMAIN_BLACKLIST = [
             'el.datepicker.today',
             'obj.style.top',
@@ -34,7 +34,7 @@ class PatternExtractor {
             'vuejs.org'
         ];
 
-        // 内容类型过滤列表 - 用于静态路径和相对路径过滤
+        // 内容class型through滤列表 - for静态路径and相对路径through滤
         this.FILTERED_CONTENT_TYPES = [  
             'multipart/form-data',
             'node_modules/',
@@ -48,7 +48,7 @@ class PatternExtractor {
             'static/css/',
             'stylesheet/less',
             'jpg/jpeg/png/pdf',
-            // 日期类型
+            // dateclass型
             'yyyy/mm/dd',
             'dd/mm/yyyy',
             'mm/dd/yy',
@@ -57,7 +57,7 @@ class PatternExtractor {
             'm/d/y',
             'xx/xx',
             'zrender/vml/vml',
-            // CSS单位和正则表达式模式
+            // CSS单位andregexexpressionpattern
             '/rem/g',
             '/vw/g',
             '/vh/g',
@@ -65,7 +65,7 @@ class PatternExtractor {
             '/./g',
             '/f.value',
             '/i.test',
-            // 操作系统检测模式
+            // 操作系统detectpattern
             '/android/i.test',
             '/CrOS/.test',
             '/windows/i.test',
@@ -74,7 +74,7 @@ class PatternExtractor {
             '/tablet/i.test',
             '/xbox/i.test',
             '/bada/i.test',
-            // 浏览器检测模式
+            // 浏览器detectpattern
             '/silk/i.test',
             '/sailfish/i.test',
             '/tizen/i.test',
@@ -116,69 +116,69 @@ class PatternExtractor {
             '/Y/.test'
         ];
         
-        // 引入身份证验证过滤器
+        // 引入ID cardvalidationthrough滤器
         this.idCardFilter = null;
         this.loadIdCardFilter();
         
-        // 当前使用的正则表达式配置 - 初始为空，只使用设置界面配置
+        // 当beforeuseregexexpressionconfiguration - initial为空，只usesettings界面configuration
         this.patterns = {};
         
-        // 自定义正则表达式配置
+        // customregexexpressionconfiguration
         this.customRegexConfig = null;
         
-        // 标记是否已加载自定义配置
+        // 标记是否alreadyloadcustomconfiguration
         this.customPatternsLoaded = false;
         
-        // 设置全局引用，供设置管理器调用
+        // settings全局引for，供settings管理器调for
         window.patternExtractor = this;
         
-        // 监听配置更新事件
+        // listenconfiguration更newevent
         window.addEventListener('regexConfigUpdated', (event) => {
-            //console.log('🔄 收到正则配置更新事件:', event.detail);
+            //console.log('🔄 receivedregexconfiguration更newevent:', event.detail);
             this.updatePatterns(event.detail);
         }, { once: false });
         
-        // 异步加载自定义配置，但不阻塞构造函数
+        // asyncloadcustomconfiguration，butnot阻塞构造函数
         this.loadCustomPatterns().catch(error => {
-            console.error('❌ 异步加载自定义配置失败:', error);
+            console.error('❌ asyncloadcustomconfigurationfailed:', error);
         });
     }
     
     /**
-     * 加载身份证验证过滤器
+     * loadID cardvalidationthrough滤器
      */
     loadIdCardFilter() {
         try {
-            // 尝试从全局变量获取
+            // 尝试from全局变量get
             if (typeof window !== 'undefined' && window.idCardFilter) {
                 this.idCardFilter = window.idCardFilter;
-                //console.log('✅ 身份证过滤器加载成功 (全局变量)');
+                //console.log('✅ ID cardthrough滤器loadsuccess (全局变量)');
                 return;
             }
             
-            // 尝试动态加载
+            // 尝试动态load
             const script = document.createElement('script');
             script.src = 'filters/id-card-filter.js';
             script.onload = () => {
                 if (window.idCardFilter) {
                     this.idCardFilter = window.idCardFilter;
-                    //console.log('✅ 身份证过滤器动态加载成功');
+                    //console.log('✅ ID cardthrough滤器动态loadsuccess');
                 } else {
-                    console.warn('⚠️ 身份证过滤器加载失败：未找到 idCardFilter');
+                    console.warn('⚠️ ID cardthrough滤器loadfailed：未found idCardFilter');
                 }
             };
             script.onerror = () => {
-                console.error('❌ 身份证过滤器脚本加载失败');
+                console.error('❌ ID cardthrough滤器脚本loadfailed');
             };
             document.head.appendChild(script);
         } catch (error) {
-            console.error('❌ 加载身份证过滤器时出错:', error);
+            console.error('❌ loadID cardthrough滤器时出错:', error);
         }
     }
     
     /**
-     * 检测URL是否为静态文件
-     * @param {string} url - 要检测的URL
+     * detectURL是否为静态文件
+     * @param {string} url - 要detectURL
      * @returns {boolean} 是否为静态文件
      */
     isStaticFile(url) {
@@ -186,44 +186,44 @@ class PatternExtractor {
             return false;
         }
         
-        // 移除查询参数和锚点
+        // 移除查询parameterand锚点
         const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
         
-        // 检查是否以静态文件扩展名结尾
+        // check是否以静态文件扩展名ending
         return this.staticFileExtensions.some(ext => cleanUrl.endsWith(ext));
     }
 
     /**
-     * 检查域名是否在黑名单中
-     * @param {string} domain - 要检查的域名
-     * @returns {boolean} 是否在黑名单中
+     * checkdomain是否in黑名单in
+     * @param {string} domain - 要checkdomain
+     * @returns {boolean} 是否in黑名单in
      */
     isDomainBlacklisted(domain) {
         if (!domain || typeof domain !== 'string') {
             return false;
         }
         
-        // 清理域名，移除协议、路径等
+        // 清理domain，移除协议、路径等
         const cleanDomain = domain.toLowerCase()
             .replace(/^https?:\/\//, '')  // 移除协议
             .replace(/\/.*$/, '')         // 移除路径
             .replace(/:\d+$/, '')         // 移除端口
             .trim();
         
-        // 检查是否在黑名单中
+        // check是否in黑名单in
         const isBlacklisted = this.DOMAIN_BLACKLIST.includes(cleanDomain);
         
         if (isBlacklisted) {
-            console.log(`🚫 [PatternExtractor] 域名已被黑名单过滤: "${cleanDomain}"`);
+            console.log(`🚫 [PatternExtractor] domainalreadyby黑名单through滤: "${cleanDomain}"`);
         }
         
         return isBlacklisted;
     }
 
     /**
-     * 检查路径是否包含需要过滤的内容类型
-     * @param {string} path - 要检查的路径
-     * @returns {boolean} 是否包含需要过滤的内容类型
+     * check路径是否containsrequirethrough滤内容class型
+     * @param {string} path - 要check路径
+     * @returns {boolean} 是否containsrequirethrough滤内容class型
      */
     containsFilteredContentType(path) {
         if (!path || typeof path !== 'string') {
@@ -232,80 +232,80 @@ class PatternExtractor {
         
         const lowerPath = path.toLowerCase();
         
-        // 检查是否包含任何过滤的内容类型
+        // check是否contains任何through滤内容class型
         const isFiltered = this.FILTERED_CONTENT_TYPES.some(contentType => {
             return lowerPath.includes(contentType.toLowerCase());
         });
         
         if (isFiltered) {
-            console.log(`🚫 [PatternExtractor] 路径包含过滤内容类型，已过滤: "${path}"`);
+            console.log(`🚫 [PatternExtractor] 路径containsthrough滤内容class型，alreadythrough滤: "${path}"`);
         }
         
         return isFiltered;
     }
 
     /**
-     * 过滤静态文件路径
+     * through滤静态文件路径
      * @param {Array} paths - 路径数组
-     * @returns {Array} 过滤后的路径数组
+     * @returns {Array} through滤后路径数组
      */
     filterStaticPaths(paths) {
         return paths.filter(path => {
-            // 检查是否包含需要过滤的内容类型
+            // check是否containsrequirethrough滤内容class型
             if (this.containsFilteredContentType(path)) {
                 return false;
             }
             
-            // 获取文件扩展名
+            // get文件扩展名
             const ext = path.toLowerCase().match(/\.[^.]*$/);
-            if (!ext) return true; // 没有扩展名的保留
+            if (!ext) return true; // without扩展名keep
             
-            // 检查是否为静态文件扩展名
+            // check是否为静态文件扩展名
             return !this.staticFileExtensions.includes(ext[0]);
         });
     }
 
     /**
-     * 过滤相对路径中的静态文件
+     * through滤相对路径in静态文件
      * @param {Array} relativePaths - 相对路径数组
-     * @returns {Array} 过滤后的相对路径数组
+     * @returns {Array} through滤后相对路径数组
      */
     filterStaticRelativePaths(relativePaths) {
         return relativePaths.filter(path => {
-            // 检查是否包含需要过滤的内容类型
+            // check是否containsrequirethrough滤内容class型
             if (this.containsFilteredContentType(path)) {
                 return false;
             }
             
-            // 处理相对路径，可能包含 ../ 或 ./
+            // 处理相对路径，可能contains ../ or ./
             const normalizedPath = path.replace(/^\.\.?\//, '');
             
-            // 获取文件扩展名
+            // get文件扩展名
             const ext = normalizedPath.toLowerCase().match(/\.[^.]*$/);
-            if (!ext) return true; // 没有扩展名的保留
+            if (!ext) return true; // without扩展名keep
             
-            // 检查是否为静态文件扩展名
+            // check是否为静态文件扩展名
             const isStaticFile = this.staticFileExtensions.includes(ext[0]);
             
-            // 记录过滤的静态文件（用于调试）
+            // recordthrough滤静态文件（for调试）
             if (isStaticFile) {
-                console.log(`🚫 [PatternExtractor] 过滤相对路径静态文件: ${path}`);
+                console.log(`🚫 [PatternExtractor] through滤相对路径静态文件: ${path}`);
             }
             
             return !isStaticFile;
         });
     }
 
-    // 处理相对路径API，去除开头的"."符号但保留"/"
+    // 处理相对路径API，去除开头"."符号butkeep"/"
     processRelativeApi(api) {
         try {
-            // 去除开头的"."符号，但保留"/"
+            // 去除开头"."符号，butkeep"/"
             if (api.startsWith('./')) {
-                return api.substring(1); // 去除开头的"."，保留"/"
+                return api.substring(1); // 去除开头"."，keep"/"
             } else if (api.startsWith('.') && !api.startsWith('/')) {
-                return api.substring(1); // 去除开头的"."
+                return api.substring(1); // 去除开头"."
             }
-            return api; // 其他情况保持不变
+            return api; // 其他情况keepnot变
         } catch (error) {
             console.warn('⚠️ 处理相对路径API时出错:', error);
             return api;
@@ -313,9 +313,9 @@ class PatternExtractor {
     }
     
     /**
-     * 验证并过滤身份证号码，只保留18位有效身份证
-     * @param {Array} idCards - 提取到的身份证号码数组
-     * @returns {Array} 验证通过的18位身份证号码数组
+     * validationandthrough滤ID cardnumber，只keep18-digitvalidID card
+     * @param {Array} idCards - extracttoID cardnumber数组
+     * @returns {Array} validation通through18-digit ID cardnumber数组
      */
     validateIdCards(idCards) {
         if (!this.idCardFilter || !Array.isArray(idCards)) {
@@ -328,20 +328,20 @@ class PatternExtractor {
             try {
                 const cleanIdCard = idCard.replace(/['"]/g, '').trim();
                 
-                // 只处理18位身份证
+                // 只处理18-digit ID card
                 if (cleanIdCard.length !== 18) {
                     continue;
                 }
                 
                 const result = this.idCardFilter.validate(cleanIdCard);
-                if (result.valid && result.type === '18位身份证') {
+                if (result.valid && result.type === '18-digit ID card') {
                     validIdCards.push(cleanIdCard);
-                    //console.log(`✅ 身份证验证通过: ${cleanIdCard} (${result.province}, ${result.gender})`);
+                    //console.log(`✅ ID cardvalidation通through: ${cleanIdCard} (${result.province}, ${result.gender})`);
                 } else {
-                    //console.log(`❌ 身份证验证失败: ${cleanIdCard} - ${result.error || '格式错误'}`);
+                    //console.log(`❌ ID cardvalidationfailed: ${cleanIdCard} - ${result.error || 'format错误'}`);
                 }
             } catch (error) {
-                console.error('❌ 身份证验证过程出错:', error, '身份证:', idCard);
+                console.error('❌ ID cardvalidationthrough程出错:', error, 'ID card:', idCard);
             }
         }
         
@@ -349,108 +349,108 @@ class PatternExtractor {
     }
     
     /**
-     * 加载自定义正则表达式配置 - 统一化版本
+     * loadcustomregexexpressionconfiguration - unified化version
      */
     async loadCustomPatterns() {
         try {
-            //console.log('🔄 PatternExtractor统一化版本开始加载自定义配置...');
+            //console.log('🔄 PatternExtractorunified化versionstartloadcustomconfiguration...');
             
-            // 修复：保存现有的自定义正则模式，避免被清空
+            // fix：保存现有customregexpattern，避免by清空
             const existingCustomPatterns = {};
             Object.keys(this.patterns).forEach(key => {
                 if (key.startsWith('custom_')) {
                     existingCustomPatterns[key] = this.patterns[key];
-                    //console.log(`💾 [PatternExtractor] 保存现有自定义正则: ${key}`);
+                    //console.log(`💾 [PatternExtractor] 保存现有customregex: ${key}`);
                 }
             });
             
-            // 只重置非自定义的正则模式
+            // 只重置非customregexpattern
             const newPatterns = {};
             Object.keys(existingCustomPatterns).forEach(key => {
                 newPatterns[key] = existingCustomPatterns[key];
             });
             this.patterns = newPatterns;
             
-            // 加载所有相关配置：regexSettings + 动态自定义正则配置
+            // loadall相关configuration：regexSettings + 动态customregexconfiguration
             const result = await chrome.storage.local.get(['regexSettings', 'customRegexConfigs']);
             
-            //console.log('📊 PatternExtractor加载的存储数据:', result);
+            //console.log('📊 PatternExtractorloadstoragedata:', result);
             
             if (result.regexSettings) {
-                //console.log('🔄 PatternExtractor加载regexSettings配置:', result.regexSettings);
+                //console.log('🔄 PatternExtractorloadregexSettingsconfiguration:', result.regexSettings);
                 this.updatePatterns(result.regexSettings);
-                //console.log('✅ PatternExtractor基础正则表达式配置已更新');
+                //console.log('✅ PatternExtractorbasicregexexpressionconfigurationalready更new');
             } else {
-                console.warn('⚠️ PatternExtractor未找到regexSettings配置，添加基础资源正则');
-                // 添加基础资源文件正则（这些不依赖设置界面，是基础功能）
+                console.warn('⚠️ PatternExtractor未foundregexSettingsconfiguration，addbasic资源regex');
+                // addbasic资源文件regex（这些not依赖settings界面，是basic功能）
                 this.patterns.jsFile = /<script[^>]*\ssrc\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`][^>]*>|(?:src|href)\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`]|import\s+.*?from\s+["'`]([^"'`]*\.js)["'`]|require\s*\(\s*["'`]([^"'`]*\.js)["'`]\s*\)/gi;
                 this.patterns.cssFile = /(?:href)\s*=\s*["'`]([^"'`]*\.css(?:\?[^"'`]*)?)["'`]/gi;
                 this.patterns.image = /(?:src|href|data-src)\s*=\s*["'`]([^"'`]*\.(?:jpg|jpeg|png|gif|bmp|svg|webp|ico|tiff)(?:\?[^"'`]*)?)["'`]/gi;
                 this.patterns.url = /(https?:\/\/[a-zA-Z0-9\-\.]+(?:\:[0-9]+)?(?:\/[^\s"'<>]*)?)/g;
             }
             
-            // 加载动态自定义正则配置 - 修复：支持对象和数组两种存储格式
+            // load动态customregexconfiguration - fix：supportobjectand数组两种storageformat
             if (result.customRegexConfigs) {
-                //console.log('🔄 PatternExtractor开始加载动态自定义正则配置:', result.customRegexConfigs);
+                //console.log('🔄 PatternExtractorstartload动态customregexconfiguration:', result.customRegexConfigs);
                 
                 let configsToProcess = [];
                 
-                // 检查存储格式：对象格式还是数组格式
+                // checkstorageformat：objectformat还是数组format
                 if (Array.isArray(result.customRegexConfigs)) {
-                    // 数组格式
+                    // 数组format
                     configsToProcess = result.customRegexConfigs;
-                    //console.log('📋 PatternExtractor检测到数组格式的自定义正则配置');
+                    //console.log('📋 PatternExtractordetectto数组formatcustomregexconfiguration');
                 } else if (typeof result.customRegexConfigs === 'object') {
-                    // 对象格式，转换为数组
+                    // objectformat，convert为数组
                     configsToProcess = Object.entries(result.customRegexConfigs).map(([key, config]) => ({
-                        key: `custom_${key}`, // 添加 custom_ 前缀
+                        key: `custom_${key}`, // add custom_ before缀
                         name: config.name,
                         pattern: config.pattern,
                         createdAt: config.createdAt
                     }));
-                    //console.log('📋 PatternExtractor检测到对象格式的自定义正则配置，已转换为数组格式');
+                    //console.log('📋 PatternExtractordetecttoobjectformatcustomregexconfiguration，alreadyconvert为数组format');
                 }
                 
                 if (configsToProcess.length > 0) {
                     configsToProcess.forEach((config, index) => {
                         try {
                             if (config.key && config.pattern && config.name) {
-                                // 将自定义正则添加到patterns中
+                                // 将customregexaddtopatternsin
                                 const regex = new RegExp(config.pattern, 'g');
                                 this.patterns[config.key] = regex;
-                                //console.log(`✅ PatternExtractor添加自定义正则 ${index + 1}: ${config.name} (${config.key}) - ${config.pattern}`);
+                                //console.log(`✅ PatternExtractoraddcustomregex ${index + 1}: ${config.name} (${config.key}) - ${config.pattern}`);
                             } else {
-                                console.warn(`⚠️ PatternExtractor跳过无效的自定义正则配置 ${index + 1}:`, config);
+                                console.warn(`⚠️ PatternExtractorskip无效customregexconfiguration ${index + 1}:`, config);
                             }
                         } catch (error) {
-                            console.error(`❌ PatternExtractor自定义正则配置 ${index + 1} 格式错误:`, error, config);
+                            console.error(`❌ PatternExtractorcustomregexconfiguration ${index + 1} format错误:`, error, config);
                         }
                     });
                     
-                    //console.log(`✅ PatternExtractor动态自定义正则配置加载完成，共加载 ${configsToProcess.length} 个配置`);
+                    //console.log(`✅ PatternExtractor动态customregexconfigurationloadcomplete，共load ${configsToProcess.length} 个configuration`);
                 } else {
-                    //console.log('⚠️ PatternExtractor动态自定义正则配置为空');
+                    //console.log('⚠️ PatternExtractor动态customregexconfiguration为空');
                 }
             } else {
-                //console.log('ℹ️ PatternExtractor未找到动态自定义正则配置');
+                //console.log('ℹ️ PatternExtractor未found动态customregexconfiguration');
             }
             
-            // 标记配置已加载
+            // 标记configurationalreadyload
             this.customPatternsLoaded = true;
-            //console.log('✅ PatternExtractor统一化版本自定义配置加载完成');
-            //console.log('📊 PatternExtractor当前可用的正则模式:', Object.keys(this.patterns));
+            //console.log('✅ PatternExtractorunified化versioncustomconfigurationloadcomplete');
+            //console.log('📊 PatternExtractor当before可forregexpattern:', Object.keys(this.patterns));
             
         } catch (error) {
-            console.error('❌ PatternExtractor加载自定义正则表达式配置失败:', error);
-            this.customPatternsLoaded = true; // 即使失败也标记为已加载，避免无限等待
+            console.error('❌ PatternExtractorloadcustomregexexpressionconfigurationfailed:', error);
+            this.customPatternsLoaded = true; // 即使failed也标记为alreadyload，避免无限wait
         }
     }
     
     /**
-     * 解析正则表达式输入，支持 /pattern/flags 格式和普通字符串格式
-     * @param {string} input - 输入的正则表达式字符串
+     * 解析regexexpression输入，support /pattern/flags formatand普通字符串format
+     * @param {string} input - 输入regexexpression字符串
      * @param {string} defaultFlags - 默认标志，默认为 'g'
-     * @returns {RegExp|null} 解析后的正则表达式对象
+     * @returns {RegExp|null} 解析后regexexpressionobject
      */
     parseRegexInput(input, defaultFlags = 'g') {
         if (typeof input !== 'string' || !input.trim()) {
@@ -459,14 +459,14 @@ class PatternExtractor {
         
         const trimmedInput = input.trim();
         
-        // 检查是否为 /pattern/flags 格式
+        // check是否为 /pattern/flags format
         const match = trimmedInput.match(/^\/(.*)\/([gimuy]*)$/);
         if (match) {
             const [, pattern, flags] = match;
             try {
                 return new RegExp(pattern, flags || defaultFlags);
             } catch (error) {
-                console.error('❌ 正则表达式格式错误 (字面量格式):', error, 'Pattern:', pattern, 'Flags:', flags);
+                console.error('❌ regexexpressionformat错误 (字面量format):', error, 'Pattern:', pattern, 'Flags:', flags);
                 return null;
             }
         } else {
@@ -474,218 +474,218 @@ class PatternExtractor {
             try {
                 return new RegExp(trimmedInput, defaultFlags);
             } catch (error) {
-                console.error('❌ 正则表达式格式错误 (字符串格式):', error, 'Pattern:', trimmedInput);
+                console.error('❌ regexexpressionformat错误 (字符串format):', error, 'Pattern:', trimmedInput);
                 return null;
             }
         }
     }
 
     /**
-     * 更新正则表达式配置 - 只使用设置界面的配置
+     * 更newregexexpressionconfiguration - 只usesettings界面configuration
      */
     updatePatterns(customSettings) {
         try {
-            //console.log('🔧 开始更新正则表达式配置...', customSettings);
+            //console.log('🔧 start更newregexexpressionconfiguration...', customSettings);
             
-            // 保存现有的自定义正则模式
+            // 保存现有customregexpattern
             const existingCustomPatterns = {};
             Object.keys(this.patterns).forEach(key => {
                 if (key.startsWith('custom_')) {
                     existingCustomPatterns[key] = this.patterns[key];
-                    //console.log(`💾 [PatternExtractor] 保存现有自定义正则: ${key}`);
+                    //console.log(`💾 [PatternExtractor] 保存现有customregex: ${key}`);
                 }
             });
             
-            // 清空所有现有模式
+            // 清空all现有pattern
             this.patterns = {};
             
-            // 恢复自定义正则模式
+            // 恢复customregexpattern
             Object.keys(existingCustomPatterns).forEach(key => {
                 this.patterns[key] = existingCustomPatterns[key];
-                //console.log(`🔄 [PatternExtractor] 恢复自定义正则: ${key}`);
+                //console.log(`🔄 [PatternExtractor] 恢复customregex: ${key}`);
             });
             
-            // 更新绝对路径API正则
+            // 更new绝对路径APIregex
             if (customSettings.absoluteApis && customSettings.absoluteApis.trim()) {
                 this.patterns.absoluteApi = this.parseRegexInput(customSettings.absoluteApis);
-                //console.log('📝 更新绝对路径API正则表达式:', customSettings.absoluteApis);
+                //console.log('📝 更new绝对路径APIregexexpression:', customSettings.absoluteApis);
             }
             
-            // 更新相对路径API正则
+            // 更new相对路径APIregex
             if (customSettings.relativeApis && customSettings.relativeApis.trim()) {
                 this.patterns.relativeApi = this.parseRegexInput(customSettings.relativeApis);
-                //console.log('📝 更新相对路径API正则表达式:', customSettings.relativeApis);
+                //console.log('📝 更new相对路径APIregexexpression:', customSettings.relativeApis);
             }
             
-            // 更新域名正则
+            // 更newdomainregex
             if (customSettings.domains && customSettings.domains.trim()) {
                 this.patterns.domain = this.parseRegexInput(customSettings.domains);
-                //console.log('📝 更新域名正则表达式:', customSettings.domains);
+                //console.log('📝 更newdomainregexexpression:', customSettings.domains);
             }
             
-            // 更新邮箱正则
+            // 更newemailregex
             if (customSettings.emails && customSettings.emails.trim()) {
                 this.patterns.email = this.parseRegexInput(customSettings.emails);
-                //console.log('📝 更新邮箱正则表达式:', customSettings.emails);
+                //console.log('📝 更newemailregexexpression:', customSettings.emails);
             }
             
-            // 更新电话正则
+            // 更newtelephoneregex
             if (customSettings.phoneNumbers && customSettings.phoneNumbers.trim()) {
                 this.patterns.phone = this.parseRegexInput(customSettings.phoneNumbers);
-                //console.log('📝 更新电话正则表达式:', customSettings.phoneNumbers);
+                //console.log('📝 更newtelephoneregexexpression:', customSettings.phoneNumbers);
             }
             
-            // 更新敏感信息正则
+            // 更new敏感informationregex
             if (customSettings.credentials && customSettings.credentials.trim()) {
                 this.patterns.credentials = this.parseRegexInput(customSettings.credentials, 'gi');
-                //console.log('📝 更新敏感信息正则表达式:', customSettings.credentials);
+                //console.log('📝 更new敏感informationregexexpression:', customSettings.credentials);
             }
             
-            // 更新IP地址正则
+            // 更newIP地址regex
             if (customSettings.ipAddresses && customSettings.ipAddresses.trim()) {
                 this.patterns.ip = this.parseRegexInput(customSettings.ipAddresses);
-                //console.log('📝 更新IP地址正则表达式:', customSettings.ipAddresses);
+                //console.log('📝 更newIP地址regexexpression:', customSettings.ipAddresses);
             }
             
-            // 更新路径正则
+            // 更new路径regex
             if (customSettings.paths && customSettings.paths.trim()) {
                 this.patterns.paths = this.parseRegexInput(customSettings.paths);
-                //console.log('📝 更新路径正则表达式:', customSettings.paths);
+                //console.log('📝 更new路径regexexpression:', customSettings.paths);
             }
             
-            // 更新JWT令牌正则
+            // 更newJWT令牌regex
             if (customSettings.jwts && customSettings.jwts.trim()) {
                 this.patterns.jwt = this.parseRegexInput(customSettings.jwts);
-                //console.log('📝 更新JWT令牌正则表达式:', customSettings.jwts);
+                //console.log('📝 更newJWT令牌regexexpression:', customSettings.jwts);
             }
             
-            // 更新GitHub链接正则
+            // 更newGitHub链接regex
             if (customSettings.githubUrls && customSettings.githubUrls.trim()) {
                 this.patterns.github = this.parseRegexInput(customSettings.githubUrls);
-                //console.log('📝 更新GitHub链接正则表达式:', customSettings.githubUrls);
+                //console.log('📝 更newGitHub链接regexexpression:', customSettings.githubUrls);
             }
             
-            // 更新Vue文件正则
+            // 更newVue文件regex
             if (customSettings.vueFiles && customSettings.vueFiles.trim()) {
                 this.patterns.vue = this.parseRegexInput(customSettings.vueFiles);
-                //console.log('📝 更新Vue文件正则表达式:', customSettings.vueFiles);
+                //console.log('📝 更newVue文件regexexpression:', customSettings.vueFiles);
             }
             
-            // 更新公司名称正则
+            // 更newcompany名称regex
             if (customSettings.companies && customSettings.companies.trim()) {
                 this.patterns.company = this.parseRegexInput(customSettings.companies);
-                //console.log('📝 更新公司名称正则表达式:', customSettings.companies);
+                //console.log('📝 更newcompany名称regexexpression:', customSettings.companies);
             }
             
-            // 更新注释正则
+            // 更new注释regex
             if (customSettings.comments && customSettings.comments.trim()) {
                 this.patterns.comments = this.parseRegexInput(customSettings.comments, 'gm');
-                //console.log('📝 更新注释正则表达式:', customSettings.comments);
+                //console.log('📝 更new注释regexexpression:', customSettings.comments);
             }
             
-            // 更新身份证正则
+            // 更newID cardregex
             if (customSettings.idCards && customSettings.idCards.trim()) {
                 this.patterns.idCard = this.parseRegexInput(customSettings.idCards);
-                //console.log('📝 更新身份证正则表达式:', customSettings.idCards);
+                //console.log('📝 更newID cardregexexpression:', customSettings.idCards);
             }
             
-            // 更新Bearer Token正则
+            // 更newBearer Tokenregex
             if (customSettings.bearerTokens && customSettings.bearerTokens.trim()) {
                 this.patterns.bearerToken = this.parseRegexInput(customSettings.bearerTokens);
-                //console.log('📝 更新Bearer Token正则表达式:', customSettings.bearerTokens);
+                //console.log('📝 更newBearer Tokenregexexpression:', customSettings.bearerTokens);
             }
             
-            // 更新Basic Auth正则
+            // 更newBasic Authregex
             if (customSettings.basicAuth && customSettings.basicAuth.trim()) {
                 this.patterns.basicAuth = this.parseRegexInput(customSettings.basicAuth);
-                //console.log('📝 更新Basic Auth正则表达式:', customSettings.basicAuth);
+                //console.log('📝 更newBasic Authregexexpression:', customSettings.basicAuth);
             }
             
-            // 更新Authorization Header正则
+            // 更newAuthorization Headerregex
             if (customSettings.authHeaders && customSettings.authHeaders.trim()) {
                 this.patterns.authHeader = this.parseRegexInput(customSettings.authHeaders);
-                //console.log('📝 更新Authorization Header正则表达式:', customSettings.authHeaders);
+                //console.log('📝 更newAuthorization Headerregexexpression:', customSettings.authHeaders);
             }
             
-            // 更新微信AppID正则
+            // 更new微信AppIDregex
             if (customSettings.wechatAppIds && customSettings.wechatAppIds.trim()) {
                 this.patterns.wechatAppId = this.parseRegexInput(customSettings.wechatAppIds);
-                //console.log('📝 更新微信AppID正则表达式:', customSettings.wechatAppIds);
+                //console.log('📝 更new微信AppIDregexexpression:', customSettings.wechatAppIds);
             }
             
-            // 更新AWS密钥正则
+            // 更newAWS密钥regex
             if (customSettings.awsKeys && customSettings.awsKeys.trim()) {
                 this.patterns.awsKey = this.parseRegexInput(customSettings.awsKeys);
-                //console.log('📝 更新AWS密钥正则表达式:', customSettings.awsKeys);
+                //console.log('📝 更newAWS密钥regexexpression:', customSettings.awsKeys);
             }
             
-            // 更新Google API Key正则
+            // 更newGoogle API Keyregex
             if (customSettings.googleApiKeys && customSettings.googleApiKeys.trim()) {
                 this.patterns.googleApiKey = this.parseRegexInput(customSettings.googleApiKeys);
-                //console.log('📝 更新Google API Key正则表达式:', customSettings.googleApiKeys);
+                //console.log('📝 更newGoogle API Keyregexexpression:', customSettings.googleApiKeys);
             }
             
-            // 更新GitHub Token正则
+            // 更newGitHub Tokenregex
             if (customSettings.githubTokens && customSettings.githubTokens.trim()) {
                 this.patterns.githubToken = this.parseRegexInput(customSettings.githubTokens);
-                //console.log('📝 更新GitHub Token正则表达式:', customSettings.githubTokens);
+                //console.log('📝 更newGitHub Tokenregexexpression:', customSettings.githubTokens);
             }
             
-            // 更新GitLab Token正则
+            // 更newGitLab Tokenregex
             if (customSettings.gitlabTokens && customSettings.gitlabTokens.trim()) {
                 this.patterns.gitlabToken = this.parseRegexInput(customSettings.gitlabTokens);
-                //console.log('📝 更新GitLab Token正则表达式:', customSettings.gitlabTokens);
+                //console.log('📝 更newGitLab Tokenregexexpression:', customSettings.gitlabTokens);
             }
             
-            // 更新Webhook URLs正则
+            // 更newWebhook URLsregex
             if (customSettings.webhookUrls && customSettings.webhookUrls.trim()) {
                 this.patterns.webhookUrls = this.parseRegexInput(customSettings.webhookUrls);
-                //console.log('📝 更新Webhook URLs正则表达式:', customSettings.webhookUrls);
+                //console.log('📝 更newWebhook URLsregexexpression:', customSettings.webhookUrls);
             }
             
-            // 更新加密算法使用正则
+            // 更new加密算法useregex
             if (customSettings.cryptoUsage && customSettings.cryptoUsage.trim()) {
                 this.patterns.cryptoUsage = this.parseRegexInput(customSettings.cryptoUsage, 'gi');
-                //console.log('📝 更新加密算法使用正则表达式:', customSettings.cryptoUsage);
+                //console.log('📝 更new加密算法useregexexpression:', customSettings.cryptoUsage);
             }
             
-            // 添加基础资源文件正则（这些不依赖设置界面，是基础功能）
+            // addbasic资源文件regex（这些not依赖settings界面，是basic功能）
             this.patterns.jsFile = /<script[^>]*\ssrc\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`][^>]*>|(?:src|href)\s*=\s*["'`]([^"'`]*\.js(?:\?[^"'`]*)?)["'`]|import\s+.*?from\s+["'`]([^"'`]*\.js)["'`]|require\s*\(\s*["'`]([^"'`]*\.js)["'`]\s*\)/gi;
             this.patterns.cssFile = /(?:href)\s*=\s*["'`]([^"'`]*\.css(?:\?[^"'`]*)?)["'`]/gi;
             this.patterns.image = /(?:src|href|data-src)\s*=\s*["'`]([^"'`]*\.(?:jpg|jpeg|png|gif|bmp|svg|webp|ico|tiff)(?:\?[^"'`]*)?)["'`]/gi;
             this.patterns.url = /(https?:\/\/[a-zA-Z0-9\-\.]+(?:\:[0-9]+)?(?:\/[^\s"'<>]*)?)/g;
             
-            //console.log('✅ 正则表达式配置更新完成');
-            //console.log('📊 当前可用的正则模式:', Object.keys(this.patterns));
+            //console.log('✅ regexexpressionconfiguration更newcomplete');
+            //console.log('📊 当before可forregexpattern:', Object.keys(this.patterns));
             
-            // 保存当前配置状态
+            // 保存当beforeconfigurationstate
             this.customRegexConfig = customSettings;
             
         } catch (error) {
-            console.error('❌ 更新正则表达式配置失败:', error);
+            console.error('❌ 更newregexexpressionconfigurationfailed:', error);
         }
     }
     
     /**
-     * 确保自定义配置已加载 - 统一化版本
-     * 修复：只在必要时重新加载配置，避免清空现有配置
+     * 确保customconfigurationalreadyload - unified化version
+     * fix：只in必要时重newloadconfiguration，避免清空现有configuration
      */
     async ensureCustomPatternsLoaded() {
         if (!this.customPatternsLoaded) {
-            //console.log('🔄 PatternExtractor统一化版本：首次加载配置...');
+            //console.log('🔄 PatternExtractorunified化version：首次loadconfiguration...');
             await this.loadCustomPatterns();
         } else {
-            //console.log('✅ PatternExtractor统一化版本：配置已加载，跳过重复加载');
+            //console.log('✅ PatternExtractorunified化version：configurationalreadyload，skip重复load');
         }
     }
     
     /**
-     * 使用exec方法执行正则匹配 - 修复负向断言问题
+     * useexec方法executeregexmatch - fix负向断言issue
      */
     executeRegexWithExec(regex, content, results, resultKey, patternKey) {
-        //console.log(`🔍 [PatternExtractor] 使用exec方法处理: ${patternKey}`);
+        //console.log(`🔍 [PatternExtractor] useexec方法处理: ${patternKey}`);
         
-        // 重置正则表达式状态
+        // 重置regexexpressionstate
         regex.lastIndex = 0;
         let match;
         let matchCount = 0;
@@ -696,48 +696,48 @@ class PatternExtractor {
             if (matchedText && matchedText.trim()) {
                 const trimmedText = matchedText.trim();
                 
-                // 🔥 特殊处理：过滤绝对路径API中包含协议的内容
+                // 🔥 special处理：through滤绝对路径APIincontains协议内容
                 if (patternKey === 'absoluteApi' && (trimmedText.includes('http://') || trimmedText.includes('https://'))) {
-                    //console.log(`🚫 [PatternExtractor] 绝对路径API包含协议，已过滤: "${trimmedText}"`);
+                    //console.log(`🚫 [PatternExtractor] 绝对路径APIcontains协议，alreadythrough滤: "${trimmedText}"`);
                     matchCount++;
                     continue;
                 }
                 
-                // 🔥 新增特殊处理：过滤绝对路径API中的静态文件
+                // 🔥 new增special处理：through滤绝对路径APIin静态文件
                 if (patternKey === 'absoluteApi' && this.isStaticFile(trimmedText)) {
-                    //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedText}"`);
+                    //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，alreadythrough滤: "${trimmedText}"`);
                     matchCount++;
                     continue;
                 }
                 
-                // 🔥 新增特殊处理：过滤域名黑名单
+                // 🔥 new增special处理：through滤domain黑名单
                 if (patternKey === 'domain' && this.isDomainBlacklisted(trimmedText)) {
-                    //console.log(`🚫 [PatternExtractor] 域名在黑名单中，已过滤: "${trimmedText}"`);
+                    //console.log(`🚫 [PatternExtractor] domainin黑名单in，alreadythrough滤: "${trimmedText}"`);
                     matchCount++;
                     continue;
                 }
                 
-                // 🔥 新增特殊处理：过滤包含过滤内容类型的内容
+                // 🔥 new增special处理：through滤containsthrough滤内容class型内容
                 if (this.containsFilteredContentType(trimmedText)) {
-                    //console.log(`🚫 [PatternExtractor] ${patternKey} 包含过滤内容类型，已过滤: "${trimmedText}"`);
+                    //console.log(`🚫 [PatternExtractor] ${patternKey} containsthrough滤内容class型，alreadythrough滤: "${trimmedText}"`);
                     matchCount++;
                     continue;
                 }
                 
                 results[resultKey].add(trimmedText);
                 matchCount++;
-                //console.log(`✅ [PatternExtractor] ${patternKey} 匹配到 ${matchCount}: "${trimmedText}"`);
+                //console.log(`✅ [PatternExtractor] ${patternKey} matchto ${matchCount}: "${trimmedText}"`);
             }
             
             // 防止无限循环 - 特别针对负向断言
             if (matchCount > 1000) {
-                console.warn(`⚠️ [PatternExtractor] ${patternKey} 匹配次数过多，停止匹配`);
+                console.warn(`⚠️ [PatternExtractor] ${patternKey} match次数through多，停止match`);
                 break;
             }
             
-            // 检查是否陷入无限循环
+            // check是否陷入无限循环
             if (regex.lastIndex === lastIndex) {
-                console.warn(`⚠️ [PatternExtractor] ${patternKey} 检测到无限循环，强制推进`);
+                console.warn(`⚠️ [PatternExtractor] ${patternKey} detectto无限循环，强制推进`);
                 regex.lastIndex = lastIndex + 1;
                 if (regex.lastIndex >= content.length) {
                     break;
@@ -745,9 +745,9 @@ class PatternExtractor {
             }
             lastIndex = regex.lastIndex;
             
-            // 对于非全局正则或者lastIndex为0的情况，手动推进
+            // 对于非全局regexor者lastIndex为0情况，手动推进
             if (!regex.global || regex.lastIndex === 0) {
-                console.warn(`⚠️ [PatternExtractor] ${patternKey} 非全局正则或lastIndex为0，手动推进`);
+                console.warn(`⚠️ [PatternExtractor] ${patternKey} 非全局regexorlastIndex为0，手动推进`);
                 regex.lastIndex = match.index + 1;
                 if (regex.lastIndex >= content.length) {
                     break;
@@ -755,77 +755,77 @@ class PatternExtractor {
             }
         }
         
-        //console.log(`📊 [PatternExtractor] ${patternKey} exec方法提取完成，共找到 ${matchCount} 个`);
+        //console.log(`📊 [PatternExtractor] ${patternKey} exec方法extractcomplete，共found ${matchCount} 个`);
     }
     
-    // 专门的API提取方法
+    // 专门APIextract方法
     extractAPIs(content, results) {
-        //console.log('🔍 [PatternExtractor] 开始提取API...');
-        //console.log('🔍 [PatternExtractor] 当前patterns对象:', Object.keys(this.patterns));
-        //console.log('🔍 [PatternExtractor] absoluteApi配置:', this.patterns.absoluteApi);
-        //console.log('🔍 [PatternExtractor] relativeApi配置:', this.patterns.relativeApi);
+        //console.log('🔍 [PatternExtractor] startextractAPI...');
+        //console.log('🔍 [PatternExtractor] 当beforepatternsobject:', Object.keys(this.patterns));
+        //console.log('🔍 [PatternExtractor] absoluteApiconfiguration:', this.patterns.absoluteApi);
+        //console.log('🔍 [PatternExtractor] relativeApiconfiguration:', this.patterns.relativeApi);
         
-        // 检查是否有API正则配置
+        // check是否有APIregexconfiguration
         if (!this.patterns.absoluteApi && !this.patterns.relativeApi) {
-            console.warn('⚠️ [PatternExtractor] 未配置API正则表达式，跳过API提取');
-            console.warn('⚠️ [PatternExtractor] absoluteApi存在:', !!this.patterns.absoluteApi);
-            console.warn('⚠️ [PatternExtractor] relativeApi存在:', !!this.patterns.relativeApi);
+            console.warn('⚠️ [PatternExtractor] 未configurationAPIregexexpression，skipAPIextract');
+            console.warn('⚠️ [PatternExtractor] absoluteApiexists:', !!this.patterns.absoluteApi);
+            console.warn('⚠️ [PatternExtractor] relativeApiexists:', !!this.patterns.relativeApi);
             return;
         }
         
-        // 移除内容大小限制，处理完整内容
+        // 移除内容大小限制，处理complete内容
         const processContent = content;
         
         //console.log(`📊 [PatternExtractor] 处理内容大小: ${processContent.length} 字符`);
         //console.log(`📊 [PatternExtractor] 内容预览: ${processContent.substring(0, 200)}...`);
         
-        // 提取绝对路径API - 修复：支持RegExp对象
+        // extract绝对路径API - fix：supportRegExpobject
         if (this.patterns.absoluteApi) {
-            //console.log(`🔍 [PatternExtractor] 开始提取绝对路径API`);
-            //console.log(`🔍 [PatternExtractor] 绝对路径API正则类型: ${typeof this.patterns.absoluteApi}`);
-            //console.log(`🔍 [PatternExtractor] 绝对路径API正则内容: ${this.patterns.absoluteApi.source || this.patterns.absoluteApi}`);
+            //console.log(`🔍 [PatternExtractor] startextract绝对路径API`);
+            //console.log(`🔍 [PatternExtractor] 绝对路径APIregexclass型: ${typeof this.patterns.absoluteApi}`);
+            //console.log(`🔍 [PatternExtractor] 绝对路径APIregex内容: ${this.patterns.absoluteApi.source || this.patterns.absoluteApi}`);
             
             let absoluteApiCount = 0;
             const regex = this.patterns.absoluteApi;
             
-            // 重置正则表达式状态
+            // 重置regexexpressionstate
             regex.lastIndex = 0;
             let match;
             let matchCount = 0;
             
             while ((match = regex.exec(processContent)) !== null) {
                 const api = match[1] || match[0];
-                //console.log(`🎯 [PatternExtractor] 绝对路径API匹配到: "${api}"`);
+                //console.log(`🎯 [PatternExtractor] 绝对路径APImatchto: "${api}"`);
                 if (api && api.trim()) {
                     const trimmedApi = api.trim();
-                    // 🔥 添加校验：过滤掉包含http://或https://的绝对路径API
+                    // 🔥 add校验：through滤掉containshttp://orhttps://绝对路径API
                     if (trimmedApi.includes('http://') || trimmedApi.includes('https://')) {
-                        //console.log(`🚫 [PatternExtractor] 绝对路径API包含协议，已过滤: "${trimmedApi}"`);
+                        //console.log(`🚫 [PatternExtractor] 绝对路径APIcontains协议，alreadythrough滤: "${trimmedApi}"`);
                     }
-                    // 🔥 新增校验：过滤掉静态文件（如.jpg, .png, .css等）
+                    // 🔥 new增校验：through滤掉静态文件（such as.jpg, .png, .css等）
                     else if (this.isStaticFile(trimmedApi)) {
-                        //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedApi}"`);
+                        //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，alreadythrough滤: "${trimmedApi}"`);
                     }
-                    // 🔥 新增校验：过滤掉包含过滤内容类型的API
+                    // 🔥 new增校验：through滤掉containsthrough滤内容class型API
                     else if (this.containsFilteredContentType(trimmedApi)) {
-                        //console.log(`🚫 [PatternExtractor] 绝对路径API包含过滤内容类型，已过滤: "${trimmedApi}"`);
+                        //console.log(`🚫 [PatternExtractor] 绝对路径APIcontainsthrough滤内容class型，alreadythrough滤: "${trimmedApi}"`);
                     } else {
                         results.absoluteApis.add(trimmedApi);
                         absoluteApiCount++;
-                        //console.log(`✅ [PatternExtractor] 绝对路径API添加: "${trimmedApi}"`);
+                        //console.log(`✅ [PatternExtractor] 绝对路径APIadd: "${trimmedApi}"`);
                     }
                     matchCount++;
                 }
                 
                 // 防止无限循环
                 if (matchCount > 1000) {
-                    console.warn(`⚠️ [PatternExtractor] 绝对路径API匹配次数过多，停止匹配`);
+                    console.warn(`⚠️ [PatternExtractor] 绝对路径APImatch次数through多，停止match`);
                     break;
                 }
                 
-                // 检查是否陷入无限循环
+                // check是否陷入无限循环
                 if (regex.lastIndex === match.index) {
-                    console.warn(`⚠️ [PatternExtractor] 绝对路径API检测到无限循环，强制推进`);
+                    console.warn(`⚠️ [PatternExtractor] 绝对路径APIdetectto无限循环，强制推进`);
                     regex.lastIndex = match.index + 1;
                     if (regex.lastIndex >= processContent.length) {
                         break;
@@ -833,56 +833,56 @@ class PatternExtractor {
                 }
             }
             
-            //console.log(`✅ [PatternExtractor] 绝对路径API提取完成，共找到 ${absoluteApiCount} 个API`);
+            //console.log(`✅ [PatternExtractor] 绝对路径APIextractcomplete，共found ${absoluteApiCount} 个API`);
         } else {
-            console.warn('⚠️ [PatternExtractor] 绝对路径API配置为空');
+            console.warn('⚠️ [PatternExtractor] 绝对路径APIconfiguration为空');
         }
         
-        // 提取相对路径API - 修复：支持RegExp对象
+        // extract相对路径API - fix：supportRegExpobject
         if (this.patterns.relativeApi) {
-            //console.log(`🔍 [PatternExtractor] 开始提取相对路径API`);
-            //console.log(`🔍 [PatternExtractor] 相对路径API正则类型: ${typeof this.patterns.relativeApi}`);
-            //console.log(`🔍 [PatternExtractor] 相对路径API正则内容: ${this.patterns.relativeApi.source || this.patterns.relativeApi}`);
+            //console.log(`🔍 [PatternExtractor] startextract相对路径API`);
+            //console.log(`🔍 [PatternExtractor] 相对路径APIregexclass型: ${typeof this.patterns.relativeApi}`);
+            //console.log(`🔍 [PatternExtractor] 相对路径APIregex内容: ${this.patterns.relativeApi.source || this.patterns.relativeApi}`);
             
             let relativeApiCount = 0;
             const regex = this.patterns.relativeApi;
             
-            // 重置正则表达式状态
+            // 重置regexexpressionstate
             regex.lastIndex = 0;
             let match;
             let matchCount = 0;
             
             while ((match = regex.exec(processContent)) !== null) {
                 const api = match[1] || match[0];
-                //console.log(`🎯 [PatternExtractor] 相对路径API匹配到: "${api}"`);
+                //console.log(`🎯 [PatternExtractor] 相对路径APImatchto: "${api}"`);
                 if (api && api.trim()) {
-                    // 🔥 新增：处理相对路径API，去除开头的"."符号但保留"/"
+                    // 🔥 new增：处理相对路径API，去除开头"."符号butkeep"/"
                     const processedApi = this.processRelativeApi(api.trim());
                     
-                    // 🔥 新增特殊处理：过滤相对路径API中的静态文件（应用绝对路径API的过滤模式）
+                    // 🔥 new增special处理：through滤相对路径APIin静态文件（应for绝对路径APIthrough滤pattern）
                     if (this.isStaticFile(processedApi)) {
-                        //console.log(`🚫 [PatternExtractor] 相对路径API为静态文件，已过滤: "${processedApi}"`);
+                        //console.log(`🚫 [PatternExtractor] 相对路径API为静态文件，alreadythrough滤: "${processedApi}"`);
                     }
-                    // 🔥 新增特殊处理：过滤相对路径API中包含过滤内容类型的API
+                    // 🔥 new增special处理：through滤相对路径APIincontainsthrough滤内容class型API
                     else if (this.containsFilteredContentType(processedApi)) {
-                        //console.log(`🚫 [PatternExtractor] 相对路径API包含过滤内容类型，已过滤: "${processedApi}"`);
+                        //console.log(`🚫 [PatternExtractor] 相对路径APIcontainsthrough滤内容class型，alreadythrough滤: "${processedApi}"`);
                     } else {
                         results.relativeApis.add(processedApi);
                         relativeApiCount++;
-                        //console.log(`✅ [PatternExtractor] 相对路径API处理后添加: "${processedApi}" (原始: "${api.trim()}")`);
+                        //console.log(`✅ [PatternExtractor] 相对路径API处理后add: "${processedApi}" (原始: "${api.trim()}")`);
                     }
                     matchCount++;
                 }
                 
                 // 防止无限循环
                 if (matchCount > 1000) {
-                    console.warn(`⚠️ [PatternExtractor] 相对路径API匹配次数过多，停止匹配`);
+                    console.warn(`⚠️ [PatternExtractor] 相对路径APImatch次数through多，停止match`);
                     break;
                 }
                 
-                // 检查是否陷入无限循环
+                // check是否陷入无限循环
                 if (regex.lastIndex === match.index) {
-                    console.warn(`⚠️ [PatternExtractor] 相对路径API检测到无限循环，强制推进`);
+                    console.warn(`⚠️ [PatternExtractor] 相对路径APIdetectto无限循环，强制推进`);
                     regex.lastIndex = match.index + 1;
                     if (regex.lastIndex >= processContent.length) {
                         break;
@@ -890,27 +890,27 @@ class PatternExtractor {
                 }
             }
             
-            //console.log(`✅ [PatternExtractor] 相对路径API提取完成，共找到 ${relativeApiCount} 个API`);
+            //console.log(`✅ [PatternExtractor] 相对路径APIextractcomplete，共found ${relativeApiCount} 个API`);
         } else {
-            console.warn('⚠️ [PatternExtractor] 相对路径API配置为空');
+            console.warn('⚠️ [PatternExtractor] 相对路径APIconfiguration为空');
         }
         
-        //console.log(`📊 [PatternExtractor] API提取总结 - 绝对路径: ${results.absoluteApis.size}, 相对路径: ${results.relativeApis.size}`);
+        //console.log(`📊 [PatternExtractor] APIextract总结 - 绝对路径: ${results.absoluteApis.size}, 相对路径: ${results.relativeApis.size}`);
     }
     
-    // 提取其他资源
+    // extract其他资源
     extractOtherResources(content, results, sourceUrl = '') {
-        //console.log('📁 [PatternExtractor] 开始提取其他资源...');
+        //console.log('📁 [PatternExtractor] startextract其他资源...');
         
-        // 移除内容大小限制，处理完整内容
+        // 移除内容大小限制，处理complete内容
         const processContent = content;
         
         //console.log(`📊 [PatternExtractor] 其他资源处理内容大小: ${processContent.length} 字符`);
-        //console.log(`🌐 [PatternExtractor] 当前处理的URL: ${sourceUrl}`);
+        //console.log(`🌐 [PatternExtractor] 当before处理URL: ${sourceUrl}`);
         
-        // 提取JS文件
+        // extractJS文件
         if (this.patterns.jsFile) {
-            //console.log('🔍 [PatternExtractor] 开始提取JS文件...');
+            //console.log('🔍 [PatternExtractor] startextractJS文件...');
             this.patterns.jsFile.lastIndex = 0;
             let match;
             let jsFileCount = 0;
@@ -920,15 +920,15 @@ class PatternExtractor {
                     const cleanJsFile = jsFile.replace(/["'`]/g, '').trim();
                     results.jsFiles.add(cleanJsFile);
                     jsFileCount++;
-                    //console.log(`✅ [PatternExtractor] JS文件添加: "${cleanJsFile}"`);
+                    //console.log(`✅ [PatternExtractor] JS文件add: "${cleanJsFile}"`);
                 }
             }
-            //console.log(`📊 [PatternExtractor] JS文件提取完成，共找到 ${jsFileCount} 个`);
+            //console.log(`📊 [PatternExtractor] JS文件extractcomplete，共found ${jsFileCount} 个`);
         }
         
-        // 提取CSS文件
+        // extractCSS文件
         if (this.patterns.cssFile) {
-            //console.log('🔍 [PatternExtractor] 开始提取CSS文件...');
+            //console.log('🔍 [PatternExtractor] startextractCSS文件...');
             this.patterns.cssFile.lastIndex = 0;
             let match;
             let cssFileCount = 0;
@@ -936,22 +936,22 @@ class PatternExtractor {
                 const cssFile = match[1];
                 if (cssFile) {
                     const cleanCssFile = cssFile.replace(/["'`]/g, '').trim();
-                    // 🔥 应用过滤：检查是否包含过滤内容类型
+                    // 🔥 应forthrough滤：check是否containsthrough滤内容class型
                     if (!this.containsFilteredContentType(cleanCssFile)) {
                         results.cssFiles.add(cleanCssFile);
                         cssFileCount++;
-                        //console.log(`✅ [PatternExtractor] CSS文件添加: "${cleanCssFile}"`);
+                        //console.log(`✅ [PatternExtractor] CSS文件add: "${cleanCssFile}"`);
                     } else {
-                        //console.log(`🚫 [PatternExtractor] CSS文件包含过滤内容类型，已过滤: "${cleanCssFile}"`);
+                        //console.log(`🚫 [PatternExtractor] CSS文件containsthrough滤内容class型，alreadythrough滤: "${cleanCssFile}"`);
                     }
                 }
             }
-            //console.log(`📊 [PatternExtractor] CSS文件提取完成，共找到 ${cssFileCount} 个`);
+            //console.log(`📊 [PatternExtractor] CSS文件extractcomplete，共found ${cssFileCount} 个`);
         }
         
-        // 提取图片
+        // extract图片
         if (this.patterns.image) {
-            //console.log('🔍 [PatternExtractor] 开始提取图片...');
+            //console.log('🔍 [PatternExtractor] startextract图片...');
             this.patterns.image.lastIndex = 0;
             let match;
             let imageCount = 0;
@@ -959,198 +959,198 @@ class PatternExtractor {
                 const image = match[1];
                 if (image) {
                     const cleanImage = image.replace(/["'`]/g, '').trim();
-                    // 🔥 应用过滤：检查是否包含过滤内容类型
+                    // 🔥 应forthrough滤：check是否containsthrough滤内容class型
                     if (!this.containsFilteredContentType(cleanImage)) {
                         results.images.add(cleanImage);
                         imageCount++;
-                        //console.log(`✅ [PatternExtractor] 图片添加: "${cleanImage}"`);
+                        //console.log(`✅ [PatternExtractor] 图片add: "${cleanImage}"`);
                     } else {
-                        //console.log(`🚫 [PatternExtractor] 图片包含过滤内容类型，已过滤: "${cleanImage}"`);
+                        //console.log(`🚫 [PatternExtractor] 图片containsthrough滤内容class型，alreadythrough滤: "${cleanImage}"`);
                     }
                 }
             }
-            //console.log(`📊 [PatternExtractor] 图片提取完成，共找到 ${imageCount} 个`);
+            //console.log(`📊 [PatternExtractor] 图片extractcomplete，共found ${imageCount} 个`);
         }
         
-        // 提取URL
+        // extractURL
         if (this.patterns.url) {
-            //console.log('🔍 [PatternExtractor] 开始提取URL...');
+            //console.log('🔍 [PatternExtractor] startextractURL...');
             this.patterns.url.lastIndex = 0;
             let match;
             let urlCount = 0;
             while ((match = this.patterns.url.exec(processContent)) !== null) {
                 const url = match[0];
                 if (url) {
-                    // 🔥 应用过滤：检查是否包含过滤内容类型
+                    // 🔥 应forthrough滤：check是否containsthrough滤内容class型
                     if (!this.containsFilteredContentType(url)) {
                         results.urls.add(url);
                         urlCount++;
-                        //console.log(`✅ [PatternExtractor] URL添加: "${url}"`);
+                        //console.log(`✅ [PatternExtractor] URLadd: "${url}"`);
                     } else {
-                        //console.log(`🚫 [PatternExtractor] URL包含过滤内容类型，已过滤: "${url}"`);
+                        //console.log(`🚫 [PatternExtractor] URLcontainsthrough滤内容class型，alreadythrough滤: "${url}"`);
                     }
                 }
             }
-            //console.log(`📊 [PatternExtractor] URL提取完成，共找到 ${urlCount} 个`);
+            //console.log(`📊 [PatternExtractor] URLextractcomplete，共found ${urlCount} 个`);
         }
         
-        //console.log('✅ [PatternExtractor] 其他资源提取完成');
+        //console.log('✅ [PatternExtractor] 其他资源extractcomplete');
     }
     
     /**
-     * 提取动态自定义正则模式 - 统一化版本
+     * extract动态customregexpattern - unified化version
      */
     async extractDynamicCustomPatterns(content, results) {
         try {
-            //console.log('🔄 [PatternExtractor] 开始提取动态自定义正则模式...');
+            //console.log('🔄 [PatternExtractor] startextract动态customregexpattern...');
             
-            // 确保自定义配置已加载
+            // 确保customconfigurationalreadyload
             await this.ensureCustomPatternsLoaded();
             
-            // 获取当前的自定义正则配置
+            // get当beforecustomregexconfiguration
             const storageResult = await chrome.storage.local.get(['customRegexConfigs']);
             
             if (!storageResult.customRegexConfigs) {
-                //console.log('ℹ️ [PatternExtractor] 未找到动态自定义正则配置');
+                //console.log('ℹ️ [PatternExtractor] 未found动态customregexconfiguration');
                 return;
             }
             
-            //console.log('📊 [PatternExtractor] 当前动态自定义正则配置:', storageResult.customRegexConfigs);
+            //console.log('📊 [PatternExtractor] 当before动态customregexconfiguration:', storageResult.customRegexConfigs);
             
             let configsToProcess = [];
             
-            // 检查存储格式：对象格式还是数组格式
+            // checkstorageformat：objectformat还是数组format
             if (Array.isArray(storageResult.customRegexConfigs)) {
-                // 数组格式
+                // 数组format
                 configsToProcess = storageResult.customRegexConfigs;
-                //console.log('📋 [PatternExtractor] 检测到数组格式的自定义正则配置');
+                //console.log('📋 [PatternExtractor] detectto数组formatcustomregexconfiguration');
             } else if (typeof storageResult.customRegexConfigs === 'object') {
-                // 对象格式，转换为数组
+                // objectformat，convert为数组
                 configsToProcess = Object.entries(storageResult.customRegexConfigs).map(([key, config]) => ({
-                    key: `custom_${key}`, // 添加 custom_ 前缀
+                    key: `custom_${key}`, // add custom_ before缀
                     name: config.name,
                     pattern: config.pattern,
                     createdAt: config.createdAt
                 }));
-                //console.log('📋 [PatternExtractor] 检测到对象格式的自定义正则配置，已转换为数组格式');
+                //console.log('📋 [PatternExtractor] detecttoobjectformatcustomregexconfiguration，alreadyconvert为数组format');
             }
             
             if (configsToProcess.length === 0) {
-                //console.log('ℹ️ [PatternExtractor] 动态自定义正则配置为空');
+                //console.log('ℹ️ [PatternExtractor] 动态customregexconfiguration为空');
                 return;
             }
             
-            // 移除内容大小限制，处理完整内容
+            // 移除内容大小限制，处理complete内容
             const processContent = content;
             
-            //console.log(`📊 [PatternExtractor] 动态自定义正则处理内容大小: ${processContent.length} 字符`);
+            //console.log(`📊 [PatternExtractor] 动态customregex处理内容大小: ${processContent.length} 字符`);
             
-            // 处理每个自定义正则配置
+            // 处理每个customregexconfiguration
             configsToProcess.forEach((config, index) => {
                 try {
                     if (!config.key || !config.pattern || !config.name) {
-                        console.warn(`⚠️ [PatternExtractor] 跳过无效的自定义正则配置 ${index + 1}:`, config);
+                        console.warn(`⚠️ [PatternExtractor] skip无效customregexconfiguration ${index + 1}:`, config);
                         return;
                     }
                     
-                    //console.log(`🔍 [PatternExtractor] 处理自定义正则 ${index + 1}: ${config.name} (${config.key})`);
-                    //console.log(`📝 [PatternExtractor] 正则模式: ${config.pattern}`);
+                    //console.log(`🔍 [PatternExtractor] 处理customregex ${index + 1}: ${config.name} (${config.key})`);
+                    //console.log(`📝 [PatternExtractor] regexpattern: ${config.pattern}`);
                     
-                    // 创建正则表达式
+                    // createregexexpression
                     const regex = new RegExp(config.pattern, 'g');
                     
-                    // 确保results中有对应的Set
+                    // 确保resultsin有correspondSet
                     if (!results[config.key]) {
                         results[config.key] = new Set();
-                        //console.log(`📦 [PatternExtractor] 为自定义正则 ${config.key} 创建结果集合`);
+                        //console.log(`📦 [PatternExtractor] 为customregex ${config.key} createresult集合`);
                     }
                     
-                    //console.log(`🔍 [PatternExtractor] 开始在内容中匹配自定义正则 ${config.key}...`);
-                    //console.log(`📊 [PatternExtractor] 待匹配内容长度: ${processContent.length} 字符`);
+                    //console.log(`🔍 [PatternExtractor] startin内容inmatchcustomregex ${config.key}...`);
+                    //console.log(`📊 [PatternExtractor] 待match内容长度: ${processContent.length} 字符`);
                     
-                    // 先在小样本上测试正则表达式
+                    // 先in小样本上testregexexpression
                     const testContent = processContent.substring(0, 1000);
-                    //console.log(`🧪 [PatternExtractor] 测试自定义正则 ${config.key} 在小样本上的匹配...`);
+                    //console.log(`🧪 [PatternExtractor] testcustomregex ${config.key} in小样本上match...`);
                     const testRegex = new RegExp(config.pattern, 'g');
                     let testMatch;
                     let testCount = 0;
                     while ((testMatch = testRegex.exec(testContent)) !== null && testCount < 5) {
-                        //console.log(`🎯 [PatternExtractor] 测试匹配 ${testCount + 1}: "${testMatch[0]}"`);
+                        //console.log(`🎯 [PatternExtractor] testmatch ${testCount + 1}: "${testMatch[0]}"`);
                         testCount++;
                     }
-                    //console.log(`📊 [PatternExtractor] 小样本测试完成，匹配到 ${testCount} 个结果`);
+                    //console.log(`📊 [PatternExtractor] 小样本testcomplete，matchto ${testCount} 个result`);
                     
-                    // 执行完整匹配
+                    // executecompletematch
                     let match;
                     let matchCount = 0;
-                    regex.lastIndex = 0; // 重置正则表达式状态
+                    regex.lastIndex = 0; // 重置regexexpressionstate
                     
-                    //console.log(`🔍 [PatternExtractor] 开始完整内容匹配...`);
+                    //console.log(`🔍 [PatternExtractor] startcomplete内容match...`);
                     while ((match = regex.exec(processContent)) !== null) {
                         const matchedText = match[0];
                         if (matchedText && matchedText.trim()) {
                             results[config.key].add(matchedText.trim());
                             matchCount++;
-                            //console.log(`✅ [PatternExtractor] 自定义正则 ${config.key} 匹配到 ${matchCount}: "${matchedText.trim()}"`);
+                            //console.log(`✅ [PatternExtractor] customregex ${config.key} matchto ${matchCount}: "${matchedText.trim()}"`);
                         }
                         
                         // 防止无限循环
                         if (matchCount > 1000) {
-                            console.warn(`⚠️ [PatternExtractor] 自定义正则 ${config.key} 匹配次数过多，停止匹配`);
+                            console.warn(`⚠️ [PatternExtractor] customregex ${config.key} match次数through多，停止match`);
                             break;
                         }
                         
-                        // 防止正则表达式无限循环
+                        // 防止regexexpression无限循环
                         if (regex.lastIndex === match.index) {
-                            console.warn(`⚠️ [PatternExtractor] 自定义正则 ${config.key} 检测到无限循环，停止匹配`);
+                            console.warn(`⚠️ [PatternExtractor] customregex ${config.key} detectto无限循环，停止match`);
                             break;
                         }
                     }
                     
-                    //console.log(`📊 [PatternExtractor] 自定义正则 ${config.key} 匹配完成，共找到 ${matchCount} 个结果`);
-                    //console.log(`📦 [PatternExtractor] 自定义正则 ${config.key} 结果集合大小: ${results[config.key].size}`);
+                    //console.log(`📊 [PatternExtractor] customregex ${config.key} matchcomplete，共found ${matchCount} 个result`);
+                    //console.log(`📦 [PatternExtractor] customregex ${config.key} result集合大小: ${results[config.key].size}`);
                     
-                    // 验证结果是否正确添加到results对象中
+                    // validationresult是否正确addtoresultsobjectin
                     if (results[config.key].size > 0) {
-                        //console.log(`✅ [PatternExtractor] 自定义正则 ${config.key} 结果已成功添加到results对象`);
-                        //console.log(`🎯 [PatternExtractor] 自定义正则 ${config.key} 结果预览:`, Array.from(results[config.key]).slice(0, 3));
+                        //console.log(`✅ [PatternExtractor] customregex ${config.key} resultalreadysuccessaddtoresultsobject`);
+                        //console.log(`🎯 [PatternExtractor] customregex ${config.key} result预览:`, Array.from(results[config.key]).slice(0, 3));
                     } else {
-                        //console.log(`ℹ️ [PatternExtractor] 自定义正则 ${config.key} 未匹配到任何结果`);
-                        // 如果没有匹配到结果，仍然保留空的Set，确保键存在
-                        //console.log(`🔧 [PatternExtractor] 保留空的结果集合以确保键 ${config.key} 存在`);
+                        //console.log(`ℹ️ [PatternExtractor] customregex ${config.key} 未matchto任何result`);
+                        // ifwithoutmatchtoresult，仍然keep空Set，确保键exists
+                        //console.log(`🔧 [PatternExtractor] keep空result集合以确保键 ${config.key} exists`);
                     }
                     
                 } catch (error) {
-                    console.error(`❌ [PatternExtractor] 自定义正则配置 ${index + 1} 处理失败:`, error, config);
-                    // 即使出错也要确保键存在
+                    console.error(`❌ [PatternExtractor] customregexconfiguration ${index + 1} 处理failed:`, error, config);
+                    // 即使出错也要确保键exists
                     if (!results[config.key]) {
                         results[config.key] = new Set();
-                        //console.log(`🔧 [PatternExtractor] 为出错的自定义正则 ${config.key} 创建空结果集合`);
+                        //console.log(`🔧 [PatternExtractor] 为出错customregex ${config.key} create空result集合`);
                     }
                 }
             });
             
-            //console.log('✅ [PatternExtractor] 动态自定义正则模式提取完成');
+            //console.log('✅ [PatternExtractor] 动态customregexpatternextractcomplete');
             
         } catch (error) {
-            console.error('❌ [PatternExtractor] 提取动态自定义正则模式失败:', error);
+            console.error('❌ [PatternExtractor] extract动态customregexpatternfailed:', error);
         }
     }
     
     /**
-     * 提取所有模式 - 统一化版本，只使用设置界面配置
+     * extractallpattern - unified化version，只usesettings界面configuration
      */
     async extractPatterns(content, sourceUrl = '') {
         try {
-            //console.log('🚀🚀🚀 [PatternExtractor] 统一化版本开始提取模式 - 强制日志！');
+            //console.log('🚀🚀🚀 [PatternExtractor] unified化versionstartextractpattern - 强制day志！');
             //console.log(`📊 [PatternExtractor] 内容长度: ${content.length} 字符`);
             //console.log(`🌐 [PatternExtractor] 源URL: ${sourceUrl}`);
-            //console.log('🔍🔍🔍 [PatternExtractor] 这个方法被调用了！');
+            //console.log('🔍🔍🔍 [PatternExtractor] 这个方法by调for了！');
             
-            // 确保自定义配置已加载
+            // 确保customconfigurationalreadyload
             await this.ensureCustomPatternsLoaded();
             
-            // 初始化结果对象，使用Set避免重复 - 修复：使用正确的键名
+            // initializeresultobject，useSet避免重复 - fix：use正确键名
             const results = {
                 // API相关
                 absoluteApis: new Set(),
@@ -1162,16 +1162,16 @@ class PatternExtractor {
                 images: new Set(),
                 urls: new Set(),
                 
-                // 敏感信息 - 修复：使用与DisplayManager一致的键名
+                // 敏感information - fix：use与DisplayManager一致键名
                 domains: new Set(),
                 emails: new Set(),
-                phoneNumbers: new Set(), // 修复：从phones改为phoneNumbers
+                phoneNumbers: new Set(), // fix：fromphones改为phoneNumbers
                 credentials: new Set(),
-                ipAddresses: new Set(), // 修复：从ips改为ipAddresses
+                ipAddresses: new Set(), // fix：fromips改为ipAddresses
                 paths: new Set(),
                 jwts: new Set(),
-                githubUrls: new Set(), // 修复：从githubs改为githubUrls
-                vueFiles: new Set(), // 修复：从vues改为vueFiles
+                githubUrls: new Set(), // fix：fromgithubs改为githubUrls
+                vueFiles: new Set(), // fix：fromvues改为vueFiles
                 companies: new Set(),
                 comments: new Set(),
                 idCards: new Set(),
@@ -1187,31 +1187,31 @@ class PatternExtractor {
                 cryptoUsage: new Set()
             };
             
-            //console.log('📦 [PatternExtractor] 结果对象初始化完成');
-            //console.log('📊 [PatternExtractor] 当前可用的正则模式:', Object.keys(this.patterns));
+            //console.log('📦 [PatternExtractor] resultobjectinitializecomplete');
+            //console.log('📊 [PatternExtractor] 当before可forregexpattern:', Object.keys(this.patterns));
             
-            // 移除内容大小限制，处理完整内容
+            // 移除内容大小限制，处理complete内容
             const processContent = content;
             
             //console.log(`📊 [PatternExtractor] 实际处理内容大小: ${processContent.length} 字符`);
             
-            // 1. 提取API（特殊处理，因为可能有多个正则）
+            // 1. extractAPI（special处理，因为可能有多个regex）
             this.extractAPIs(processContent, results);
             
-            // 2. 提取其他资源文件
+            // 2. extract其他资源文件
             this.extractOtherResources(processContent, results, sourceUrl);
             
-            // 3. 提取其他模式（使用设置界面配置的正则） - 修复：使用正确的键名映射
+            // 3. extract其他pattern（usesettings界面configurationregex） - fix：use正确键名映射
             const patternMappings = {
                 domain: 'domains',
                 email: 'emails', 
-                phone: 'phoneNumbers', // 修复：从phones改为phoneNumbers
+                phone: 'phoneNumbers', // fix：fromphones改为phoneNumbers
                 credentials: 'credentials',
-                ip: 'ipAddresses', // 修复：从ips改为ipAddresses
+                ip: 'ipAddresses', // fix：fromips改为ipAddresses
                 paths: 'paths',
                 jwt: 'jwts',
-                github: 'githubUrls', // 修复：从githubs改为githubUrls
-                vue: 'vueFiles', // 修复：从vues改为vueFiles
+                github: 'githubUrls', // fix：fromgithubs改为githubUrls
+                vue: 'vueFiles', // fix：fromvues改为vueFiles
                 company: 'companies',
                 comments: 'comments',
                 idCard: 'idCards',
@@ -1227,85 +1227,85 @@ class PatternExtractor {
                 cryptoUsage: 'cryptoUsage'
             };
             
-            //console.log('🔍 [PatternExtractor] 开始提取其他模式...');
+            //console.log('🔍 [PatternExtractor] startextract其他pattern...');
             
             Object.entries(patternMappings).forEach(([patternKey, resultKey]) => {
                 if (this.patterns[patternKey]) {
-                    //console.log(`🔍 [PatternExtractor] 提取 ${patternKey} -> ${resultKey}`);
-                    //console.log(`📝 [PatternExtractor] 使用正则: ${this.patterns[patternKey].source}`);
+                    //console.log(`🔍 [PatternExtractor] extract ${patternKey} -> ${resultKey}`);
+                    //console.log(`📝 [PatternExtractor] useregex: ${this.patterns[patternKey].source}`);
                     
-                    // 修复：针对负向断言的特殊处理
+                    // fix：针对负向断言special处理
                     const regex = this.patterns[patternKey];
                     const regexSource = regex.source;
                     const hasLookbehind = regexSource.includes('(?<!') || regexSource.includes('(?<=');
                     const hasLookahead = regexSource.includes('(?!') || regexSource.includes('(?=');
                     
                     if (hasLookbehind || hasLookahead) {
-                        //console.log(`🔧 [PatternExtractor] 检测到负向断言，使用特殊处理: ${patternKey}`);
+                        //console.log(`🔧 [PatternExtractor] detectto负向断言，usespecial处理: ${patternKey}`);
                         
-                        // 对于包含负向断言的正则，使用 matchAll 方法
+                        // 对于contains负向断言regex，use matchAll 方法
                         try {
                             const matches = [...processContent.matchAll(regex)];
-                            //console.log(`📊 [PatternExtractor] ${patternKey} 使用matchAll找到 ${matches.length} 个匹配`);
+                            //console.log(`📊 [PatternExtractor] ${patternKey} usematchAllfound ${matches.length} 个match`);
                             
                             matches.forEach((match, index) => {
                                 const matchedText = match[1] || match[0];
                                 if (matchedText && matchedText.trim()) {
                                     const trimmedText = matchedText.trim();
                                     
-                                    // 🔥 特殊处理：过滤绝对路径API中包含协议的内容
+                                    // 🔥 special处理：through滤绝对路径APIincontains协议内容
                                     if (patternKey === 'absoluteApi' && (trimmedText.includes('http://') || trimmedText.includes('https://'))) {
-                                        //console.log(`🚫 [PatternExtractor] 绝对路径API包含协议，已过滤: "${trimmedText}"`);
+                                        //console.log(`🚫 [PatternExtractor] 绝对路径APIcontains协议，alreadythrough滤: "${trimmedText}"`);
                                         return;
                                     }
                                     
-                                    // 🔥 新增特殊处理：过滤绝对路径API中的静态文件
+                                    // 🔥 new增special处理：through滤绝对路径APIin静态文件
                                     if (patternKey === 'absoluteApi' && this.isStaticFile(trimmedText)) {
-                                        //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedText}"`);
+                                        //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，alreadythrough滤: "${trimmedText}"`);
                                         return;
                                     }
                                     
-                                    // 🔥 新增特殊处理：过滤域名黑名单
+                                    // 🔥 new增special处理：through滤domain黑名单
                                     if (patternKey === 'domain' && this.isDomainBlacklisted(trimmedText)) {
-                                        //console.log(`🚫 [PatternExtractor] 域名在黑名单中，已过滤: "${trimmedText}"`);
+                                        //console.log(`🚫 [PatternExtractor] domainin黑名单in，alreadythrough滤: "${trimmedText}"`);
                                         return;
                                     }
                                     
-                                    // 🔥 新增特殊处理：过滤包含过滤内容类型的内容
+                                    // 🔥 new增special处理：through滤containsthrough滤内容class型内容
                                     if (this.containsFilteredContentType(trimmedText)) {
-                                        //console.log(`🚫 [PatternExtractor] ${patternKey} 包含过滤内容类型，已过滤: "${trimmedText}"`);
+                                        //console.log(`🚫 [PatternExtractor] ${patternKey} containsthrough滤内容class型，alreadythrough滤: "${trimmedText}"`);
                                         return;
                                     }
                                     
                                     results[resultKey].add(trimmedText);
-                                    //console.log(`✅ [PatternExtractor] ${patternKey} 匹配到 ${index + 1}: "${trimmedText}"`);
+                                    //console.log(`✅ [PatternExtractor] ${patternKey} matchto ${index + 1}: "${trimmedText}"`);
                                 }
                             });
                             
-                            //console.log(`📊 [PatternExtractor] ${patternKey} 提取完成，共找到 ${matches.length} 个`);
+                            //console.log(`📊 [PatternExtractor] ${patternKey} extractcomplete，共found ${matches.length} 个`);
                         } catch (error) {
-                            console.error(`❌ [PatternExtractor] ${patternKey} matchAll失败，回退到exec方法:`, error);
-                            // 回退到原来的exec方法
+                            console.error(`❌ [PatternExtractor] ${patternKey} matchAllfailed，回退toexec方法:`, error);
+                            // 回退to原来exec方法
                             this.executeRegexWithExec(regex, processContent, results, resultKey, patternKey);
                         }
                     } else {
-                        // 对于普通正则，使用原来的exec方法
+                        // 对于普通regex，use原来exec方法
                         this.executeRegexWithExec(regex, processContent, results, resultKey, patternKey);
                     }
                 } else {
-                    //console.log(`⚠️ [PatternExtractor] 跳过未配置的模式: ${patternKey}`);
+                    //console.log(`⚠️ [PatternExtractor] skip未configurationpattern: ${patternKey}`);
                 }
             });
             
             
-            // 4. 提取动态自定义正则模式 - 修复：直接使用已加载的patterns
-            //console.log('🔍 [PatternExtractor] 开始提取动态自定义正则模式...');
-            //console.log('🔍 [PatternExtractor] 当前this.patterns的所有键:', Object.keys(this.patterns));
+            // 4. extract动态customregexpattern - fix：directlyusealreadyloadpatterns
+            //console.log('🔍 [PatternExtractor] startextract动态customregexpattern...');
+            //console.log('🔍 [PatternExtractor] 当beforethis.patternsall键:', Object.keys(this.patterns));
             
-            // 查找所有自定义正则模式
+            // 查找allcustomregexpattern
             const customPatternKeys = Object.keys(this.patterns).filter(key => key.startsWith('custom_'));
-            //console.log(`📊 [PatternExtractor] 发现 ${customPatternKeys.length} 个自定义正则模式:`, customPatternKeys);
-            //console.log(`🔍 [PatternExtractor] 自定义正则模式详情:`, customPatternKeys.map(key => ({
+            //console.log(`📊 [PatternExtractor] 发现 ${customPatternKeys.length} 个customregexpattern:`, customPatternKeys);
+            //console.log(`🔍 [PatternExtractor] customregexpattern详情:`, customPatternKeys.map(key => ({
             //    key,
             //    regex: this.patterns[key] ? this.patterns[key].source : 'null',
             //    type: typeof this.patterns[key]
@@ -1314,24 +1314,24 @@ class PatternExtractor {
             if (customPatternKeys.length > 0) {
                 customPatternKeys.forEach(patternKey => {
                     try {
-                        //console.log(`🔍 [PatternExtractor] 处理自定义正则: ${patternKey}`);
+                        //console.log(`🔍 [PatternExtractor] 处理customregex: ${patternKey}`);
                         
                         const regex = this.patterns[patternKey];
                         if (!regex) {
-                            console.warn(`⚠️ [PatternExtractor] 自定义正则 ${patternKey} 未找到对应的正则表达式`);
+                            console.warn(`⚠️ [PatternExtractor] customregex ${patternKey} 未foundcorrespondregexexpression`);
                             return;
                         }
                         
-                        // 确保results中有对应的Set
+                        // 确保resultsin有correspondSet
                         if (!results[patternKey]) {
                             results[patternKey] = new Set();
-                            //console.log(`📦 [PatternExtractor] 为自定义正则 ${patternKey} 创建结果集合`);
+                            //console.log(`📦 [PatternExtractor] 为customregex ${patternKey} createresult集合`);
                         }
                         
-                        //console.log(`🔍 [PatternExtractor] 开始匹配自定义正则 ${patternKey}...`);
-                        //console.log(`📝 [PatternExtractor] 正则表达式: ${regex.source}`);
+                        //console.log(`🔍 [PatternExtractor] startmatchcustomregex ${patternKey}...`);
+                        //console.log(`📝 [PatternExtractor] regexexpression: ${regex.source}`);
                         
-                        // 重置正则表达式状态
+                        // 重置regexexpressionstate
                         regex.lastIndex = 0;
                         
                         let match;
@@ -1342,74 +1342,74 @@ class PatternExtractor {
                             if (matchedText && matchedText.trim()) {
                                 const trimmedText = matchedText.trim();
                                 
-                                // 🔥 应用过滤：检查是否包含过滤内容类型
+                                // 🔥 应forthrough滤：check是否containsthrough滤内容class型
                                 if (!this.containsFilteredContentType(trimmedText)) {
                                     results[patternKey].add(trimmedText);
                                     matchCount++;
-                                    //console.log(`✅ [PatternExtractor] 自定义正则 ${patternKey} 匹配到 ${matchCount}: "${trimmedText}"`);
+                                    //console.log(`✅ [PatternExtractor] customregex ${patternKey} matchto ${matchCount}: "${trimmedText}"`);
                                 } else {
-                                    //console.log(`🚫 [PatternExtractor] 自定义正则 ${patternKey} 包含过滤内容类型，已过滤: "${trimmedText}"`);
+                                    //console.log(`🚫 [PatternExtractor] customregex ${patternKey} containsthrough滤内容class型，alreadythrough滤: "${trimmedText}"`);
                                 }
                             }
                             
                             // 防止无限循环
                             if (matchCount > 1000) {
-                                console.warn(`⚠️ [PatternExtractor] 自定义正则 ${patternKey} 匹配次数过多，停止匹配`);
+                                console.warn(`⚠️ [PatternExtractor] customregex ${patternKey} match次数through多，停止match`);
                                 break;
                             }
                             
-                            // 防止正则表达式无限循环
+                            // 防止regexexpression无限循环
                             if (regex.lastIndex === match.index) {
-                                console.warn(`⚠️ [PatternExtractor] 自定义正则 ${patternKey} 检测到无限循环，停止匹配`);
+                                console.warn(`⚠️ [PatternExtractor] customregex ${patternKey} detectto无限循环，停止match`);
                                 break;
                             }
                         }
                         
-                        //console.log(`📊 [PatternExtractor] 自定义正则 ${patternKey} 匹配完成，共找到 ${matchCount} 个结果`);
-                        //console.log(`📦 [PatternExtractor] 自定义正则 ${patternKey} 结果集合大小: ${results[patternKey].size}`);
+                        //console.log(`📊 [PatternExtractor] customregex ${patternKey} matchcomplete，共found ${matchCount} 个result`);
+                        //console.log(`📦 [PatternExtractor] customregex ${patternKey} result集合大小: ${results[patternKey].size}`);
                         
                         if (results[patternKey].size > 0) {
-                            //console.log(`✅ [PatternExtractor] 自定义正则 ${patternKey} 结果预览:`, Array.from(results[patternKey]).slice(0, 3));
+                            //console.log(`✅ [PatternExtractor] customregex ${patternKey} result预览:`, Array.from(results[patternKey]).slice(0, 3));
                         } else {
-                            //console.log(`ℹ️ [PatternExtractor] 自定义正则 ${patternKey} 未匹配到任何结果`);
+                            //console.log(`ℹ️ [PatternExtractor] customregex ${patternKey} 未matchto任何result`);
                         }
                         
                     } catch (error) {
-                        console.error(`❌ [PatternExtractor] 自定义正则 ${patternKey} 处理失败:`, error);
-                        // 即使出错也要确保键存在
+                        console.error(`❌ [PatternExtractor] customregex ${patternKey} 处理failed:`, error);
+                        // 即使出错也要确保键exists
                         if (!results[patternKey]) {
                             results[patternKey] = new Set();
-                            //console.log(`🔧 [PatternExtractor] 为出错的自定义正则 ${patternKey} 创建空结果集合`);
+                            //console.log(`🔧 [PatternExtractor] 为出错customregex ${patternKey} create空result集合`);
                         }
                     }
                 });
             } else {
-                //console.log('ℹ️ [PatternExtractor] 未发现自定义正则模式');
+                //console.log('ℹ️ [PatternExtractor] 未发现customregexpattern');
             }
             
-            //console.log('🔍 [PatternExtractor] 动态自定义正则模式提取完成，当前results键:', Object.keys(results));
+            //console.log('🔍 [PatternExtractor] 动态customregexpatternextractcomplete，当beforeresults键:', Object.keys(results));
             
-            // 5. 特殊处理身份证验证
+            // 5. special处理ID cardvalidation
             if (results.idCards.size > 0) {
-                //console.log(`🔍 [PatternExtractor] 开始验证身份证，共 ${results.idCards.size} 个`);
+                //console.log(`🔍 [PatternExtractor] startvalidationID card，共 ${results.idCards.size} 个`);
                 const validatedIdCards = this.validateIdCards(Array.from(results.idCards));
                 results.idCards = new Set(validatedIdCards);
-                //console.log(`✅ [PatternExtractor] 身份证验证完成，有效身份证 ${results.idCards.size} 个`);
+                //console.log(`✅ [PatternExtractor] ID cardvalidationcomplete，validID card ${results.idCards.size} 个`);
             }
             
-            // 6. 转换Set为Array并添加源URL信息，包括所有动态创建的键
+            // 6. convertSet为Arrayandadd源URLinformation，includingall动态create键
             const finalResults = {};
             
-            //console.log('🔍 [PatternExtractor] 开始转换结果并添加源URL信息，当前results对象的所有键:', Object.keys(results));
+            //console.log('🔍 [PatternExtractor] startconvertresultandadd源URLinformation，当beforeresultsobjectall键:', Object.keys(results));
             
-            // 修复：遍历所有键，包括动态创建的自定义正则键，并为每个项目添加源URL
+            // fix：遍历all键，including动态createcustomregex键，and为每个项目add源URL
             for (const [key, value] of Object.entries(results)) {
                 if (value instanceof Set) {
-                    // 将Set转换为包含源URL信息的对象数组
+                    // 将Setconvert为contains源URLinformationobject数组
                     finalResults[key] = [...value].map(item => {
-                        // 🔥 修复：检查item是否已经是包含sourceUrl的对象
+                        // 🔥 fix：checkitem是否already经是containssourceUrlobject
                         if (typeof item === 'object' && item !== null && item.hasOwnProperty('value')) {
-                            // 如果已经是对象格式，确保包含所有必要字段
+                            // ifalready经是objectformat，确保containsall必要字段
                             return {
                                 value: item.value,
                                 sourceUrl: item.sourceUrl || sourceUrl,
@@ -1417,7 +1417,7 @@ class PatternExtractor {
                                 pageTitle: item.pageTitle || document.title || 'Unknown Page'
                             };
                         } else {
-                            // 如果是字符串，转换为对象格式
+                            // if是字符串，convert为objectformat
                             return {
                                 value: item,
                                 sourceUrl: sourceUrl,
@@ -1427,22 +1427,22 @@ class PatternExtractor {
                         }
                     });
                     
-                    //console.log(`🔄 [PatternExtractor] 转换 ${key}: Set(${value.size}) -> Array(${finalResults[key].length}) 并添加源URL`);
+                    //console.log(`🔄 [PatternExtractor] convert ${key}: Set(${value.size}) -> Array(${finalResults[key].length}) andadd源URL`);
                     if (finalResults[key].length > 0) {
-                        //console.log(`📊 [PatternExtractor] ${key}: ${finalResults[key].length} 个结果，源URL: ${sourceUrl}`);
-                        // 如果是自定义正则结果，显示更详细的信息
+                        //console.log(`📊 [PatternExtractor] ${key}: ${finalResults[key].length} 个result，源URL: ${sourceUrl}`);
+                        // if是customregexresult，显示更详细information
                         if (key.startsWith('custom_')) {
-                            //console.log(`🎯 [PatternExtractor] 自定义正则 ${key} 结果预览:`, finalResults[key].slice(0, 3));
+                            //console.log(`🎯 [PatternExtractor] customregex ${key} result预览:`, finalResults[key].slice(0, 3));
                         }
                     } else if (key.startsWith('custom_')) {
-                        // 即使是空的自定义正则结果，也要保留在最终结果中
-                        //console.log(`📦 [PatternExtractor] 保留空的自定义正则键 ${key}`);
+                        // 即使是空customregexresult，也要keepin最终resultin
+                        //console.log(`📦 [PatternExtractor] keep空customregex键 ${key}`);
                     }
                 } else if (value) {
-                    // 对于非Set类型的值，也添加源URL信息
+                    // 对于非Setclass型value，也add源URLinformation
                     if (Array.isArray(value)) {
                         finalResults[key] = value.map(item => {
-                            // 🔥 修复：检查item是否已经是包含sourceUrl的对象
+                            // 🔥 fix：checkitem是否already经是containssourceUrlobject
                             if (typeof item === 'object' && item !== null && item.hasOwnProperty('value')) {
                                 return {
                                     value: item.value,
@@ -1460,7 +1460,7 @@ class PatternExtractor {
                             }
                         });
                     } else {
-                        // 🔥 修复：单个值也要转换为对象格式
+                        // 🔥 fix：单个value也要convert为objectformat
                         if (typeof value === 'object' && value !== null && value.hasOwnProperty('value')) {
                             finalResults[key] = [{
                                 value: value.value,
@@ -1477,37 +1477,37 @@ class PatternExtractor {
                             }];
                         }
                     }
-                    //console.log(`🔄 [PatternExtractor] 直接复制并添加源URL ${key}:`, typeof value);
+                    //console.log(`🔄 [PatternExtractor] directly复制andadd源URL ${key}:`, typeof value);
                 } else {
-                    // 空值保持为空数组
+                    // 空valuekeep为空数组
                     finalResults[key] = [];
                 }
             }
             
-            // 验证所有自定义正则键都被正确处理
+            // validationallcustomregex键都by正确处理
             const customKeys = Object.keys(results).filter(key => key.startsWith('custom_'));
             if (customKeys.length > 0) {
-                //console.log(`✅ [PatternExtractor] 发现并处理了 ${customKeys.length} 个自定义正则键:`, customKeys);
+                //console.log(`✅ [PatternExtractor] 发现and处理了 ${customKeys.length} 个customregex键:`, customKeys);
                 customKeys.forEach(key => {
-                    //console.log(`✅ [PatternExtractor] 自定义正则键 ${key} 已正确转换: ${finalResults[key].length} 个结果`);
+                    //console.log(`✅ [PatternExtractor] customregex键 ${key} already正确convert: ${finalResults[key].length} 个result`);
                 });
             } else {
-                //console.log('ℹ️ [PatternExtractor] 未发现自定义正则键');
+                //console.log('ℹ️ [PatternExtractor] 未发现customregex键');
             }
             
-            //console.log('✅ [PatternExtractor] 统一化版本模式提取完成');
-            //console.log('📊 [PatternExtractor] 最终结果键:', Object.keys(finalResults));
+            //console.log('✅ [PatternExtractor] unified化versionpatternextractcomplete');
+            //console.log('📊 [PatternExtractor] 最终result键:', Object.keys(finalResults));
             
             return finalResults;
             
         } catch (error) {
-            console.error('❌ [PatternExtractor] 提取模式失败:', error);
+            console.error('❌ [PatternExtractor] extractpatternfailed:', error);
             return {};
         }
     }
 }
 
-// 导出类
+// exportclass
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = PatternExtractor;
 } else if (typeof window !== 'undefined') {

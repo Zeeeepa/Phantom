@@ -1,24 +1,24 @@
 /**
- * 内容提取器 - 负责从页面内容中提取各种信息
- * 优化版本 - 提高性能
+ * 内容extract器 - 负责frompage面内容inextract各种information
+ * 优化version - 提high performance
  */
 class ContentExtractor {
     
     async extractSensitiveInfo(targetUrl) {
         try {
-            // 确保在顶层窗口执行
+            // 确保in顶层窗口execute
             if (window !== window.top) {
-                //console.log('跳过iframe扫描，只扫描顶层页面');
+                //console.log('skipiframescan，只scan顶层page面');
                 return this.getEmptyResults();
             }
             
-            // 验证当前页面URL是否匹配目标URL
+            // validation当beforepage面URL是否match目标URL
             if (targetUrl && window.location.href !== targetUrl) {
-                //console.log('页面URL不匹配，跳过扫描');
+                //console.log('page面URLnotmatch，skipscan');
                 return this.getEmptyResults();
             }
             
-            //console.log('🔍 开始扫描顶层页面:', window.location.href);
+            //console.log('🔍 startscan顶层page面:', window.location.href);
             
             const results = {
                 absoluteApis: new Set(),
@@ -48,7 +48,7 @@ class ContentExtractor {
                 jwts: new Set(),
                 githubUrls: new Set(),
                 vueFiles: new Set(),
-                // 新增的敏感信息类型
+                // new增敏感informationclass型
                 bearerTokens: new Set(),
                 basicAuth: new Set(),
                 authHeaders: new Set(),
@@ -62,23 +62,23 @@ class ContentExtractor {
                 cryptoUsage: new Set()
             };
             
-            // 获取页面内容 - 使用更高效的方法
+            // getpage面内容 - use更高效方法
             const pageContent = this.getPageContent();
             
-            // 获取脚本和样式内容 - 使用更高效的方法
+            // get脚本and样式内容 - use更高效方法
             const scriptContent = this.getAllScripts();
             const styleContent = this.getAllStyles();
             
-            // 获取所有链接和资源 - 使用更高效的方法
+            // getall链接and资源 - use更高效方法
             const linkContent = this.getAllLinks();
             
-            // 获取存储内容
+            // getstorage内容
             const storageContent = this.getStorageContent();
             
-            // 获取Cookie内容
+            // getCookie内容
             //const cookieContent = document.cookie;
             
-            // 合并所有内容进行扫描 - 分批处理以提高性能
+            // 合andall内容进行scan - 分批处理以提high performance
             await this.performMultiLayerScan(pageContent, results);
             await this.performMultiLayerScan(scriptContent, results);
             await this.performMultiLayerScan(styleContent, results);
@@ -86,22 +86,22 @@ class ContentExtractor {
             await this.performMultiLayerScan(storageContent, results);
             //await this.performMultiLayerScan(cookieContent, results);
             
-            // 转换Set为Array并过滤 - 修复：包含所有动态创建的键，确保每个项目都有sourceUrl
+            // convertSet为Arrayandthrough滤 - fix：containsall动态create键，确保每个项目都有sourceUrl
             const finalResults = {};
             
-            // 处理所有键，包括动态创建的自定义正则键
+            // 处理all键，including动态createcustomregex键
             for (const [key, value] of Object.entries(results)) {
                 if (value instanceof Set) {
-                    // 🔥 修复：转换Set时确保每个项目都有完整的源URL信息
+                    // 🔥 fix：convertSet时确保每个项目都有complete源URLinformation
                     finalResults[key] = Array.from(value).filter(item => {
-                        // 过滤掉空值
+                        // through滤掉空value
                         if (typeof item === 'object' && item !== null) {
                             return item.value && item.value.length > 0;
                         } else {
                             return item && item.length > 0;
                         }
                     }).map(item => {
-                        // 确保每个项目都是对象格式并包含源URL信息
+                        // 确保每个项目都是objectformatandcontains源URLinformation
                         if (typeof item === 'object' && item !== null && item.hasOwnProperty('value')) {
                             return {
                                 value: item.value,
@@ -119,7 +119,7 @@ class ContentExtractor {
                         }
                     });
                 } else if (Array.isArray(value)) {
-                    // 🔥 修复：处理数组时确保每个项目都有完整的源URL信息
+                    // 🔥 fix：处理数组时确保每个项目都有complete源URLinformation
                     finalResults[key] = value.filter(item => {
                         if (typeof item === 'object' && item !== null) {
                             return item.value && item.value.length > 0;
@@ -144,7 +144,7 @@ class ContentExtractor {
                         }
                     });
                 } else if (value) {
-                    // 🔥 修复：单个值也要转换为包含源URL信息的对象数组
+                    // 🔥 fix：单个value也要convert为contains源URLinformationobject数组
                     if (typeof value === 'object' && value !== null && value.hasOwnProperty('value')) {
                         finalResults[key] = [{
                             value: value.value,
@@ -161,18 +161,18 @@ class ContentExtractor {
                         }];
                     }
                 } else {
-                    // 空值保持为空数组
+                    // 空valuekeep为空数组
                     finalResults[key] = [];
                 }
             }
             
-            //console.log('🔍 ContentExtractor最终结果转换完成，包含的键:', Object.keys(finalResults));
+            //console.log('🔍 ContentExtractor最终resultconvertcomplete，contains键:', Object.keys(finalResults));
             const customKeys = Object.keys(finalResults).filter(key => key.startsWith('custom_'));
             if (customKeys.length > 0) {
-                //console.log(`✅ ContentExtractor最终结果包含 ${customKeys.length} 个自定义正则键:`, customKeys);
+                //console.log(`✅ ContentExtractor最终resultcontains ${customKeys.length} 个customregex键:`, customKeys);
             }
             
-            //console.log('✅ 扫描完成，结果统计:');
+            //console.log('✅ scan complete，result统计:');
             Object.keys(finalResults).forEach(key => {
                 if (finalResults[key].length > 0) {
                     //console.log(`  ${key}: ${finalResults[key].length} 个`);
@@ -182,32 +182,32 @@ class ContentExtractor {
             return finalResults;
             
         } catch (error) {
-            console.error('❌ 扫描过程中出错:', error);
+            console.error('❌ scanthrough程in出错:', error);
             return this.getEmptyResults();
         }
     }
     
-    // 获取页面内容 - 优化版本
+    // getpage面内容 - 优化version
     getPageContent() {
         try {
-            // 获取完整的HTML内容，包括head和body，确保不遗漏任何资源
+            // getcompleteHTML内容，includingheadandbody，确保not遗漏任何资源
             return document.documentElement.outerHTML;
         } catch (e) {
             return '';
         }
     }
     
-    // 获取所有脚本内容 - 优化版本
+    // getall脚本内容 - 优化version
     getAllScripts() {
         const scripts = [];
         
-        // 内联脚本 - 处理所有脚本，不限制数量和大小
+        // 内联脚本 - 处理all脚本，not限制数量and大小
         const inlineScripts = document.querySelectorAll('script:not([src])');
         
         for (let i = 0; i < inlineScripts.length; i++) {
             const script = inlineScripts[i];
             if (script.textContent) {
-                // 处理完整的脚本内容，不截断
+                // 处理complete脚本内容，not截断
                 scripts.push(script.textContent);
             }
         }
@@ -222,11 +222,11 @@ class ContentExtractor {
         return scripts.join('\n');
     }
     
-    // 获取所有样式内容 - 优化版本
+    // getall样式内容 - 优化version
     getAllStyles() {
         const styles = [];
         
-        // 内联样式 - 处理所有样式，不限制数量
+        // 内联样式 - 处理all样式，not限制数量
         const styleElements = document.querySelectorAll('style');
         
         for (let i = 0; i < styleElements.length; i++) {
@@ -246,11 +246,11 @@ class ContentExtractor {
         return styles.join('\n');
     }
     
-    // 获取所有链接 - 优化版本
+    // getall链接 - 优化version
     getAllLinks() {
         const links = new Set();
         
-        // 处理所有链接，不限制数量
+        // 处理all链接，not限制数量
         const allLinks = document.querySelectorAll('a[href]');
         
         for (let i = 0; i < allLinks.length; i++) {
@@ -260,12 +260,12 @@ class ContentExtractor {
         return Array.from(links).join('\n');
     }
     
-    // 获取存储内容 - 优化版本
+    // getstorage内容 - 优化version
     getStorageContent() {
         const storage = [];
         
         try {
-            // localStorage - 处理所有存储项，不限制数量和大小
+            // localStorage - 处理allstorage项，not限制数量and大小
             
             // localStorage
             for (let i = 0; i < localStorage.length; i++) {
@@ -285,46 +285,46 @@ class ContentExtractor {
                 }
             }
         } catch (e) {
-            //console.log('无法访问存储内容:', e);
+            //console.log('无法访问storage内容:', e);
         }
         
         return storage.join('\n');
     }
     
-    // 分批处理内容扫描 - 优化版本
+    // 分批处理内容scan - 优化version
     async performMultiLayerScan(content, results) {
         if (!content || content.length === 0) return;
         
-        // 移除内容大小限制，处理完整内容
+        // 移除内容大小限制，处理complete内容
         const processContent = content;
         
-        // 使用PatternExtractor统一化系统来提取信息
+        // usePatternExtractorunified化系统来extractinformation
         if (window.patternExtractor && typeof window.patternExtractor.extractPatterns === 'function') {
             try {
-                //console.log('🔍🔍🔍 ContentExtractor找到PatternExtractor，准备调用extractPatterns方法');
+                //console.log('🔍🔍🔍 ContentExtractorfoundPatternExtractor，准备调forextractPatterns方法');
                 //console.log('📊 ContentExtractor处理内容长度:', processContent.length);
                 
-                // 每次都强制重新加载最新配置，确保使用最新设置
-                //console.log('🔄 ContentExtractor强制重新加载最新配置...');
+                // every time都强制重newload最newconfiguration，确保use最newsettings
+                //console.log('🔄 ContentExtractor强制重newload最newconfiguration...');
                 await window.patternExtractor.loadCustomPatterns();
                 
-                //console.log('📊 ContentExtractor当前可用的正则模式:', Object.keys(window.patternExtractor.patterns));
-                //console.log('🚀🚀🚀 ContentExtractor即将调用PatternExtractor.extractPatterns方法！');
+                //console.log('📊 ContentExtractor当before可forregexpattern:', Object.keys(window.patternExtractor.patterns));
+                //console.log('🚀🚀🚀 ContentExtractor即将调forPatternExtractor.extractPatterns方法！');
                 
                 const extractedData = await window.patternExtractor.extractPatterns(processContent, window.location.href);
                 
-                //console.log('✅✅✅ ContentExtractor调用PatternExtractor.extractPatterns完成，返回数据:', extractedData);
+                //console.log('✅✅✅ ContentExtractor调forPatternExtractor.extractPatternscomplete，returndata:', extractedData);
                 
-                // 将提取的数据合并到results中，包括动态自定义正则结果
-                // 🔥 修复：保持PatternExtractor返回的完整对象结构（包含sourceUrl）
+                // 将extractdata合andtoresultsin，including动态customregexresult
+                // 🔥 fix：keepPatternExtractorreturncompleteobject结构（containssourceUrl）
                 if (extractedData) {
                     Object.keys(extractedData).forEach(key => {
-                        // 处理预定义的结果键
+                        // 处理预定义result键
                         if (results[key] && Array.isArray(extractedData[key])) {
                             extractedData[key].forEach(itemObj => {
-                                // 🔥 修复：确保每个项目都有完整的源URL信息
+                                // 🔥 fix：确保每个项目都有complete源URLinformation
                                 if (typeof itemObj === 'object' && itemObj !== null && itemObj.hasOwnProperty('value')) {
-                                    // 已经是对象格式，确保包含所有必要字段
+                                    // already经是objectformat，确保containsall必要字段
                                     results[key].add({
                                         value: itemObj.value,
                                         sourceUrl: itemObj.sourceUrl || window.location.href,
@@ -332,7 +332,7 @@ class ContentExtractor {
                                         pageTitle: itemObj.pageTitle || document.title || 'Unknown Page'
                                     });
                                 } else {
-                                    // 兼容旧格式：如果是字符串，转换为对象格式
+                                    // 兼容旧format：if是字符串，convert为objectformat
                                     results[key].add({
                                         value: itemObj,
                                         sourceUrl: window.location.href,
@@ -342,16 +342,16 @@ class ContentExtractor {
                                 }
                             });
                         }
-                        // 处理动态自定义正则结果
+                        // 处理动态customregexresult
                         else if (key.startsWith('custom_') && Array.isArray(extractedData[key])) {
                             if (!results[key]) {
                                 results[key] = new Set();
-                                //console.log(`📦 ContentExtractor为自定义正则 ${key} 创建结果集合`);
+                                //console.log(`📦 ContentExtractor为customregex ${key} createresult集合`);
                             }
                             extractedData[key].forEach(itemObj => {
-                                // 🔥 修复：确保每个自定义正则项目都有完整的源URL信息
+                                // 🔥 fix：确保每个customregex项目都有complete源URLinformation
                                 if (typeof itemObj === 'object' && itemObj !== null && itemObj.hasOwnProperty('value')) {
-                                    // 已经是对象格式，确保包含所有必要字段
+                                    // already经是objectformat，确保containsall必要字段
                                     results[key].add({
                                         value: itemObj.value,
                                         sourceUrl: itemObj.sourceUrl || window.location.href,
@@ -359,7 +359,7 @@ class ContentExtractor {
                                         pageTitle: itemObj.pageTitle || document.title || 'Unknown Page'
                                     });
                                 } else {
-                                    // 兼容旧格式：如果是字符串，转换为对象格式
+                                    // 兼容旧format：if是字符串，convert为objectformat
                                     results[key].add({
                                         value: itemObj,
                                         sourceUrl: window.location.href,
@@ -368,29 +368,29 @@ class ContentExtractor {
                                     });
                                 }
                             });
-                            //console.log(`✅ ContentExtractor自定义正则 ${key} 添加了 ${extractedData[key].length} 个结果`);
+                            //console.log(`✅ ContentExtractorcustomregex ${key} add了 ${extractedData[key].length} 个result`);
                         }
                     });
                     
-                    // 验证自定义正则结果是否正确添加
+                    // validationcustomregexresult是否正确add
                     const customKeys = Object.keys(extractedData).filter(key => key.startsWith('custom_'));
                     if (customKeys.length > 0) {
-                        //console.log(`✅ ContentExtractor处理了 ${customKeys.length} 个自定义正则结果:`, customKeys);
+                        //console.log(`✅ ContentExtractor处理了 ${customKeys.length} 个customregexresult:`, customKeys);
                     }
                 }
                 
-                //console.log('✅ ContentExtractor统一化系统提取完成');
+                //console.log('✅ ContentExtractorunified化系统extractcomplete');
             } catch (error) {
-                console.error('❌ ContentExtractor统一化系统提取失败:', error);
-                // 统一化版本：不使用降级方案
-                //console.log('⚠️ ContentExtractor统一化版本：不使用降级方案');
+                console.error('❌ ContentExtractorunified化系统extractfailed:', error);
+                // unified化version：notuse降级方案
+                //console.log('⚠️ ContentExtractorunified化version：notuse降级方案');
             }
         } else {
-            console.warn('⚠️ ContentExtractor统一化版本：PatternExtractor未找到或extractPatterns方法不存在，跳过提取');
+            console.warn('⚠️ ContentExtractorunified化version：PatternExtractor未foundorextractPatterns方法notexists，skipextract');
         }
     }
     
-    // 获取空结果 - 增强版本，支持所有新的敏感信息类型
+    // get空result - enhancedversion，supportallnew敏感informationclass型
     getEmptyResults() {
         return {
             absoluteApis: [],
@@ -420,7 +420,7 @@ class ContentExtractor {
             jwts: [],
             githubUrls: [],
             vueFiles: [],
-            // 新增的敏感信息类型
+            // new增敏感informationclass型
             bearerTokens: [],
             basicAuth: [],
             authHeaders: [],

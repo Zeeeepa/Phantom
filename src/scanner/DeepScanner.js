@@ -1,59 +1,59 @@
 /**
- * 深度扫描器 - 负责递归深度扫描功能
+ * deep scan器 - 负责递归deep scan功能
  */
 class DeepScanner {
     constructor(srcMiner) {
         this.srcMiner = srcMiner;
-        // 添加URL缓存，避免重复处理
+        // addURL缓存，避免重复处理
         this.urlContentCache = new Map();
-        // 添加正则表达式缓存
+        // addregexexpression缓存
         this.regexCache = {};
         // 默认超时时间（毫秒）
         this.timeout = 5000;
-        // 过滤器状态
+        // through滤器state
         this.filtersLoaded = false;
     }
     
-    // 加载增强过滤器
+    // loadenhancedthrough滤器
     async loadEnhancedFilters() {
         if (this.filtersLoaded) {
-            //console.log('🔍 增强过滤器已加载');
+            //console.log('🔍 enhancedthrough滤器alreadyload');
             return;
         }
         
-        //console.log('🔄 开始加载深度扫描增强过滤器...');
+        //console.log('🔄 startloaddeep scanenhancedthrough滤器...');
         
         try {
-            // 检查是否在扩展环境中
+            // check是否in扩展environmentin
             if (typeof chrome !== 'undefined' && chrome.runtime) {
-                // 加载域名和手机号过滤器
+                // loaddomainandmobile phonethrough滤器
                 if (!window.domainPhoneFilter) {
                     await this.loadFilterScript('filters/domain-phone-filter.js');
                     
-                    // 初始化过滤器
+                    // initializethrough滤器
                     if (typeof DomainPhoneFilter !== 'undefined') {
                         window.domainPhoneFilter = new DomainPhoneFilter();
-                        //console.log('✅ 域名手机号过滤器初始化成功');
+                        //console.log('✅ domainmobile phonethrough滤器initializesuccess');
                     }
                 }
                 
-                // 加载API过滤器
+                // loadAPIthrough滤器
                 if (!window.apiFilter) {
                     await this.loadFilterScript('filters/api-filter.js');
-                    //console.log('✅ API过滤器加载成功');
+                    //console.log('✅ APIthrough滤器loadsuccess');
                 }
                 
                 this.filtersLoaded = true;
-                //console.log('🎉 所有过滤器加载完成');
+                //console.log('🎉 allthrough滤器loadcomplete');
             } else {
-                console.warn('⚠️ 非扩展环境，无法加载过滤器');
+                console.warn('⚠️ 非扩展environment，无法loadthrough滤器');
             }
         } catch (error) {
-            console.error('❌ 过滤器加载失败:', error);
+            console.error('❌ through滤器loadfailed:', error);
         }
     }
     
-    // 加载过滤器脚本
+    // loadthrough滤器脚本
     async loadFilterScript(scriptPath) {
         return new Promise((resolve, reject) => {
             try {
@@ -61,53 +61,53 @@ class DeepScanner {
                 script.src = chrome.runtime.getURL(scriptPath);
                 
                 script.onload = () => {
-                    //console.log(`📦 脚本加载成功: ${scriptPath}`);
+                    //console.log(`📦 脚本loadsuccess: ${scriptPath}`);
                     resolve();
                 };
                 
                 script.onerror = (error) => {
-                    console.error(`❌ 脚本加载失败: ${scriptPath}`, error);
+                    console.error(`❌ 脚本loadfailed: ${scriptPath}`, error);
                     reject(error);
                 };
                 
                 document.head.appendChild(script);
                 
-                // 设置超时保护
+                // settings超时保护
                 setTimeout(() => {
-                    resolve(); // 即使超时也继续执行
+                    resolve(); // 即使超时也继续execute
                 }, 3000);
             } catch (error) {
-                console.warn(`⚠️ 加载脚本失败: ${scriptPath}`, error);
-                resolve(); // 出错时也继续执行
+                console.warn(`⚠️ load脚本failed: ${scriptPath}`, error);
+                resolve(); // 出错时也继续execute
             }
         });
     }
     
-    // 切换深度扫描模式 - 使用新的窗口系统
+    // 切换deep scanpattern - usenew窗口系统
     toggleDeepScan() {
         const configDiv = document.getElementById('deepScanConfig');
         const deepScanBtn = document.getElementById('deepScanBtn');
         const deepScanBtnText = deepScanBtn.querySelector('.text');
         
         if (configDiv.style.display === 'none' || !configDiv.style.display) {
-            // 显示配置面板
+            // 显示configuration面板
             configDiv.style.display = 'block';
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '🚀 开始深度扫描';
+                deepScanBtnText.textContent = '🚀 startdeep scan';
             }
             deepScanBtn.style.background = 'rgba(0, 212, 170, 0.3)';
         } else {
-            // 开始深度扫描 - 使用新的窗口系统
+            // startdeep scan - usenew窗口系统
             this.startDeepScanWindow();
         }
     }
     
-    // 开始深度扫描窗口
+    // startdeep scan窗口
     async startDeepScanWindow() {
-        //console.log('🚀 启动深度扫描窗口...');
+        //console.log('🚀 startdeep scan窗口...');
         
         try {
-            // 获取配置参数
+            // getconfigurationparameter
             const maxDepthInput = document.getElementById('maxDepth');
             const concurrencyInput = document.getElementById('concurrency');
             const timeoutInput = document.getElementById('timeout');
@@ -116,30 +116,30 @@ class DeepScanner {
             const concurrency = parseInt(concurrencyInput?.value) || 8;
             const timeout = parseInt(timeoutInput?.value) || 5;
             
-            // 初始化深度扫描窗口管理器
+            // initializedeep scan窗口管理器
             if (!this.srcMiner.deepScanWindow) {
-                // 动态加载DeepScanWindow类
+                // 动态loadDeepScanWindowclass
                 await this.loadDeepScanWindow();
                 this.srcMiner.deepScanWindow = new DeepScanWindow(this.srcMiner);
             }
             
-            // 获取当前页面URL
+            // get当beforepage面URL
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                throw new Error('无法获取当前页面信息');
+                throw new Error('无法get当beforepage面information');
             }
             
-            // 启动深度扫描窗口
+            // startdeep scan窗口
             await this.srcMiner.deepScanWindow.createDeepScanWindow({
                 maxDepth: maxDepth,
                 concurrency: concurrency,
                 timeout: timeout
             });
             
-            // 显示成功提示
-            this.showSuccessNotification('🚀 深度扫描已在新窗口中启动！请查看新打开的扫描页面。');
+            // 显示success提示
+            this.showSuccessNotification('🚀 deep scanalreadyinnew窗口instart！请查看newopenscanpage面。');
             
-            // 隐藏配置面板
+            // 隐藏configuration面板
             const configDiv = document.getElementById('deepScanConfig');
             const deepScanBtn = document.getElementById('deepScanBtn');
             const deepScanBtnText = deepScanBtn?.querySelector('.text');
@@ -149,7 +149,7 @@ class DeepScanner {
             }
             
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '深度递归扫描';
+                deepScanBtnText.textContent = 'deep递归scan';
             }
             
             if (deepScanBtn) {
@@ -157,12 +157,12 @@ class DeepScanner {
             }
             
         } catch (error) {
-            console.error('❌ 启动深度扫描窗口失败:', error);
-            this.showError('启动深度扫描窗口失败: ' + error.message);
+            console.error('❌ startdeep scan窗口failed:', error);
+            this.showError('startdeep scan窗口failed: ' + error.message);
         }
     }
     
-    // 动态加载DeepScanWindow类
+    // 动态loadDeepScanWindowclass
     async loadDeepScanWindow() {
         return new Promise((resolve, reject) => {
             try {
@@ -170,23 +170,23 @@ class DeepScanner {
                 script.src = chrome.runtime.getURL('src/scanner/DeepScanWindow.js');
                 
                 script.onload = () => {
-                    //console.log('📦 DeepScanWindow类加载成功');
+                    //console.log('📦 DeepScanWindowclassloadsuccess');
                     resolve();
                 };
                 
                 script.onerror = (error) => {
-                    console.error('❌ DeepScanWindow类加载失败:', error);
+                    console.error('❌ DeepScanWindowclassloadfailed:', error);
                     reject(error);
                 };
                 
                 document.head.appendChild(script);
                 
-                // 设置超时保护
+                // settings超时保护
                 setTimeout(() => {
                     if (typeof DeepScanWindow !== 'undefined') {
                         resolve();
                     } else {
-                        reject(new Error('DeepScanWindow类加载超时'));
+                        reject(new Error('DeepScanWindowclassload超时'));
                     }
                 }, 5000);
             } catch (error) {
@@ -195,7 +195,7 @@ class DeepScanner {
         });
     }
     
-    // 处理来自扫描窗口的消息
+    // 处理fromscan窗口message
     handleScanWindowMessage(message, sender, sendResponse) {
         if (!this.srcMiner.deepScanWindow) {
             sendResponse({ success: false, error: 'DeepScanWindow not initialized' });
@@ -205,20 +205,20 @@ class DeepScanner {
         return this.srcMiner.deepScanWindow.handleScanWindowMessage(message, sender, sendResponse);
     }
     
-    // 兼容性方法 - 保持原有的深度扫描功能作为备用
+    // 兼容性方法 - keep原有deep scan功能作为备for
     async startDeepScan() {
-        //console.log('🔄 使用传统深度扫描方法作为备用');
+        //console.log('🔄 use传统deep scan方法作为备for');
         
         if (this.srcMiner.deepScanRunning) {
-            //console.log('深度扫描已在运行中');
+            //console.log('deep scanalreadyin运行in');
             return;
         }
         
-        //console.log('🚀 启动传统深度扫描...');
-        // 确保过滤器已加载
+        //console.log('🚀 start传统deep scan...');
+        // 确保through滤器alreadyload
         await this.loadEnhancedFilters();
         
-        // 获取配置参数
+        // getconfigurationparameter
         const maxDepthInput = document.getElementById('maxDepth');
         const concurrencyInput = document.getElementById('concurrency');
         const timeoutInput = document.getElementById('timeout');
@@ -226,29 +226,29 @@ class DeepScanner {
         const scanHtmlFilesInput = document.getElementById('scanHtmlFiles');
         const scanApiFilesInput = document.getElementById('scanApiFiles');
         
-        // 检查配置元素是否存在
+        // checkconfiguration元素是否exists
         if (!maxDepthInput || !concurrencyInput) {
-            console.error('深度扫描配置元素未找到');
-            this.showError('深度扫描配置错误，请检查页面元素');
+            console.error('deep scanconfiguration元素未found');
+            this.showError('deep scanconfiguration错误，请checkpage面元素');
             return;
         }
         
         this.srcMiner.maxDepth = parseInt(maxDepthInput.value) || 2;
         this.srcMiner.concurrency = parseInt(concurrencyInput.value) || 8;
         
-        // 获取超时设置
+        // get超时settings
         if (timeoutInput) {
-            this.timeout = parseInt(timeoutInput.value) * 1000; // 转换为毫秒
+            this.timeout = parseInt(timeoutInput.value) * 1000; // convert为毫秒
         } else {
             this.timeout = 5000; // 默认5秒
         }
         
-        //console.log(`设置超时时间: ${this.timeout/1000}秒`);
+        //console.log(`settings超时时间: ${this.timeout/1000}秒`);
         const scanJsFiles = scanJsFilesInput ? scanJsFilesInput.checked : true;
         const scanHtmlFiles = scanHtmlFilesInput ? scanHtmlFilesInput.checked : true;
         const scanApiFiles = scanApiFilesInput ? scanApiFilesInput.checked : true;
         
-        console.log('深度扫描配置:', {
+        console.log('deep scanconfiguration:', {
             maxDepth: this.srcMiner.maxDepth,
             concurrency: this.srcMiner.concurrency,
             timeout: this.timeout / 1000 + '秒',
@@ -257,13 +257,13 @@ class DeepScanner {
             scanApiFiles
         });
         
-        // 重置扫描状态
+        // 重置scanstate
         this.srcMiner.deepScanRunning = true;
-        this.srcMiner.scannedUrls = new Set(); // 使用Set而不是clear()，确保是新实例
+        this.srcMiner.scannedUrls = new Set(); // useSet而not是clear()，确保是new实例
         this.srcMiner.pendingUrls = new Set();
         this.urlContentCache.clear(); // 清空URL内容缓存
         
-        // 使用引用而不是深拷贝，减少内存使用
+        // use引for而not是深拷贝，reduce内存use
         this.srcMiner.deepScanResults = {};
         Object.keys(this.srcMiner.results).forEach(key => {
             this.srcMiner.deepScanResults[key] = [...(this.srcMiner.results[key] || [])];
@@ -275,91 +275,91 @@ class DeepScanner {
         const progressDiv = document.getElementById('deepScanProgress');
         const configDiv = document.getElementById('deepScanConfig');
         
-        // 更新UI状态
+        // 更newUIstate
         if (deepScanBtn) {
             const deepScanBtnText = deepScanBtn.querySelector('.text');
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '⏹️ 停止扫描';
+                deepScanBtnText.textContent = '⏹️ 停止scan';
             }
             deepScanBtn.style.background = 'rgba(239, 68, 68, 0.3)';
             deepScanBtn.style.color = '#fff';
         }
         
         if (progressDiv) {
-            // 进度条显示已移除
+            // progress条显示already移除
         }
         
-        // 保持配置面板显示，以便查看进度条
+        // keepconfiguration面板显示，以便查看progress条
         if (configDiv) {
             configDiv.style.display = 'block';
-            // 禁用配置选项，防止扫描过程中修改
+            // 禁forconfiguration选项，防止scanthrough程in修改
             const configInputs = configDiv.querySelectorAll('input, select');
             configInputs.forEach(input => input.disabled = true);
         }
         
         try {
-        // 🔥 统一化版本：强制重新加载正则表达式配置
+        // 🔥 unified化version：强制重newloadregexexpressionconfiguration
         if (this.srcMiner.patternExtractor) {
-            //console.log('🔄 深度扫描统一化版本开始强制重新加载正则表达式配置...');
+            //console.log('🔄 deep scanunified化versionstart强制重newloadregexexpressionconfiguration...');
             
-            // 清除现有配置
+            // 清除现有configuration
             this.srcMiner.patternExtractor.patterns = {};
             this.srcMiner.patternExtractor.customPatternsLoaded = false;
             
-            // 重新加载配置
+            // 重newloadconfiguration
             await this.srcMiner.patternExtractor.loadCustomPatterns();
             if (typeof this.srcMiner.patternExtractor.ensureCustomPatternsLoaded === 'function') {
                 await this.srcMiner.patternExtractor.ensureCustomPatternsLoaded();
             }
             
-            //console.log('✅ 深度扫描统一化版本已强制重新加载正则表达式配置');
-            //console.log('📊 深度扫描统一化版本当前可用的正则模式:', Object.keys(this.srcMiner.patternExtractor.patterns));
-            //console.log('🔍 深度扫描统一化版本自定义正则配置状态:', this.srcMiner.patternExtractor.customPatternsLoaded);
+            //console.log('✅ deep scanunified化versionalready强制重newloadregexexpressionconfiguration');
+            //console.log('📊 deep scanunified化version当before可forregexpattern:', Object.keys(this.srcMiner.patternExtractor.patterns));
+            //console.log('🔍 deep scanunified化versioncustomregexconfigurationstate:', this.srcMiner.patternExtractor.customPatternsLoaded);
         } else {
-            console.error('❌ 深度扫描统一化版本：未找到PatternExtractor实例，无法进行统一化提取');
+            console.error('❌ deep scanunified化version：未foundPatternExtractor实例，无法进行unified化extract');
         }
             
-            // 获取当前页面信息
+            // get当beforepage面information
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (!tab || !tab.url) {
-                throw new Error('无法获取当前页面URL');
+                throw new Error('无法get当beforepage面URL');
             }
             
             const baseUrl = new URL(tab.url).origin;
             const currentUrl = tab.url;
             
-            console.log('🎯 深度扫描目标:', {
+            console.log('🎯 deep scan目标:', {
                 baseUrl,
                 currentUrl,
                 maxDepth: this.srcMiner.maxDepth
             });
             
-            // 添加当前页面到已扫描列表
+            // add当beforepage面toalreadyscan列表
             this.srcMiner.scannedUrls.add(currentUrl);
             
-            // 收集初始扫描URL列表
+            // 收集initialscanURL列表
             const initialUrls = await this.collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles);
-            //console.log('📋 初始URL列表 (' + initialUrls.length + ' 个):', initialUrls.slice(0, 5));
+            //console.log('📋 initialURL列表 (' + initialUrls.length + ' 个):', initialUrls.slice(0, 5));
             
             if (initialUrls.length === 0) {
-                //console.log('⚠️ 没有找到可扫描的URL');
-                this.updateDeepScanProgress(0, 0, '没有找到可扫描的URL');
+                //console.log('⚠️ withoutfound可scanURL');
+                this.updateDeepScanProgress(0, 0, 'withoutfound可scanURL');
                 return;
             }
             
-            // 开始分层递归扫描
+            // start分层递归scan
             await this.performLayeredScan(baseUrl, initialUrls, {
                 scanJsFiles,
                 scanHtmlFiles,
                 scanApiFiles
             });
             
-            // 更新最终结果并保存
+            // 更new最终resultand保存
             this.srcMiner.results = this.srcMiner.deepScanResults;
             this.srcMiner.displayResults();
             this.srcMiner.saveResults();
             
-            // 额外保存深度扫描专用数据到IndexedDB
+            // 额外保存deep scan专fordatatoIndexedDB
             const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (currentTab && currentTab.url) {
                 const urlObj = new URL(currentTab.url);
@@ -386,37 +386,37 @@ class DeepScanner {
             this.showDeepScanComplete();
             
         } catch (error) {
-            console.error('❌ 深度扫描失败:', error);
-            this.showError('深度扫描失败: ' + error.message);
+            console.error('❌ deep scanfailed:', error);
+            this.showError('deep scanfailed: ' + error.message);
         } finally {
-            // 重置UI状态
+            // 重置UIstate
             this.srcMiner.deepScanRunning = false;
             
-            // 最终保存所有数据
+            // 最终保存alldata
             this.srcMiner.saveResults();
             
             if (deepScanBtn) {
                 const deepScanBtnText = deepScanBtn.querySelector('.text');
                 if (deepScanBtnText) {
-                    deepScanBtnText.textContent = '深度递归扫描';
+                    deepScanBtnText.textContent = 'deep递归scan';
                 }
                 deepScanBtn.style.background = '';
                 deepScanBtn.style.color = '';
             }
             
             if (configDiv) {
-                // 重新启用配置选项
+                // 重new启forconfiguration选项
                 const configInputs = configDiv.querySelectorAll('input, select');
                 configInputs.forEach(input => input.disabled = false);
                 
-                // 延迟隐藏配置面板，让用户看到最终进度
+                // 延迟隐藏configuration面板，让user看to最终progress
                 setTimeout(() => {
                     configDiv.style.display = 'none';
                 }, 5000);
             }
             
             if (progressDiv) {
-                // 保持进度条显示一段时间
+                // keepprogress条显示一段时间
                 setTimeout(() => {
                     if (progressDiv.style.display !== 'none') {
                         progressDiv.style.display = 'none';
@@ -427,7 +427,7 @@ class DeepScanner {
             // 清理缓存
             this.urlContentCache.clear();
             
-            // 保存扫描完成状态到IndexedDB
+            // 保存scan completestatetoIndexedDB
             const [completedTab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (completedTab && completedTab.url) {
                 const urlObj = new URL(completedTab.url);
@@ -452,16 +452,16 @@ class DeepScanner {
         }
     }
     
-    // 收集初始扫描URL - 异步版本（兼容新旧数据格式）
+    // 收集initialscanURL - asyncversion（兼容new旧dataformat）
     async collectInitialUrls(baseUrl, scanJsFiles, scanHtmlFiles, scanApiFiles) {
         const urls = new Set();
         
-        //console.log('🔍 收集初始URL，当前结果:', Object.keys(this.srcMiner.results));
+        //console.log('🔍 收集initialURL，当beforeresult:', Object.keys(this.srcMiner.results));
         
-        // 从JS文件中收集 - 兼容新旧格式
+        // fromJS文件in收集 - 兼容new旧format
         if (scanJsFiles && this.srcMiner.results.jsFiles) {
             for (const jsFile of this.srcMiner.results.jsFiles) {
-                // 提取URL值 - 兼容对象格式和字符串格式
+                // extractURLvalue - 兼容objectformatand字符串format
                 const url = typeof jsFile === 'object' ? jsFile.value : jsFile;
                 const fullUrl = this.resolveUrl(url, baseUrl);
                 if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
@@ -470,14 +470,14 @@ class DeepScanner {
             }
         }
         
-        // 从HTML/页面URL中收集 - 兼容新旧格式
+        // fromHTML/page面URLin收集 - 兼容new旧format
         if (scanHtmlFiles && this.srcMiner.results.urls) {
             for (const urlItem of this.srcMiner.results.urls) {
-                // 提取URL值 - 兼容对象格式和字符串格式
+                // extractURLvalue - 兼容objectformatand字符串format
                 const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
                 const fullUrl = this.resolveUrl(url, baseUrl);
                 if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
-                    // 只收集可能是页面的URL
+                    // 只收集可能是page面URL
                     if (this.isPageUrl(fullUrl)) {
                         urls.add(fullUrl);
                     }
@@ -485,12 +485,12 @@ class DeepScanner {
             }
         }
         
-        // 从API接口中收集 - 兼容新旧格式
+        // fromAPI接口in收集 - 兼容new旧format
         if (scanApiFiles) {
             // 绝对路径API
             if (this.srcMiner.results.absoluteApis) {
                 for (const apiItem of this.srcMiner.results.absoluteApis) {
-                    // 提取URL值 - 兼容对象格式和字符串格式
+                    // extractURLvalue - 兼容objectformatand字符串format
                     const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const fullUrl = this.resolveUrl(api, baseUrl);
                     if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
@@ -502,7 +502,7 @@ class DeepScanner {
             // 相对路径API
             if (this.srcMiner.results.relativeApis) {
                 for (const apiItem of this.srcMiner.results.relativeApis) {
-                    // 提取URL值 - 兼容对象格式和字符串格式
+                    // extractURLvalue - 兼容objectformatand字符串format
                     const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                     const fullUrl = this.resolveUrl(api, baseUrl);
                     if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && !this.srcMiner.scannedUrls.has(fullUrl)) {
@@ -513,27 +513,27 @@ class DeepScanner {
         }
         
         const urlArray = Array.from(urls);
-        //console.log(`📊 收集到 ${urlArray.length} 个初始URL`);
+        //console.log(`📊 收集to ${urlArray.length} 个initialURL`);
         return urlArray;
     }
     
-    // 判断是否为页面URL
+    // 判断是否为page面URL
     isPageUrl(url) {
         try {
             const urlObj = new URL(url);
             const pathname = urlObj.pathname.toLowerCase();
             
-            // 使用缓存的正则表达式
+            // use缓存regexexpression
             if (!this.regexCache.resourceExtensions) {
                 this.regexCache.resourceExtensions = /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|ttf|eot|woff2|map)$/i;
             }
             
-            // 排除明显的资源文件
+            // exclude明显资源文件
             if (this.regexCache.resourceExtensions.test(pathname)) {
                 return false;
             }
             
-            // 包含页面特征
+            // containspage面特征
             return pathname === '/' || 
                    pathname.endsWith('/') || 
                    pathname.endsWith('.html') || 
@@ -546,7 +546,7 @@ class DeepScanner {
         }
     }
     
-    // 执行分层扫描
+    // execute分层scan
     async performLayeredScan(baseUrl, initialUrls, options) {
         let currentUrls = [...initialUrls];
         
@@ -554,28 +554,28 @@ class DeepScanner {
             this.srcMiner.currentDepth = depth;
             
             if (currentUrls.length === 0) {
-                //console.log(`第 ${depth} 层没有URL需要扫描`);
+                //console.log(`第 ${depth} 层withoutURLrequirescan`);
                 break;
             }
             
-            //console.log(`🔍 开始第 ${depth} 层扫描，URL数量: ${currentUrls.length}`);
-            this.updateDeepScanProgress(0, currentUrls.length, `第 ${depth} 层扫描`);
+            //console.log(`🔍 start第 ${depth} 层scan，URL数量: ${currentUrls.length}`);
+            this.updateDeepScanProgress(0, currentUrls.length, `第 ${depth} 层scan`);
             
-            // 分批处理URL - 使用优化的批处理方法
+            // 分批处理URL - use优化批处理方法
             const newUrls = await this.scanUrlBatchOptimized(currentUrls, baseUrl, options, depth);
             
-            // 准备下一层的URL - 使用Set进行去重
+            // 准备下一层URL - useSet进行去重
             const nextUrlsSet = new Set(newUrls);
             currentUrls = Array.from(nextUrlsSet).filter(url => !this.srcMiner.scannedUrls.has(url));
             
-            //console.log(`✅ 第 ${depth} 层扫描完成，发现新URL: ${currentUrls.length} 个`);
+            //console.log(`✅ 第 ${depth} 层scan complete，发现newURL: ${currentUrls.length} 个`);
             
-            // 每层扫描完成后强制更新显示
+            // 每层scan complete后强制更new显示
             this.srcMiner.results = this.srcMiner.deepScanResults;
             this.srcMiner.displayResults();
-            //console.log(`🔄 第 ${depth} 层扫描完成，已更新显示界面`);
+            //console.log(`🔄 第 ${depth} 层scan complete，already更new显示界面`);
             
-            // 每层扫描后释放内存
+            // 每层scan后释放内存
             if (typeof window.gc === 'function') {
                 try {
                     window.gc();
@@ -584,38 +584,38 @@ class DeepScanner {
         }
     }
     
-    // 优化的批量扫描URL方法 - 支持实时输出
+    // 优化批量scanURL方法 - support实时输出
     async scanUrlBatchOptimized(urls, baseUrl, options, depth) {
         const newUrls = new Set();
         let processedCount = 0;
         const totalUrls = urls.length;
         const concurrency = this.srcMiner.concurrency;
         
-        // 使用队列和工作线程池模式，而不是简单的分块
+        // use队列and工作线程池pattern，而not是简单分块
         const queue = [...urls];
         const activeWorkers = new Set();
         
         // 实时显示计数器
         let lastDisplayUpdate = 0;
-        const displayUpdateInterval = 1000; // 每1秒最多更新一次显示
+        const displayUpdateInterval = 1000; // 每1秒最多更new一次显示
         
         const processQueue = async () => {
             while (queue.length > 0 && this.srcMiner.deepScanRunning) {
                 const url = queue.shift();
                 
-                // 跳过已扫描的URL
+                // skipalreadyscanURL
                 if (this.srcMiner.scannedUrls.has(url)) {
                     processedCount++;
-                    this.updateDeepScanProgress(processedCount, totalUrls, `第 ${depth} 层扫描`);
+                    this.updateDeepScanProgress(processedCount, totalUrls, `第 ${depth} 层scan`);
                     continue;
                 }
                 
-                // 标记为已扫描
+                // 标记为alreadyscan
                 this.srcMiner.scannedUrls.add(url);
                 
                 const workerPromise = (async () => {
                     try {
-                        // 获取URL内容 - 使用缓存
+                        // getURL内容 - use缓存
                         let content;
                         if (this.urlContentCache.has(url)) {
                             content = this.urlContentCache.get(url);
@@ -627,46 +627,46 @@ class DeepScanner {
                         }
                         
                         if (content) {
-                            // 提取信息
+                            // extractinformation
                             const extractedData = this.extractFromContent(content, url);
                             const hasNewData = await this.mergeDeepScanResults(extractedData);
                             
-                            // 如果有新数据且距离上次显示更新超过间隔时间，立即更新显示
+                            // if有newdata且距离上次显示更new超through间隔时间，立即更new显示
                             const now = Date.now();
                             if (hasNewData && (now - lastDisplayUpdate) > displayUpdateInterval) {
                                 lastDisplayUpdate = now;
-                                // 实时更新显示
+                                // 实时更new显示
                                 this.srcMiner.results = this.srcMiner.deepScanResults;
                                 this.srcMiner.displayResults();
-                                //console.log(`🔄 实时更新显示 - 扫描到新数据来源: ${url}`);
+                                //console.log(`🔄 实时更new显示 - scantonewdata来源: ${url}`);
                             }
                             
-                            // 收集新URL
+                            // 收集newURL
                             const discoveredUrls = await this.collectUrlsFromContent(content, baseUrl, options);
                             discoveredUrls.forEach(newUrl => newUrls.add(newUrl));
                         }
                     } catch (error) {
-                        console.error(`扫描 ${url} 失败:`, error);
+                        console.error(`scan ${url} failed:`, error);
                     } finally {
                         processedCount++;
-                        this.updateDeepScanProgress(processedCount, totalUrls, `第 ${depth} 层扫描`);
+                        this.updateDeepScanProgress(processedCount, totalUrls, `第 ${depth} 层scan`);
                         activeWorkers.delete(workerPromise);
                     }
                 })();
                 
                 activeWorkers.add(workerPromise);
                 
-                // 控制并发数
+                // 控制and发数
                 if (activeWorkers.size >= concurrency) {
                     await Promise.race(Array.from(activeWorkers));
                 }
             }
         };
         
-        // 启动队列处理
+        // start队列处理
         await processQueue();
         
-        // 等待所有活跃工作线程完成
+        // waitall活跃工作线程complete
         if (activeWorkers.size > 0) {
             await Promise.all(Array.from(activeWorkers));
         }
@@ -674,10 +674,10 @@ class DeepScanner {
         return Array.from(newUrls);
     }
     
-    // 获取URL内容 - 通过后台脚本发送请求
+    // getURL内容 - 通throughbackground脚本sendrequest
     async fetchUrlContent(url) {
         try {
-            //console.log(`🔥 深度扫描 - 准备通过后台脚本请求: ${url}`);
+            //console.log(`🔥 deep scan - 准备通throughbackground脚本request: ${url}`);
             
             const requestOptions = {
                 method: 'GET',
@@ -689,12 +689,12 @@ class DeepScanner {
                 timeout: this.timeout
             };
             
-            //console.log(`🔥 深度扫描 - 发送消息到后台脚本，URL: ${url}`);
+            //console.log(`🔥 deep scan - sendmessagetobackground脚本，URL: ${url}`);
             
-            // 通过后台脚本发送请求
+            // 通throughbackground脚本sendrequest
             const response = await this.makeRequestViaBackground(url, requestOptions);
             
-            //console.log(`🔥 深度扫描 - 后台脚本响应: ${response.status} ${response.statusText}`);
+            //console.log(`🔥 deep scan - background脚本响应: ${response.status} ${response.statusText}`);
             
             if (!response.ok) {
                 console.warn(`HTTP ${response.status} for ${url}`);
@@ -702,7 +702,7 @@ class DeepScanner {
             }
             
             const contentType = response.headers.get('content-type') || '';
-            // 快速过滤非文本内容
+            // 快速through滤非文本内容
             if (contentType.includes('image/') || 
                 contentType.includes('audio/') || 
                 contentType.includes('video/') || 
@@ -721,7 +721,7 @@ class DeepScanner {
         }
     }
     
-    // 通过后台脚本发送请求
+    // 通throughbackground脚本sendrequest
     async makeRequestViaBackground(url, options = {}) {
         return new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
@@ -732,7 +732,7 @@ class DeepScanner {
                 if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));
                 } else if (response && response.success) {
-                    // 模拟fetch响应对象
+                    // mod拟fetch响应object
                     const mockHeaders = new Map(Object.entries(response.data.headers || {}));
                     
                     resolve({
@@ -773,71 +773,71 @@ class DeepScanner {
         });
     }
     
-    // 🔥 统一化版本：从内容中提取信息 - 完全使用PatternExtractor
+    // 🔥 unified化version：from内容inextractinformation - 完全usePatternExtractor
     extractFromContent(content, sourceUrl) {
-        //console.log(`🔍 深度扫描统一化版本开始提取内容，来源: ${sourceUrl}`);
+        //console.log(`🔍 deep scanunified化versionstartextract内容，来源: ${sourceUrl}`);
         
-        // 移除内容大小限制，允许处理完整内容
+        // 移除内容大小限制，允许处理complete内容
         const processedContent = content;
         
-        // 🔥 统一化版本：完全使用PatternExtractor进行提取
+        // 🔥 unified化version：完全usePatternExtractor进行extract
         if (this.srcMiner.patternExtractor) {
-            //console.log('✅ 深度扫描统一化版本：使用PatternExtractor进行统一提取');
+            //console.log('✅ deep scanunified化version：usePatternExtractor进行unifiedextract');
             
             try {
-                // 确保自定义正则配置已加载
+                // 确保customregexconfigurationalreadyload
                 if (!this.srcMiner.patternExtractor.customPatternsLoaded) {
-                    //console.log('🔄 深度扫描统一化版本：重新加载自定义正则配置...');
+                    //console.log('🔄 deep scanunified化version：重newloadcustomregexconfiguration...');
                     this.srcMiner.patternExtractor.loadCustomPatterns();
                 }
                 
-                // 使用统一的PatternExtractor进行提取
+                // useunifiedPatternExtractor进行extract
                 const extractedResults = this.srcMiner.patternExtractor.extractPatterns(processedContent);
                 
-                //console.log('📊 深度扫描统一化版本提取结果:', extractedResults);
-                //console.log('📈 深度扫描统一化版本提取到的数据类型数量:', Object.keys(extractedResults).length);
+                //console.log('📊 deep scanunified化versionextractresult:', extractedResults);
+                //console.log('📈 deep scanunified化versionextracttodataclass型数量:', Object.keys(extractedResults).length);
                 
-                // 统计每种类型的数量
+                // 统计每种class型数量
                 Object.entries(extractedResults).forEach(([type, items]) => {
                     if (Array.isArray(items) && items.length > 0) {
-                        //console.log(`📋 深度扫描统一化版本 ${type}: ${items.length} 个项目`);
-                        // 如果是自定义正则结果，显示更详细的信息
+                        //console.log(`📋 deep scanunified化version ${type}: ${items.length} 个项目`);
+                        // if是customregexresult，显示更详细information
                         if (type.startsWith('custom_')) {
-                            //console.log(`🎯 深度扫描统一化版本自定义正则 ${type} 匹配内容:`, items.slice(0, 3));
+                            //console.log(`🎯 deep scanunified化versioncustomregex ${type} match内容:`, items.slice(0, 3));
                         }
                     }
                 });
                 
                 return extractedResults;
             } catch (error) {
-                console.error('❌ 深度扫描统一化版本提取失败:', error);
+                console.error('❌ deep scanunified化versionextractfailed:', error);
                 return {};
             }
         } else {
-            console.error('❌ 深度扫描统一化版本：PatternExtractor未初始化，无法进行统一化提取');
+            console.error('❌ deep scanunified化version：PatternExtractor未initialize，无法进行unified化extract');
             return {};
         }
     }
     
-    // 🔥 统一化版本：从内容中收集新的URL - 使用PatternExtractor提取的URL（异步版本，兼容新旧格式）
+    // 🔥 unified化version：from内容in收集newURL - usePatternExtractorextractURL（asyncversion，兼容new旧format）
     async collectUrlsFromContent(content, baseUrl, options) {
-        //console.log('🔍 深度扫描统一化版本：从内容中收集URL...');
+        //console.log('🔍 deep scanunified化version：from内容in收集URL...');
         
         const urls = new Set();
         const { scanJsFiles, scanHtmlFiles, scanApiFiles } = options;
         
-        // 移除内容大小限制，允许处理完整内容
+        // 移除内容大小限制，允许处理complete内容
         const processedContent = content;
         
-        // 🔥 统一化版本：使用PatternExtractor提取URL
+        // 🔥 unified化version：usePatternExtractorextractURL
         if (this.srcMiner.patternExtractor) {
             try {
                 const extractedData = this.srcMiner.patternExtractor.extractPatterns(processedContent);
                 
-                // 从提取结果中收集URL - 兼容新旧格式
+                // fromextractresultin收集URL - 兼容new旧format
                 if (scanJsFiles && extractedData.jsFiles) {
                     for (const jsFileItem of extractedData.jsFiles) {
-                        // 提取URL值 - 兼容对象格式和字符串格式
+                        // extractURLvalue - 兼容objectformatand字符串format
                         const jsFile = typeof jsFileItem === 'object' ? jsFileItem.value : jsFileItem;
                         const fullUrl = this.resolveUrl(jsFile, baseUrl);
                         if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
@@ -848,7 +848,7 @@ class DeepScanner {
                 
                 if (scanHtmlFiles && extractedData.urls) {
                     for (const urlItem of extractedData.urls) {
-                        // 提取URL值 - 兼容对象格式和字符串格式
+                        // extractURLvalue - 兼容objectformatand字符串format
                         const url = typeof urlItem === 'object' ? urlItem.value : urlItem;
                         const fullUrl = this.resolveUrl(url, baseUrl);
                         if (fullUrl && await this.isSameDomain(fullUrl, baseUrl) && this.isValidPageUrl(url)) {
@@ -858,10 +858,10 @@ class DeepScanner {
                 }
                 
                 if (scanApiFiles) {
-                    // 收集绝对API - 兼容新旧格式
+                    // 收集绝对API - 兼容new旧format
                     if (extractedData.absoluteApis) {
                         for (const apiItem of extractedData.absoluteApis) {
-                            // 提取URL值 - 兼容对象格式和字符串格式
+                            // extractURLvalue - 兼容objectformatand字符串format
                             const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                             const fullUrl = this.resolveUrl(api, baseUrl);
                             if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
@@ -870,10 +870,10 @@ class DeepScanner {
                         }
                     }
                     
-                    // 收集相对API - 兼容新旧格式
+                    // 收集相对API - 兼容new旧format
                     if (extractedData.relativeApis) {
                         for (const apiItem of extractedData.relativeApis) {
-                            // 提取URL值 - 兼容对象格式和字符串格式
+                            // extractURLvalue - 兼容objectformatand字符串format
                             const api = typeof apiItem === 'object' ? apiItem.value : apiItem;
                             const fullUrl = this.resolveUrl(api, baseUrl);
                             if (fullUrl && await this.isSameDomain(fullUrl, baseUrl)) {
@@ -883,27 +883,27 @@ class DeepScanner {
                     }
                 }
                 
-                //console.log(`✅ 深度扫描统一化版本：从PatternExtractor收集到 ${urls.size} 个URL`);
+                //console.log(`✅ deep scanunified化version：fromPatternExtractor收集to ${urls.size} 个URL`);
             } catch (error) {
-                console.error('❌ 深度扫描统一化版本：使用PatternExtractor收集URL失败:', error);
+                console.error('❌ deep scanunified化version：usePatternExtractor收集URLfailed:', error);
             }
         }
         
         return Array.from(urls);
     }
     
-    // 验证页面URL
+    // validationpage面URL
     isValidPageUrl(url) {
         if (!url || url.startsWith('#') || url.startsWith('javascript:') || url.startsWith('mailto:')) {
             return false;
         }
         
-        // 使用缓存的正则表达式
+        // use缓存regexexpression
         if (!this.regexCache.resourceExtensions) {
             this.regexCache.resourceExtensions = /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|ttf|eot|woff2|map|pdf|zip)$/i;
         }
         
-        // 排除资源文件
+        // exclude资源文件
         if (this.regexCache.resourceExtensions.test(url.toLowerCase())) {
             return false;
         }
@@ -911,13 +911,13 @@ class DeepScanner {
         return true;
     }
     
-    // 验证API URL - 优化版本
+    // validationAPI URL - 优化version
     isValidApiUrl(url) {
         if (!url || url.startsWith('#') || url.startsWith('javascript:') || url.startsWith('mailto:')) {
             return false;
         }
         
-        // 使用缓存的正则表达式
+        // use缓存regexexpression
         if (!this.regexCache.apiFeatures) {
             this.regexCache.apiFeatures = [
                 /\/api\//i,
@@ -938,7 +938,7 @@ class DeepScanner {
         return this.regexCache.apiFeatures.some(pattern => pattern.test(url));
     }
     
-    // 合并深度扫描结果 - 优化版本，支持实时输出
+    // 合anddeep scanresult - 优化version，support实时输出
     async mergeDeepScanResults(newResults) {
         let hasNewData = false;
         
@@ -947,7 +947,7 @@ class DeepScanner {
                 this.srcMiner.deepScanResults[key] = [];
             }
             
-            // 使用Set进行去重
+            // useSet进行去重
             const existingSet = new Set(this.srcMiner.deepScanResults[key]);
             newResults[key].forEach(item => {
                 if (item && !existingSet.has(item)) {
@@ -957,14 +957,14 @@ class DeepScanner {
             });
         });
         
-        // 如果有新数据，立即保存到多个位置确保数据持久化
+        // if有newdata，立即保存to多个位置确保data持久化
         if (hasNewData) {
             this.srcMiner.results = this.srcMiner.deepScanResults;
             
-            // 立即保存到存储，使用统一的存储键格式
+            // 立即保存tostorage，useunifiedstorage键format
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             if (tab && tab.url) {
-                // 使用IndexedDB保存深度扫描结果
+                // useIndexedDB保存deep scanresult
                 try {
                     if (!window.indexedDBManager) {
                         window.indexedDBManager = new IndexedDBManager();
@@ -973,42 +973,42 @@ class DeepScanner {
                     const urlObj = new URL(tab.url);
                     const fullUrl = `https://${urlObj.hostname}`;
                     
-                    // 获取页面标题用于URL位置跟踪
+                    // getpage面标题forURL位置跟踪
                     const pageTitle = document.title || tab.title || 'Unknown Page';
                     
-                    // 保存普通扫描结果，包含URL位置信息
+                    // 保存普通scanresult，containsURL位置information
                     await window.indexedDBManager.saveScanResults(fullUrl, this.srcMiner.deepScanResults, tab.url, pageTitle);
                     
-                    // 保存深度扫描结果，现在也包含源URL和页面标题信息
+                    // 保存deep scanresult，现in也contains源URLandpage面标题information
                     await window.indexedDBManager.saveDeepScanResults(fullUrl, this.srcMiner.deepScanResults, tab.url, pageTitle);
                     
-                    //console.log('✅ 深度扫描结果已保存到IndexedDB');
+                    //console.log('✅ deep scanresultalready保存toIndexedDB');
                 } catch (error) {
-                    console.error('❌ 保存深度扫描结果到IndexedDB失败:', error);
+                    console.error('❌ 保存deep scanresulttoIndexedDBfailed:', error);
                 }
             }
             
-            console.log('🔄 深度扫描数据已保存，当前结果数量:', 
+            console.log('🔄 deep scandataalready保存，当beforeresult数量:', 
                 Object.values(this.srcMiner.deepScanResults).reduce((sum, arr) => sum + (arr?.length || 0), 0));
         }
         
-        // 返回是否有新数据的标志，用于实时显示判断
+        // return是否有newdata标志，for实时显示判断
         return hasNewData;
     }
     
-    // 🔥 统一化版本：不再需要单独的过滤器处理，PatternExtractor已经处理了所有逻辑
+    // 🔥 unified化version：not再require单独through滤器处理，PatternExtractoralready经处理了all逻辑
     applyFilters(results, content, sourceUrl = '未知URL') {
-        //console.log('🔥 深度扫描统一化版本：跳过旧的过滤器处理，PatternExtractor已经处理了所有提取和过滤逻辑');
-        // 统一化版本不再需要额外的过滤器处理
-        // 所有提取和过滤逻辑都已经在PatternExtractor中统一处理
+        //console.log('🔥 deep scanunified化version：skip旧through滤器处理，PatternExtractoralready经处理了allextractandthrough滤逻辑');
+        // unified化versionnot再require额外through滤器处理
+        // allextractandthrough滤逻辑都already经inPatternExtractorinunified处理
     }
     
-    // 解析相对URL为绝对URL - 优化版本
+    // 解析相对URL为绝对URL - 优化version
     resolveUrl(url, baseUrl) {
         try {
             if (!url) return null;
             
-            // 已经是完整URL
+            // already经是completeURL
             if (url.startsWith('http://') || url.startsWith('https://')) {
                 return url;
             }
@@ -1018,7 +1018,7 @@ class DeepScanner {
                 return new URL(baseUrl).protocol + url;
             }
             
-            // 绝对路径或相对路径
+            // 绝对路径or相对路径
             return new URL(url, baseUrl).href;
             
         } catch (error) {
@@ -1026,71 +1026,71 @@ class DeepScanner {
         }
     }
     
-    // 检查是否为同一域名 - 支持子域名和全部域名设置
+    // check是否为同一domain - support子domainand全部domainsettings
     async isSameDomain(url, baseUrl) {
         try {
             const urlObj = new URL(url);
             const baseUrlObj = new URL(baseUrl);
             
-            // 获取域名扫描设置
+            // getdomainscansettings
             const domainSettings = await this.getDomainScanSettings();
             
-            // 如果允许扫描所有域名
+            // if允许scanalldomain
             if (domainSettings.allowAllDomains) {
-                //console.log(`🌐 允许所有域名: ${urlObj.hostname}`);
+                //console.log(`🌐 允许alldomain: ${urlObj.hostname}`);
                 return true;
             }
             
-            // 如果允许扫描子域名
+            // if允许scan子domain
             if (domainSettings.allowSubdomains) {
                 const baseHostname = baseUrlObj.hostname;
                 const urlHostname = urlObj.hostname;
                 
-                // 检查是否为同一域名或子域名
+                // check是否为同一domainor子domain
                 const isSameOrSubdomain = urlHostname === baseHostname || 
                                         urlHostname.endsWith('.' + baseHostname) ||
                                         baseHostname.endsWith('.' + urlHostname);
                 
                 if (isSameOrSubdomain) {
-                    ////console.log(`🔗 允许子域名: ${urlHostname} (基于 ${baseHostname})`);
+                    ////console.log(`🔗 允许子domain: ${urlHostname} (基于 ${baseHostname})`);
                     return true;
                 }
             }
             
-            // 默认：只允许完全相同的域名
+            // 默认：只允许完全相同domain
             const isSame = urlObj.hostname === baseUrlObj.hostname;
             if (isSame) {
-                //console.log(`✅ 同域名: ${urlObj.hostname}`);
+                //console.log(`✅ 同domain: ${urlObj.hostname}`);
             } else {
-                //console.log(`❌ 不同域名: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
+                //console.log(`❌ not同domain: ${urlObj.hostname} vs ${baseUrlObj.hostname}`);
             }
             return isSame;
             
         } catch (error) {
-            console.error('域名检查失败:', error);
+            console.error('domaincheckfailed:', error);
             return false;
         }
     }
     
-    // 获取域名扫描设置
+    // getdomainscansettings
     async getDomainScanSettings() {
         try {
-            // 如果SettingsManager可用，使用它获取设置
+            // ifSettingsManager可for，use它getsettings
             if (typeof window.SettingsManager !== 'undefined' && window.SettingsManager.getDomainScanSettings) {
                 return await window.SettingsManager.getDomainScanSettings();
             }
             
-            // 备用方案：直接从chrome.storage获取
+            // 备for方案：directlyfromchrome.storageget
             const result = await chrome.storage.local.get(['domainScanSettings']);
             const domainSettings = result.domainScanSettings || {
                 allowSubdomains: false,
                 allowAllDomains: false
             };
-            //console.log('🔍 [深度扫描] 从storage获取的域名设置:', domainSettings);
+            //console.log('🔍 [deep scan] fromstoragegetdomainsettings:', domainSettings);
             return domainSettings;
         } catch (error) {
-            console.error('获取域名扫描设置失败:', error);
-            // 默认设置：只允许同域名
+            console.error('getdomainscansettingsfailed:', error);
+            // 默认settings：只允许同domain
             return {
                 allowSubdomains: false,
                 allowAllDomains: false
@@ -1098,7 +1098,7 @@ class DeepScanner {
         }
     }
     
-    // 更新深度扫描进度
+    // 更newdeep scanprogress
     updateDeepScanProgress(current, total, stage) {
         const progressText = document.getElementById('progressText');
         const progressBar = document.getElementById('progressBar');
@@ -1110,20 +1110,20 @@ class DeepScanner {
         }
     }
     
-    // 显示深度扫描完成
+    // 显示deepscan complete
     showDeepScanComplete() {
         const deepScanBtn = document.getElementById('deepScanBtn');
         const deepScanBtnText = deepScanBtn.querySelector('.text');
         
         if (deepScanBtnText) {
-            deepScanBtnText.textContent = '✅ 深度扫描完成';
+            deepScanBtnText.textContent = '✅ deepscan complete';
         }
         deepScanBtn.style.background = 'rgba(0, 212, 170, 0.3)';
         
-        // 确保最终结果被保存
+        // 确保最终resultby保存
         this.srcMiner.saveResults();
         
-        // 保存深度扫描完成状态到IndexedDB
+        // 保存deepscan completestatetoIndexedDB
         const saveCompletionState = async () => {
             try {
                 const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -1149,7 +1149,7 @@ class DeepScanner {
                     await window.indexedDBManager.saveDeepScanState(fullUrl, completionState);
                 }
             } catch (error) {
-                console.error('保存深度扫描完成状态失败:', error);
+                console.error('保存deepscan completestatefailed:', error);
             }
         };
         
@@ -1157,7 +1157,7 @@ class DeepScanner {
         
         setTimeout(() => {
             if (deepScanBtnText) {
-                deepScanBtnText.textContent = '深度递归扫描';
+                deepScanBtnText.textContent = 'deep递归scan';
             }
             deepScanBtn.style.background = '';
         }, 3000);
@@ -1165,39 +1165,39 @@ class DeepScanner {
         const totalScanned = this.srcMiner.scannedUrls.size;
         const totalResults = Object.values(this.srcMiner.results).reduce((sum, arr) => sum + (arr?.length || 0), 0);
         
-        //console.log(`🎉 深度扫描完成！扫描了 ${totalScanned} 个文件，提取了 ${totalResults} 个项目`);
+        //console.log(`🎉 deepscan complete！scan了 ${totalScanned} 个文件，extract了 ${totalResults} 个项目`);
     }
     
     showError(message) {
-        console.error('深度扫描错误:', message);
-        // 可以在这里添加UI提示
+        console.error('deep scan错误:', message);
+        // 可以in这里addUI提示
         if (typeof this.srcMiner.showNotification === 'function') {
             this.srcMiner.showNotification(message, 'error');
         }
     }
     
     showSuccessNotification(message) {
-        //console.log('深度扫描提示:', message);
-        // 显示成功提示
+        //console.log('deep scan提示:', message);
+        // 显示success提示
         if (typeof this.srcMiner.showNotification === 'function') {
             this.srcMiner.showNotification(message, 'success');
         } else {
-            // 备用提示方式
+            // 备for提示方式
             alert(message);
         }
     }
     
-    // 生成页面存储键 - 统一使用域名作为键
+    // generatepage面storage键 - unifiedusedomain作为键
     getPageStorageKey(url) {
         try {
             const urlObj = new URL(url);
-            // 只使用域名作为键，不包含路径，确保同一域名下的所有页面共享存储
+            // 只usedomain作为键，notcontains路径，确保同一domain下allpage面共享storage
             const key = urlObj.hostname;
-            // 替换特殊字符，确保键的有效性
+            // 替换special字符，确保键valid性
             return key.replace(/[^a-zA-Z0-9._-]/g, '_');
         } catch (error) {
-            console.error('生成存储键失败:', error);
-            // 如果URL解析失败，使用简化的键
+            console.error('generatestorage键failed:', error);
+            // ifURL解析failed，use简化键
             return url.replace(/[^a-zA-Z0-9._-]/g, '_').substring(0, 100);
         }
     }

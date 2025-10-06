@@ -1,5 +1,5 @@
 /**
- * 基础扫描器 - 负责页面内容的基础扫描
+ * basicscan器 - 负责page面内容basicscan
  */
 class BasicScanner {
     constructor(srcMiner) {
@@ -15,24 +15,24 @@ class BasicScanner {
             loading.style.display = 'block';
             scanBtn.disabled = true;
             if (scanBtnText) {
-                scanBtnText.textContent = '扫描中...';
+                scanBtnText.textContent = 'scanning...';
             }
             scanBtn.classList.add('scanning');
         }
         
         try {
-            // 获取当前活动标签页
+            // get当before活动标签page
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
-            // 检查URL是否有效
+            // checkURL是否valid
             if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-                throw new Error('无法扫描系统页面');
+                throw new Error('无法scan系统page面');
             }
             
-            // 更新当前扫描域名显示
+            // 更new当beforescandomain显示
             this.srcMiner.updateCurrentDomain(tab.url);
             
-            // 方法1: 尝试直接从content script获取结果
+            // 方法1: 尝试directlyfromcontent scriptgetresult
             let results = null;
             try {
                 const response = await chrome.tabs.sendMessage(tab.id, { action: 'extractInfo', targetUrl: tab.url });
@@ -40,13 +40,13 @@ class BasicScanner {
                     results = response;
                 }
             } catch (contentError) {
-                //console.log('Content script未响应，尝试注入脚本');
+                //console.log('Content script未响应，尝试injection脚本');
             }
             
-            // 方法2: 如果content script没有响应，注入必要的脚本文件
+            // 方法2: ifcontent scriptwithout响应，injection必要脚本文件
             if (!results) {
                 try {
-                    // 先注入依赖的脚本文件
+                    // 先injection依赖脚本文件
                     await chrome.scripting.executeScript({
                         target: { tabId: tab.id, allFrames: false },
                         files: [
@@ -55,7 +55,7 @@ class BasicScanner {
                         ]
                     });
                     
-                    // 然后执行提取函数
+                    // 然后executeextract函数
                     const injectionResults = await chrome.scripting.executeScript({
                         target: { 
                             tabId: tab.id,
@@ -69,8 +69,8 @@ class BasicScanner {
                         results = injectionResults[0].result;
                     }
                 } catch (injectionError) {
-                    console.error('脚本注入失败:', injectionError);
-                    throw new Error('无法访问页面内容，请刷新页面后重试');
+                    console.error('脚本injectionfailed:', injectionError);
+                    throw new Error('无法访问page面内容，请刷newpage面后重试');
                 }
             }
             
@@ -82,20 +82,20 @@ class BasicScanner {
                     this.showScanComplete();
                 }
             } else {
-                throw new Error('未能获取扫描结果');
+                throw new Error('未能getscanresult');
             }
             
         } catch (error) {
-            console.error('扫描失败:', error);
+            console.error('scanfailed:', error);
             if (!silent) {
-                this.showError(error.message || '扫描失败，请刷新页面后重试');
+                this.showError(error.message || 'scanfailed，请刷newpage面后重试');
             }
         } finally {
             if (!silent) {
                 loading.style.display = 'none';
                 scanBtn.disabled = false;
                 if (scanBtnText) {
-                    scanBtnText.textContent = '重新扫描';
+                    scanBtnText.textContent = '重newscan';
                 }
                 scanBtn.classList.remove('scanning');
             }
@@ -105,7 +105,7 @@ class BasicScanner {
     showScanComplete() {
         const scanBtn = document.getElementById('scanBtn');
         const originalText = scanBtn.textContent;
-        scanBtn.textContent = '✅ 扫描完成';
+        scanBtn.textContent = '✅ scan complete';
         scanBtn.style.background = 'rgba(0, 212, 170, 0.3)';
         
         setTimeout(() => {
@@ -116,7 +116,7 @@ class BasicScanner {
     
     showError(message) {
         const scanBtn = document.getElementById('scanBtn');
-        scanBtn.textContent = '❌ 扫描失败';
+        scanBtn.textContent = '❌ scanfailed';
         scanBtn.style.background = 'rgba(239, 68, 68, 0.3)';
         
         // 显示错误详情
@@ -135,79 +135,79 @@ class BasicScanner {
         `;
         
         setTimeout(() => {
-            scanBtn.textContent = '重新扫描';
+            scanBtn.textContent = '重newscan';
             scanBtn.style.background = '';
         }, 3000);
     }
     
-    // 注入到页面中执行的提取函数
+    // injectiontopage面inexecuteextract函数
     async extractSensitiveInfo(targetUrl) {
         try {
-            //console.log('🚀🚀🚀 BasicScanner.extractSensitiveInfo 方法被调用！时间戳:', Date.now());
+            //console.log('🚀🚀🚀 BasicScanner.extractSensitiveInfo 方法by调for！时间戳:', Date.now());
             //console.log('🚀🚀🚀 BasicScanner 目标URL:', targetUrl);
-            //console.log('🚀🚀🚀 BasicScanner 当前URL:', window.location.href);
+            //console.log('🚀🚀🚀 BasicScanner 当beforeURL:', window.location.href);
             
-            // 确保在顶层窗口执行
+            // 确保in顶层窗口execute
             if (window !== window.top) {
-                //console.log('跳过iframe扫描，只扫描顶层页面');
+                //console.log('skipiframescan，只scan顶层page面');
                 return this.getEmptyResults();
             }
             
-            // 验证当前页面URL是否匹配目标URL
+            // validation当beforepage面URL是否match目标URL
             if (targetUrl && window.location.href !== targetUrl) {
-                //console.log('页面URL不匹配，跳过扫描');
+                //console.log('page面URLnotmatch，skipscan');
                 return this.getEmptyResults();
             }
             
-            //console.log('🔍 BasicScanner开始扫描页面:', window.location.href);
+            //console.log('🔍 BasicScannerstartscanpage面:', window.location.href);
             
-            // 检查是否有新的模块化系统可用
+            // check是否有newmod块化系统可for
             if (typeof PatternExtractor !== 'undefined' && typeof ContentExtractor !== 'undefined') {
-                //console.log('🔄 BasicScanner使用统一化正则提取系统');
+                //console.log('🔄 BasicScanneruseunified化regexextract系统');
                 try {
-                    // 确保PatternExtractor已经初始化并加载了最新配置
-                    //console.log('🔧 BasicScanner检查PatternExtractor状态...');
+                    // 确保PatternExtractoralready经initializeandload了最newconfiguration
+                    //console.log('🔧 BasicScannercheckPatternExtractorstate...');
                     
                     if (!window.patternExtractor) {
-                        //console.log('🔧 BasicScanner初始化新的PatternExtractor...');
+                        //console.log('🔧 BasicScannerinitializenewPatternExtractor...');
                         window.patternExtractor = new PatternExtractor();
                     }
                     
-                    // 每次扫描都强制重新加载最新配置，确保使用最新设置
-                    //console.log('🔄 BasicScanner强制重新加载最新配置...');
+                    // every timescan都强制重newload最newconfiguration，确保use最newsettings
+                    //console.log('🔄 BasicScanner强制重newload最newconfiguration...');
                     await window.patternExtractor.loadCustomPatterns();
                     
-                    //console.log('✅ BasicScanner配置检查完成');
-                    //console.log('📊 BasicScanner最终可用的正则模式:', Object.keys(window.patternExtractor.patterns));
+                    //console.log('✅ BasicScannerconfigurationcheckcomplete');
+                    //console.log('📊 BasicScanner最终可forregexpattern:', Object.keys(window.patternExtractor.patterns));
                     
-                    // 验证自定义正则是否存在
+                    // validationcustomregex是否exists
                     const customKeys = Object.keys(window.patternExtractor.patterns).filter(key => key.startsWith('custom_'));
                     if (customKeys.length > 0) {
-                        //console.log(`✅ BasicScanner发现 ${customKeys.length} 个自定义正则:`, customKeys);
+                        //console.log(`✅ BasicScanner发现 ${customKeys.length} 个customregex:`, customKeys);
                     } else {
-                        console.warn('⚠️ BasicScanner未发现任何自定义正则');
+                        console.warn('⚠️ BasicScanner未发现任何customregex');
                     }
                     
-                    // 创建ContentExtractor并执行提取
+                    // createContentExtractorandexecuteextract
                     const contentExtractor = new ContentExtractor();
                     const results = await contentExtractor.extractSensitiveInfo(window.location.href);
-                    //console.log('✅ BasicScanner统一化系统提取完成，结果:', results);
-                    //console.log('🌐 [DEBUG] BasicScanner扫描完成 - URL:', window.location.href);
+                    //console.log('✅ BasicScannerunified化系统extractcomplete，result:', results);
+                    //console.log('🌐 [DEBUG] BasicScannerscan complete - URL:', window.location.href);
                     return results;
                 } catch (error) {
-                    console.error('❌ BasicScanner统一化系统提取失败:', error);
-                    // 统一化版本：不使用降级方案，直接返回空结果
-                    //console.log('⚠️ BasicScanner统一化版本：不使用降级方案，返回空结果');
+                    console.error('❌ BasicScannerunified化系统extractfailed:', error);
+                    // unified化version：notuse降级方案，directlyreturn空result
+                    //console.log('⚠️ BasicScannerunified化version：notuse降级方案，return空result');
                     return this.getEmptyResults();
                 }
             }
             
-            // 统一化版本：如果没有模块化系统，直接返回空结果
-            //console.log('⚠️ BasicScanner统一化版本：未找到统一化提取系统，返回空结果');
+            // unified化version：ifwithoutmod块化系统，directlyreturn空result
+            //console.log('⚠️ BasicScannerunified化version：未foundunified化extract系统，return空result');
             return this.getEmptyResults();
             
         } catch (error) {
-            console.error('❌ BasicScanner扫描过程中出错:', error);
+            console.error('❌ BasicScannerscanthrough程in出错:', error);
             return this.getEmptyResults();
         }
     }
@@ -242,7 +242,7 @@ class BasicScanner {
             jwts: [],
             githubUrls: [],
             vueFiles: [],
-            // 新增的敏感信息类型
+            // new增敏感informationclass型
             bearerTokens: [],
             basicAuth: [],
             authHeaders: [],
@@ -256,9 +256,9 @@ class BasicScanner {
             cryptoUsage: []
         };
         
-        // 注意：这里不能异步获取自定义正则配置，因为这是同步函数
-        // 自定义正则的空结果会在PatternExtractor中处理
-        //console.log('📦 BasicScanner返回基础空结果结构');
+        // 注意：这里not能asyncgetcustomregexconfiguration，因为这是同步函数
+        // customregex空result会inPatternExtractorin处理
+        //console.log('📦 BasicScannerreturnbasic空result结构');
         
         return baseResults;
     }

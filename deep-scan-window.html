@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>深度扫描结果</title>
+    <title>deep scanresult</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -255,44 +255,44 @@
             <div class="container">
                 <div class="header">
                     <h1>🔍 深度扫描进行中</h1>
-                    <p id="scanInfo">正在初始化扫描配置...</p>
+                    <p id="scanInfo">正ininitializescanconfiguration...</p>
                 </div>
 
                 <div class="config-info" id="configInfo">
-                    <span>最大深度: <strong id="maxDepthDisplay">-</strong></span>
-                    <span>并发数: <strong id="concurrencyDisplay">-</strong></span>
+                    <span>最大deep: <strong id="maxDepthDisplay">-</strong></span>
+                    <span>and发数: <strong id="concurrencyDisplay">-</strong></span>
                     <span>超时: <strong id="timeoutDisplay">-</strong>秒</span>
-                    <span>扫描类型: <strong id="scanTypesDisplay">-</strong></span>
+                    <span>scanclass型: <strong id="scanTypesDisplay">-</strong></span>
                 </div>
 
                 <div class="status-bar">
                     <div class="status-item">
                         <div class="status-number depth" id="currentDepth">0</div>
-                        <div class="status-label">当前深度</div>
+                        <div class="status-label">当beforedeep</div>
                     </div>
                     <div class="status-item">
                         <div class="status-number urls" id="scannedUrls">0</div>
-                        <div class="status-label">已扫描URL</div>
+                        <div class="status-label">alreadyscanURL</div>
                     </div>
                     <div class="status-item">
                         <div class="status-number progress" id="pendingUrls">0</div>
-                        <div class="status-label">待扫描URL</div>
+                        <div class="status-label">待scanURL</div>
                     </div>
                     <div class="status-item">
                         <div class="status-number total" id="totalResults">0</div>
-                        <div class="status-label">总结果数</div>
+                        <div class="status-label">总result数</div>
                     </div>
                 </div>
 
                 <div class="controls">
-                    <button class="boton-elegante btn-start" id="startBtn">开始扫描</button>
-                    <button class="boton-elegante btn-secondary-modern" id="pauseBtn" disabled>暂停扫描</button>
-                    <button class="boton-elegante btn-danger-modern" id="stopBtn" disabled>停止扫描</button>
-                    <button class="boton-elegante btn-secondary-modern" id="exportBtn">导出结果</button>
+                    <button class="boton-elegante btn-start" id="startBtn">startscan</button>
+                    <button class="boton-elegante btn-secondary-modern" id="pauseBtn" disabled>暂停scan</button>
+                    <button class="boton-elegante btn-danger-modern" id="stopBtn" disabled>停止scan</button>
+                    <button class="boton-elegante btn-secondary-modern" id="exportBtn">exportresult</button>
                 </div>
 
                 <div class="progress-section">
-                    <div id="progressText">等待开始扫描...</div>
+                    <div id="progressText">waitstartscan...</div>
                     <div class="progress-bar-container">
                         <div class="progress-bar" id="progressBar"></div>
                     </div>
@@ -301,10 +301,10 @@
                 <div class="results-section" id="resultsSection">
                     <div class="loading" id="loadingDiv">
                         <div class="spinner"></div>
-                        <div>准备开始深度扫描...</div>
+                        <div>准备startdeep scan...</div>
                     </div>
 
-                    <!-- 扫描结果显示区域（保持 ID 不变） -->
+                    <!-- scanresult显示区域（keep ID not变） -->
                     <div class="result-category" id="absoluteApisResult" style="display: none;">
                         <h3>🔗 绝对路径API (<span id="absoluteApisCount">0</span>)</h3>
                         <ul class="result-list" id="absoluteApisList"></ul>
@@ -472,31 +472,31 @@
                 </div>
 
                 <div class="log-section" id="logSection">
-                    <div class="log-entry info">深度扫描日志将在这里显示...</div>
+                    <div class="log-entry info">deep scanday志将in这里显示...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 导出弹窗（保留原结构与按钮类） -->
+    <!-- exportpopup（keep原结构与buttonclass） -->
     <div id="exportModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>选择导出格式</h3>
+                <h3>选择exportformat</h3>
                 <span class="close" id="closeExportModal">&times;</span>
             </div>
             <div class="modal-body">
-                <p>请选择要导出的格式：</p>
+                <p>请选择要exportformat：</p>
                 <div class="export-options">
                     <button class="btn btn-primary export-option" id="exportJSON">
                         <span class="icon">📄</span>
-                        <span class="text">导出为 JSON</span>
-                        <span class="desc">完整的结构化数据</span>
+                        <span class="text">export为 JSON</span>
+                        <span class="desc">complete结构化data</span>
                     </button>
                     <button class="btn btn-secondary export-option" id="exportXLS">
                         <span class="icon">📊</span>
-                        <span class="text">导出为 Excel</span>
-                        <span class="desc">按分类分页的表格数据</span>
+                        <span class="text">export为 Excel</span>
+                        <span class="desc">按分class分page表格data</span>
                     </button>
                 </div>
             </div>
@@ -550,7 +550,7 @@
         .export-option .desc { font-size: 12px; opacity: 0.8; color: #fff; margin-left: auto; }
     </style>
 
-    <!-- 脚本依赖保持不变 -->
+    <!-- 脚本依赖keepnot变 -->
     <script src="src/core/IndexedDBManager.js"></script>
     <script src="filters/id-card-filter.js"></script>
     <script src="src/utils/SettingsManager.js"></script>
@@ -563,7 +563,7 @@
 
     </style>
 
-    <!-- 脚本依赖保持不变 -->
+    <!-- 脚本依赖keepnot变 -->
     <script src="filters/id-card-filter.js"></script>
     <script src="src/utils/SettingsManager.js"></script>
     <script src="src/scanner/PatternExtractor.js"></script>
@@ -621,7 +621,7 @@
         .export-option .desc { font-size: 12px; opacity: 0.8; color: #fff; margin-left: auto; }
     </style>
 
-    <!-- 脚本依赖保持不变 -->
+    <!-- 脚本依赖keepnot变 -->
     <script src="filters/id-card-filter.js"></script>
     <script src="src/utils/SettingsManager.js"></script>
     <script src="src/scanner/PatternExtractor.js"></script>

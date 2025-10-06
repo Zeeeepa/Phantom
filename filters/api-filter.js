@@ -2,20 +2,20 @@ class APIFilter {
     constructor() {
         this.regexCache = this.initRegexCache();
         this.config = this.initConfig();
-        // 初始化域名和手机号过滤器
+        // initializedomainandmobile phonethrough滤器
         this.domainPhoneFilter = window.domainPhoneFilter || new DomainPhoneFilter();
     }
     
     initRegexCache() {
         return {
-            // 基础模式缓存
+            // basicpattern缓存
             coordPattern: /^coord/,
             valuePattern: /^\/|true|false|register|signUp|name|basic|http/i,
             chinesePattern: /^[\u4e00-\u9fa5]+$/,
             keywordPattern: /^func|variable|input|true|false|newline|null|http|unexpected|error|data|object|brac|beare|str|self|void|num|atom|opts|token|params|result|con|text|stor|sup|pun|emp|this|key|com|ent|met|opera|return|case|pare|ident|reg|invalid/i,
             camelCasePattern: /\b[_a-z]+(?:[A-Z][a-z]+)+\b/,
             
-            // 文件类型模式
+            // 文件class型pattern
             fontPattern: /\.(woff|woff2|ttf|eot|otf)(\?.*)?$/i,
             imagePattern: /\.(jpg|jpeg|png|gif|svg|webp|ico|bmp|tiff)(\?.*)?$/i,
             jsPattern: /\.(js|jsx|ts|tsx|vue|mjs|cjs)(\?.*)?$/i,
@@ -24,21 +24,21 @@ class APIFilter {
             audioPattern: /\.(mp3|wav|ogg|m4a|aac|flac|wma)(\?.*)?$/i,
             videoPattern: /\.(mp4|avi|mov|wmv|flv|webm|mkv|m4v)(\?.*)?$/i,
             
-            // API识别模式
+            // APIidentifypattern
             apiPathPattern: /^\/(?:api|admin|manage|backend|service|rest|graphql|v\d+)\//,
             dynamicApiPattern: /\.(php|asp|aspx|jsp|do|action)(\?.*)?$/i,
             queryApiPattern: /\?[^#\s]+/,
             
-            // 模块路径模式
+            // mod块路径pattern
             relativeModulePattern: /^\.{1,2}\//,
             nodeModulePattern: /node_modules/,
             
-            // 过滤模式
+            // through滤pattern
             staticResourcePattern: /^(audio|blots|core|ace|icon|css|formats|image|js|modules|text|themes|ui|video|static|attributors|application)/,
             shortPathPattern: /^.{1,4}$/,
             invalidCharsPattern: /[A-Z\.\/\#\+\?23]/,
             
-            // 增强的域名和手机号模式
+            // enhanceddomainandmobile phonepattern
             domainPattern: /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,})(?:\/[^\s]*)?/i,
             cnMobilePattern: /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/,
             intlMobilePattern: /(?<!\d)(?:\+\d{1,3}[\s-]?)?\d{6,14}(?!\d)/,
@@ -48,7 +48,7 @@ class APIFilter {
     
     initConfig() {
         return {
-            // 被过滤的内容类型
+            // bythrough滤内容class型
             filteredContentTypes: [
                 'text/css', 'text/javascript', 'application/javascript',
                 'image/png', 'image/jpeg', 'image/gif', 'image/svg+xml',
@@ -67,13 +67,13 @@ class APIFilter {
                 'search', 'upload', 'download', 'export', 'import'
             ],
             
-            // 排除的路径前缀
+            // exclude路径before缀
             excludedPrefixes: [
                 'chrome-extension://', 'moz-extension://', 'about:',
                 'data:', 'javascript:', 'mailto:', 'tel:', 'ftp:'
             ],
             
-            // 无效的域名后缀（通常是资源文件扩展名）
+            // 无效domain后缀（通常是资源文件扩展名）
             invalidDomainSuffixes: new Set([
                 'js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'woff', 'woff2', 
                 'ttf', 'eot', 'mp3', 'mp4', 'webm', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 
@@ -85,35 +85,35 @@ class APIFilter {
     }
     
     /**
-     * 主要的API过滤函数
-     * @param {string} match - 匹配到的路径
-     * @param {Object} resultsSet - 结果集合
-     * @returns {boolean} - 是否应该保留此路径
+     * 主要APIthrough滤函数
+     * @param {string} match - matchto路径
+     * @param {Object} resultsSet - result集合
+     * @returns {boolean} - 是否应该keep此路径
      */
     filterAPI(match, resultsSet) {
         // 移除引号
         const cleanPath = this.cleanPath(match);
         if (!cleanPath) return false;
         
-        // 基础验证
+        // basicvalidation
         if (!this.isValidPath(cleanPath)) return false;
         
-        // 字体文件过滤
+        // 字体文件through滤
         if (this.regexCache.fontPattern.test(cleanPath)) {
             return false;
         }
         
-        // 文件类型分类
+        // 文件class型分class
         if (this.classifyFileType(cleanPath, resultsSet)) {
             return true;
         }
         
-        // 内容类型过滤
+        // 内容class型through滤
         if (this.isFilteredContentType(cleanPath)) {
             return false;
         }
         
-        // 路径分类和处理
+        // 路径分classand处理
         return this.classifyAndProcessPath(cleanPath, resultsSet);
     }
     
@@ -126,12 +126,12 @@ class APIFilter {
         // 移除首尾引号
         let cleaned = path.replace(/^['"`]|['"`]$/g, '');
         
-        // 检查排除的前缀
+        // checkexcludebefore缀
         if (this.config.excludedPrefixes.some(prefix => cleaned.startsWith(prefix))) {
             return null;
         }
         
-        // 长度检查
+        // 长度check
         if (cleaned.length < this.config.minPathLength || 
             cleaned.length > this.config.maxPathLength) {
             return null;
@@ -141,18 +141,18 @@ class APIFilter {
     }
     
     /**
-     * 验证路径有效性
+     * validation路径valid性
      */
     isValidPath(path) {
-        // 空路径检查
+        // 空路径check
         if (!path || path.trim() === '') return false;
         
-        // 特殊字符检查（针对短路径）
+        // special字符check（针对短路径）
         if (path.length <= 4 && this.regexCache.invalidCharsPattern.test(path.slice(1))) {
             return false;
         }
         
-        // 静态资源前缀检查
+        // 静态资源before缀check
         if (this.regexCache.staticResourcePattern.test(path)) {
             return false;
         }
@@ -161,7 +161,7 @@ class APIFilter {
     }
     
     /**
-     * 文件类型分类
+     * 文件class型分class
      */
     classifyFileType(path, resultsSet) {
         const classifications = [
@@ -197,7 +197,7 @@ class APIFilter {
     }
     
     /**
-     * 检查是否为被过滤的内容类型
+     * check是否为bythrough滤内容class型
      */
     isFilteredContentType(path) {
         const lowerPath = path.toLowerCase();
@@ -207,16 +207,16 @@ class APIFilter {
     }
     
     /**
-     * 路径分类和处理
+     * 路径分classand处理
      */
     classifyAndProcessPath(path, resultsSet) {
-        // Vue文件特殊处理
+        // Vue文件special处理
         if (path.endsWith('.vue')) {
             resultsSet?.vueFiles?.add(path);
             return true;
         }
         
-        // 模块路径处理
+        // mod块路径处理
         if (this.isModulePath(path)) {
             resultsSet?.moduleFiles?.add(path);
             return true;
@@ -232,7 +232,7 @@ class APIFilter {
     }
     
     /**
-     * 模块路径检查
+     * mod块路径check
      */
     isModulePath(path) {
         return this.regexCache.relativeModulePattern.test(path) ||
@@ -243,24 +243,24 @@ class APIFilter {
      * 处理绝对路径
      */
     processAbsolutePath(path, resultsSet) {
-        // 短路径过滤
+        // 短路径through滤
         if (path.length <= 4 && this.regexCache.invalidCharsPattern.test(path.slice(1))) {
             return false;
         }
         
-        // 静态资源直接分类为文件，不进入API集合
+        // 静态资源directly分class为文件，not进入API集合
         if (this.isStaticResource(path)) {
             this.classifyFileType(path, resultsSet);
             return true;
         }
         
-        // API路径识别
+        // API路径identify
         if (this.isAPIPath(path)) {
             resultsSet?.absoluteApis?.add(path);
             return true;
         }
         
-        // 动态文件识别
+        // 动态文件identify
         if (this.regexCache.dynamicApiPattern.test(path) || 
             this.regexCache.queryApiPattern.test(path)) {
             resultsSet?.absoluteApis?.add(path);
@@ -276,27 +276,27 @@ class APIFilter {
      * 处理相对路径
      */
     processRelativePath(path, resultsSet) {
-        // 短路径过滤
+        // 短路径through滤
         if (path.length <= 4) return false;
         
-        // 静态资源前缀过滤
+        // 静态资源before缀through滤
         if (this.regexCache.staticResourcePattern.test(path)) {
             return false;
         }
         
-        // 静态资源直接分类为文件，不进入API集合
+        // 静态资源directly分class为文件，not进入API集合
         if (this.isStaticResource(path)) {
             this.classifyFileType(path, resultsSet);
             return true;
         }
         
-        // API路径识别
+        // API路径identify
         if (this.isAPIPath(path)) {
             resultsSet?.relativeApis?.add(path);
             return true;
         }
         
-        // 动态文件识别
+        // 动态文件identify
         if (this.regexCache.dynamicApiPattern.test(path) || 
             this.regexCache.queryApiPattern.test(path)) {
             resultsSet?.relativeApis?.add(path);
@@ -309,19 +309,19 @@ class APIFilter {
     }
     
     /**
-     * API路径识别
+     * API路径identify
      */
     isAPIPath(path) {
-        // 静态资源不视为API
+        // 静态资源not视为API
         if (this.isStaticResource(path)) {
             return false;
         }
-        // 直接API路径模式匹配
+        // directlyAPI路径patternmatch
         if (this.regexCache.apiPathPattern.test(path)) {
             return true;
         }
         
-        // 关键词匹配
+        // 关键词match
         const lowerPath = path.toLowerCase();
         return this.config.apiKeywords.some(keyword => 
             lowerPath.includes(`/${keyword}/`) || 
@@ -331,10 +331,10 @@ class APIFilter {
     }
     
     /**
-     * 批量过滤API路径
+     * 批量through滤API路径
      * @param {Array} paths - 路径数组
-     * @param {Object} resultsSet - 结果集合
-     * @returns {Object} - 分类结果
+     * @param {Object} resultsSet - result集合
+     * @returns {Object} - 分classresult
      */
     batchFilter(paths, resultsSet = null) {
         if (!resultsSet) {
@@ -347,7 +347,7 @@ class APIFilter {
         paths.forEach(path => {
             processed++;
             if (this.filterAPI(path, resultsSet)) {
-                // 路径被保留
+                // 路径bykeep
             } else {
                 filtered++;
             }
@@ -361,7 +361,7 @@ class APIFilter {
     }
     
     /**
-     * 创建空的结果集
+     * create空result集
      */
     createEmptyResultSet() {
         return {
@@ -377,7 +377,7 @@ class APIFilter {
             videoFiles: new Set(),
             docFiles: new Set(),
             vueFiles: new Set(),
-            // 新增域名和手机号相关集合
+            // new增domainandmobile phone相关集合
             domains: new Set(),
             phoneNumbers: new Set(),
             emails: new Set()
@@ -385,7 +385,7 @@ class APIFilter {
     }
     
     /**
-     * 将Set转换为Array
+     * 将Setconvert为Array
      */
     convertSetsToArrays(resultsSet) {
         const result = {};
@@ -400,7 +400,7 @@ class APIFilter {
     }
     
     /**
-     * 获取统计信息
+     * get统计information
      */
     getStats(resultsSet) {
         const stats = {};
@@ -415,10 +415,10 @@ class APIFilter {
     }
     
     /**
-     * 从文本中提取域名、手机号和邮箱
-     * @param {string} text - 要分析的文本
-     * @param {Object} resultsSet - 结果集合
-     * @returns {Object} - 包含域名、手机号和邮箱的结果对象
+     * from文本inextractdomain、mobile phoneandemail
+     * @param {string} text - 要分析文本
+     * @param {Object} resultsSet - result集合
+     * @returns {Object} - containsdomain、mobile phoneandemailresultobject
      */
     extractSensitiveInfo(text, resultsSet = null) {
         if (!resultsSet) {
@@ -430,33 +430,33 @@ class APIFilter {
         }
         
         try {
-            // 使用域名和手机号过滤器提取信息
+            // usedomainandmobile phonethrough滤器extractinformation
             if (this.domainPhoneFilter) {
-                // 提取域名
+                // extractdomain
                 const domainMatches = this.extractDomainsFromText(text);
                 if (domainMatches && domainMatches.length > 0) {
-                    // 使用增强的域名过滤器过滤有效域名
+                    // useenhanceddomainthrough滤器through滤validdomain
                     const validDomains = this.domainPhoneFilter.filterDomains(domainMatches);
                     validDomains.forEach(domain => resultsSet.domains.add(domain));
                 }
                 
-                // 提取手机号（仅保留中国大陆）
+                // extractmobile phone（仅keepChinamainland）
                 const phoneMatches = this.extractPhonesFromText(text);
                 if (phoneMatches && phoneMatches.length > 0) {
-                    // 使用增强的手机号过滤器，仅保留中国大陆手机号
+                    // useenhancedmobile phonethrough滤器，仅keepChinamainlandmobile phone
                     const validPhones = this.domainPhoneFilter.filterPhones(phoneMatches, true);
                     validPhones.forEach(phone => resultsSet.phoneNumbers.add(phone));
                 }
                 
-                // 提取邮箱
+                // extractemail
                 const emailMatches = this.extractEmailsFromText(text);
                 if (emailMatches && emailMatches.length > 0) {
-                    // 使用增强的邮箱过滤器过滤有效邮箱
+                    // useenhancedemailthrough滤器through滤validemail
                     const validEmails = this.domainPhoneFilter.filterEmails(emailMatches);
                     validEmails.forEach(email => resultsSet.emails.add(email));
                 }
             } else {
-                // 如果域名和手机号过滤器不可用，使用内置的正则表达式
+                // ifdomainandmobile phonethrough滤器not可for，use内置regexexpression
                 this.extractDomainsWithRegex(text, resultsSet);
                 this.extractPhonesWithRegex(text, resultsSet);
                 this.extractEmailsWithRegex(text, resultsSet);
@@ -469,7 +469,7 @@ class APIFilter {
     }
     
     /**
-     * 从文本中提取域名
+     * from文本inextractdomain
      */
     extractDomainsFromText(text) {
         const domainRegex = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,})(?:\/[^\s]*)?/gi;
@@ -477,7 +477,7 @@ class APIFilter {
         let match;
         
         while ((match = domainRegex.exec(text)) !== null) {
-            // 提取域名部分（不包括路径和查询参数）
+            // extractdomain部分（notincluding路径and查询parameter）
             let domain = match[1] || match[0];
             domain = domain.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
             domain = domain.split('/')[0].split('?')[0].split('#')[0];
@@ -491,23 +491,23 @@ class APIFilter {
     }
     
     /**
-     * 从文本中提取手机号
+     * from文本inextractmobile phone
      */
     extractPhonesFromText(text) {
         const matches = [];
         
-        // 中国手机号模式：1开头的11位数字
+        // Chinamobile phonepattern：1开头11 digits
         const cnPhoneRegex = /(?<!\d)(?:1(3([0-35-9]\d|4[1-8])|4[14-9]\d|5(\d\d|7[1-79])|66\d|7[2-35-8]\d|8\d{2}|9[89]\d)\d{7})(?!\d)/g;
         let cnMatch;
         while ((cnMatch = cnPhoneRegex.exec(text)) !== null) {
             matches.push(cnMatch[0]);
         }
         
-        // 国际手机号模式：可能带有国家代码的6-15位数字
+        // internationalmobile phonepattern：可能带有countrycode6-15-digit数字
         const intlPhoneRegex = /(?<!\d)(?:\+\d{1,3}[\s-]?)?\d{6,15}(?!\d)/g;
         let intlMatch;
         while ((intlMatch = intlPhoneRegex.exec(text)) !== null) {
-            // 避免与中国手机号重复
+            // 避免与Chinamobile phone重复
             if (!matches.includes(intlMatch[0])) {
                 matches.push(intlMatch[0]);
             }
@@ -517,7 +517,7 @@ class APIFilter {
     }
     
     /**
-     * 从文本中提取邮箱
+     * from文本inextractemail
      */
     extractEmailsFromText(text) {
         const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
@@ -532,22 +532,22 @@ class APIFilter {
     }
     
     /**
-     * 使用正则表达式提取域名
+     * useregexexpressionextractdomain
      */
     extractDomainsWithRegex(text, resultsSet) {
         const matches = text.match(this.regexCache.domainPattern) || [];
         
         for (let match of matches) {
-            // 清理匹配结果
+            // 清理matchresult
             match = match.trim();
             
-            // 移除协议前缀
+            // 移除协议before缀
             match = match.replace(/^https?:\/\//i, '');
             
-            // 移除路径和查询参数
+            // 移除路径and查询parameter
             match = match.split('/')[0].split('?')[0].split('#')[0];
             
-            // 检查是否是有效域名
+            // check是否是validdomain
             if (this.isValidDomainName(match)) {
                 resultsSet.domains.add(match);
             }
@@ -555,29 +555,29 @@ class APIFilter {
     }
     
     /**
-     * 检查是否是有效域名
+     * check是否是validdomain
      */
     isValidDomainName(domain) {
         if (!domain || typeof domain !== 'string') return false;
         
-        // 长度检查
+        // 长度check
         if (domain.length < 4 || domain.length > 253) {
             return false;
         }
         
-        // 检查是否包含至少一个点
+        // check是否contains至少一个点
         if (!domain.includes('.')) return false;
         
-        // 检查顶级域名是否有效
+        // checktop-level domain是否valid
         const parts = domain.split('.');
         const tld = parts[parts.length - 1].toLowerCase();
         
-        // 检查是否是无效的文件扩展名
+        // check是否是无效文件扩展名
         if (this.config.invalidDomainSuffixes.has(tld)) {
             return false;
         }
         
-        // 检查域名格式
+        // checkdomainformat
         const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
         if (!domainRegex.test(domain)) {
             return false;
@@ -587,10 +587,10 @@ class APIFilter {
     }
     
     /**
-     * 使用正则表达式提取手机号（仅中国大陆）
+     * useregexexpressionextractmobile phone（仅Chinamainland）
      */
     extractPhonesWithRegex(text, resultsSet) {
-        // 仅匹配中国手机号
+        // 仅matchChinamobile phone
         const cnMatches = text.match(this.regexCache.cnMobilePattern) || [];
         for (let match of cnMatches) {
             if (this.isValidChinesePhoneNumber(match)) {
@@ -600,15 +600,15 @@ class APIFilter {
     }
     
     /**
-     * 检查是否是有效的中国手机号
+     * check是否是validChinamobile phone
      */
     isValidChinesePhoneNumber(phone) {
         if (!phone || typeof phone !== 'string') return false;
         
-        // 移除所有非数字字符
+        // 移除all非数字字符
         const cleaned = phone.replace(/\D/g, '');
         
-        // 中国手机号必须是11位，且以1开头
+        // Chinamobile phone必须是11位，且以1开头
         if (cleaned.length !== 11 || !cleaned.startsWith('1')) {
             return false;
         }
@@ -619,12 +619,12 @@ class APIFilter {
             return false;
         }
         
-        // 检查是否是纯数字序列，例如 12345678901
+        // check是否是纯数字序列，例such as 12345678901
         if (/^1(?:0{10}|1{10}|2{10}|3{10}|4{10}|5{10}|6{10}|7{10}|8{10}|9{10})$/.test(cleaned)) {
             return false;
         }
         
-        // 检查是否是递增或递减序列
+        // check是否是递增or递减序列
         if (/^1(?:0123456789|9876543210)$/.test(cleaned)) {
             return false;
         }
@@ -633,25 +633,25 @@ class APIFilter {
     }
     
     /**
-     * 检查是否是有效的国际手机号
+     * check是否是validinternationalmobile phone
      */
     isValidInternationalPhoneNumber(phone) {
         if (!phone || typeof phone !== 'string') return false;
         
-        // 移除所有空格、破折号等
+        // 移除all空格、破折号等
         const cleaned = phone.replace(/[\s\-\(\)]/g, '');
         
-        // 长度检查
+        // 长度check
         if (cleaned.length < 10 || cleaned.length > 15) {
             return false;
         }
         
-        // 检查是否全是相同的数字
+        // check是否全是相同数字
         if (/^(\+?)\d*(\d)\2{8,}$/.test(cleaned)) {
             return false;
         }
         
-        // 检查是否是简单的递增或递减序列
+        // check是否是简单递增or递减序列
         if (/^(\+?)\d*(?:0123456789|9876543210)/.test(cleaned)) {
             return false;
         }
@@ -660,7 +660,7 @@ class APIFilter {
     }
     
     /**
-     * 使用正则表达式提取邮箱
+     * useregexexpressionextractemail
      */
     extractEmailsWithRegex(text, resultsSet) {
         const matches = text.match(this.regexCache.emailPattern) || [];
@@ -673,25 +673,25 @@ class APIFilter {
     }
     
     /**
-     * 检查是否是有效的邮箱地址
+     * check是否是validemail地址
      */
     isValidEmailAddress(email) {
         if (!email || typeof email !== 'string') return false;
         
-        // 基本格式检查
+        // 基本formatcheck
         if (!this.regexCache.emailPattern.test(email)) {
             return false;
         }
         
-        // 分解邮箱地址
+        // 分解email地址
         const [localPart, domain] = email.split('@');
         
-        // 本地部分检查
+        // 本地部分check
         if (localPart.length > 64) {
             return false;
         }
         
-        // 域名部分检查
+        // domain部分check
         if (!this.isValidDomainName(domain)) {
             return false;
         }
@@ -700,19 +700,19 @@ class APIFilter {
     }
 }
 
-// 导出API过滤器
+// exportAPIthrough滤器
 window.APIFilter = APIFilter;
 
-// 创建全局实例
+// create全局实例
 window.apiFilter = new APIFilter();
 
-// 兼容SnowEyes的接口
+// 兼容SnowEyes接口
 window.SCANNER_FILTER = window.SCANNER_FILTER || {};
 window.SCANNER_FILTER.api = function(match, resultsSet) {
     return window.apiFilter.filterAPI(match, resultsSet);
 };
 
-// 添加敏感信息提取接口
+// add敏感informationextract接口
 window.SCANNER_FILTER.extractSensitiveInfo = function(text, resultsSet) {
     return window.apiFilter.extractSensitiveInfo(text, resultsSet);
 };

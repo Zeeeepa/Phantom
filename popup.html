@@ -1267,29 +1267,29 @@
             
             <!-- 标题区域 -->
             <div class="header">
-                <h1>幻影</h1>
+                <h1>phantom</h1>
                 <div class="author-info">by Phantom&yihuo&Xuan8a1</div>
                 <div id="currentDomain" class="current-domain"></div>
             </div>
             
             <!-- 横向导航 -->
             <div class="nav-tabs">
-                <div class="nav-tab active" data-page="scan">扫描</div>
-                <div class="nav-tab" data-page="deep">深度扫描</div>
+                <div class="nav-tab active" data-page="scan">scan</div>
+                <div class="nav-tab" data-page="deep">deep scan</div>
                 <div class="nav-tab" data-page="test">API测试</div>
                 <div class="nav-tab" data-page="js-injection">JS注入</div>
-                <div class="nav-tab" data-page="settings">设置</div>
+                <div class="nav-tab" data-page="settings">settings</div>
                 <div class="nav-tab" data-page="about">关于</div>
             </div>
             
-            <!-- 页面内容 -->
-            <!-- 页面内容 -->
+            <!-- page面内容 -->
+            <!-- page面内容 -->
             <div class="page-content">
-                <!-- 扫描页面 -->
+                <!-- scanpage面 -->
                 <div class="page active" id="scan-page">
                     <div class="scan-buttons-container" id="scanButtonsContainer">
                         <button id="scanBtn" class="action-button scan-button">
-                            <span class="text">开始扫描</span>
+                            <span class="text">startscan</span>
                             <span class="shine"></span>
                             <span class="border-tl"></span>
                             <span class="border-tr"></span>
@@ -1298,7 +1298,7 @@
                         </button>
                         
                         <button id="clearBtn" class="action-button">
-                            <span class="text">清空结果</span>
+                            <span class="text">清空result</span>
                             <span class="shine"></span>
                             <span class="border-tl"></span>
                             <span class="border-tr"></span>
@@ -1307,7 +1307,7 @@
                         </button>
                         
                         <button id="exportBtn" class="action-button">
-                            <span class="text">导出数据</span>
+                            <span class="text">exportdata</span>
                             <span class="shine"></span>
                             <span class="border-tl"></span>
                             <span class="border-tr"></span>
@@ -1316,11 +1316,11 @@
                         </button>
                     </div>
                     
-                    <!-- 收放按钮 -->
+                    <!-- 收放button -->
                     <div class="toggle-buttons-container">
                         <button id="toggleButtonsBtn" class="toggle-button">
                             <span class="toggle-icon">▲</span>
-                            <span class="toggle-text">收起按钮</span>
+                            <span class="toggle-text">收起button</span>
                         </button>
                     </div>
                     
@@ -1329,14 +1329,14 @@
                     </div>
                     
                     <div id="results" class="results-container">
-                        <!-- 新增的自定义正则类型显示区域将通过JavaScript动态生成 -->
+                        <!-- new增customregexclass型显示区域将通throughJavaScript动态generate -->
                     </div>
                 </div>
                 
-                <!-- 深度扫描页面 -->
+                <!-- deep scanpage面 -->
                 <div class="page" id="deep-page">
                     <button id="deepScanBtn" class="action-button">
-                        <span class="text">深度递归扫描</span>
+                        <span class="text">deep递归scan</span>
                         <span class="shine"></span>
                         <span class="border-tl"></span>
                         <span class="border-tr"></span>
@@ -1345,7 +1345,7 @@
                     </button>
                     
                     <div id="deepScanConfig" class="deep-scan-config" style="display: none;">
-                        <div class="config-title">深度扫描配置</div>
+                        <div class="config-title">deep scanconfiguration</div>
                         <div class="config-options">
                             <label class="config-option">
                                 <input type="checkbox" id="scanJsFiles" checked>
@@ -1361,7 +1361,7 @@
                             </label>
                         </div>
                         <div class="config-controls">
-                            <label>最大深度:</label>
+                            <label>最大deep:</label>
                             <select id="maxDepth">
                                 <option value="1">1层</option>
                                 <option value="2" selected>2层</option>
@@ -1369,7 +1369,7 @@
                                 <option value="4">4层</option>
                                 <option value="5">5层</option>
                             </select>
-                            <label>并发数:</label>
+                            <label>and发数:</label>
                             <select id="concurrency">
                                 <option value="2">2个</option>
                                 <option value="3">3个</option>
@@ -1389,7 +1389,7 @@
                             </select>
                         </div>
                         <div id="deepScanProgress" class="progress-container" style="display: none;">
-                            <div class="progress-text">扫描进度: <span id="progressText">0/0</span></div>
+                            <div class="progress-text">scanprogress: <span id="progressText">0/0</span></div>
                             <div class="progress-bar-container">
                                 <div id="progressBar" class="progress-bar"></div>
                             </div>
@@ -1397,25 +1397,25 @@
                     </div>
                 </div>
                 
-                <!-- JS注入页面 -->
+                <!-- JSinjectionpage面 -->
                 <div class="page" id="js-injection-page">
                     <!-- 脚本管理 -->
                     <div class="api-test-section">
                         <div class="config-title">脚本管理</div>
 
                         
-                        <!-- 脚本列表 - 完全模仿设置页面的请求头样式 -->
+                        <!-- 脚本列表 - 完全mod仿settingspage面request头样式 -->
                         <div class="headers-controls">
                             <div id="scriptsContainer">
-                                <!-- 示例脚本项 - 完全按照header-input-group样式 -->
+                                <!-- example脚本项 - 完全按照header-input-group样式 -->
                                 <div class="header-input-group" style="display: none;" id="scriptTemplate">
                                     <span style="flex: 0 1 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font-size: 14px;">脚本名称</span>
-                                    <button class="inject-btn" title="注入">注入</button>
+                                    <button class="inject-btn" title="注入">injection</button>
                                     <button class="modify-btn" title="修改">修改</button>
                                     <button class="delete-btn" title="删除">删除</button>
                                 </div>
                                 
-                                <!-- 空状态提示 -->
+                                <!-- 空state提示 -->
                                 <div id="noScriptsMessage" style="padding: 20px; text-align: center; color: #888; font-size: 12px;">
                                     暂无保存的脚本，点击下方"添加脚本"按钮开始创建
                                 </div>
@@ -1424,7 +1424,7 @@
                         
                         <div class="test-controls" style="margin-top: 15px;">
                             <button id="addScriptBtn" class="action-button" style="flex: 1;">
-                                <span class="text">添加脚本</span>
+                                <span class="text">add脚本</span>
                                 <span class="shine"></span>
                                 <span class="border-tl"></span>
                                 <span class="border-tr"></span>
@@ -1433,29 +1433,29 @@
                             </button>
                         </div>
                         
-                        <!-- 隐藏的文件输入 -->
+                        <!-- 隐藏文件输入 -->
                         <input type="file" id="importScriptsFile" accept=".json" style="display: none;">
                     </div>
                 </div>
                 
-                <!-- API测试页面 -->
+                <!-- APItestpage面 -->
                 <div class="page" id="test-page">
                     <div class="api-test-section">
-                        <div class="config-title">批量API测试</div>
+                        <div class="config-title">批量APItest</div>
                         <div class="test-controls">
                             <select id="requestMethod">
                                 <option value="GET">GET</option>
                                 <option value="POST">POST</option>
                             </select>
                             <select id="categorySelect">
-                                <option value="">选择要测试的分类</option>
+                                <option value="">选择要test分class</option>
                                 <option value="absoluteApis">绝对路径API</option>
                                 <option value="relativeApis">相对路径API</option>
                                 <option value="jsFiles">JS文件</option>
                                 <option value="cssFiles">CSS文件</option>
                                 <option value="images">图片文件</option>
-                                <option value="urls">完整URL</option>
-                                <option value="domains">域名</option>
+                                <option value="urls">completeURL</option>
+                                <option value="domains">domain</option>
                                 <option value="paths">路径</option>
                             </select>
                         </div>
@@ -1464,28 +1464,28 @@
                             <textarea id="baseApiPath" placeholder="输入Base API路径，每行一个路径&#10;例如：&#10;prod-api/v1/common&#10;prod-api/v1/base&#10;prod-api/v1/sys" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 80px; max-height: 120px; resize: vertical; font-family: monospace; line-height: 1.4;"></textarea>
                         </div>
                         <div class="test-controls">
-                            <label style="display: flex; align-items: center;">并发数:</label>
+                            <label style="display: flex; align-items: center;">and发数:</label>
                             <input type="number" id="apiConcurrency" value="8" min="1" max="100" style="flex: 1; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; -moz-appearance: textfield; appearance: textfield;">
                             <label style="display: flex; align-items: center;">超时:</label>
                             <input type="number" id="apiTimeout" value="5" min="1" max="300" style="flex: 1; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; -moz-appearance: textfield; appearance: textfield;">
                             <span style="font-size: 12px; color: #ccc; display: flex; align-items: center;">秒</span>
                         </div>
                         <div class="test-controls" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                            <label style="display: flex; align-items: center;">自定义域名/IP:</label>
+                            <label style="display: flex; align-items: center;">customdomain/IP:</label>
                             <textarea id="customDomains" placeholder="输入自定义域名或IP地址，每行一个&#10;例如：&#10;192.168.1.100:8080&#10;192.168.1.1&#10;test.domain.com" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 80px; max-height: 120px; resize: vertical; font-family: monospace; line-height: 1.4;"></textarea>
                         </div>
                         
                         <div class="test-controls" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                             <div style="display: flex; gap: 8px; align-items: center;">
-                                <label style="display: flex; align-items: center;">自定义API路径:</label>
+                                <label style="display: flex; align-items: center;">customAPI路径:</label>
                                 <button id="addCustomApiBtn" class="action-button" style="padding: 6px 12px; font-size: 12px; min-width: 50px; height: fit-content; width: auto; margin: 0;">
-                                    <span class="text">添加</span>
+                                    <span class="text">add</span>
                                 </button>
                             </div>
                             <textarea id="customApiPaths" placeholder="输入自定义API路径，每行一个路径" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(0, 0, 0, 0.5); color: #fff; border: 1px solid #444; font-size: 12px; min-height: 60px; max-height: 120px; resize: vertical; font-family: monospace; line-height: 1.4;"></textarea>
                         </div>
                         <button id="batchRequestBtn" class="action-button">
-                            <span class="text">批量请求测试</span>
+                            <span class="text">批量requesttest</span>
                             <span class="shine"></span>
                             <span class="border-tl"></span>
                             <span class="border-tr"></span>
@@ -1495,9 +1495,9 @@
                     </div>
                 </div>
                 
-                <!-- 设置页面 -->
+                <!-- settingspage面 -->
                 <div class="page" id="settings-page">
-                    <!-- 域名扫描设置 -->
+                    <!-- domainscansettings -->
                     <div class="api-test-section">
                         <div class="config-title"> 域名扫描设置</div>
                         <div class="config-options" style="flex-direction: column; gap: 12px; align-items: flex-start;">
@@ -1518,16 +1518,16 @@
                         </div>
                     </div>
 
-                    <!-- 请求头设置 -->
+                    <!-- request头settings -->
                     <div class="api-test-section">
-                        <div class="config-title">请求头设置</div>
+                        <div class="config-title">request头settings</div>
                         <div class="headers-controls">
                             <div id="headersContainer">
-                                <!-- 动态生成的请求头输入框将在这里显示 -->
+                                <!-- 动态generaterequest头输入框将in这里显示 -->
                             </div>
                             <div class="headers-actions">
                                 <button id="addHeaderBtn" class="action-button">
-                                    <span class="text">添加请求头</span>
+                                    <span class="text">addrequest头</span>
                                     <span class="shine"></span>
                                     <span class="border-tl"></span>
                                     <span class="border-tr"></span>
@@ -1535,7 +1535,7 @@
                                     <span class="border-br"></span>
                                 </button>
                                 <button id="getCookieBtn" class="action-button">
-                                    <span class="text">获取Cookie</span>
+                                    <span class="text">getCookie</span>
                                     <span class="shine"></span>
                                     <span class="border-tl"></span>
                                     <span class="border-tr"></span>
@@ -1545,7 +1545,7 @@
                             </div>
                             <div class="headers-actions">
                                 <button id="saveHeadersBtn" class="action-button">
-                                    <span class="text">保存请求头</span>
+                                    <span class="text">保存request头</span>
                                     <span class="shine"></span>
                                     <span class="border-tl"></span>
                                     <span class="border-tr"></span>
@@ -1553,7 +1553,7 @@
                                     <span class="border-br"></span>
                                 </button>
                                 <button id="clearHeadersBtn" class="action-button">
-                                    <span class="text">清空请求头</span>
+                                    <span class="text">清空request头</span>
                                     <span class="shine"></span>
                                     <span class="border-tl"></span>
                                     <span class="border-tr"></span>
@@ -1564,9 +1564,9 @@
                         </div>
                     </div>
 
-                    <!-- 添加自定义正则按钮：移动至“已添加的自定义正则配置”框下方 -->
+                    <!-- addcustomregexbutton：mobile至“alreadyaddcustomregexconfiguration”框下方 -->
                     <button id="addCustomRegexBtn" class="action-button">
-                        <span class="text">添加自定义正则</span>
+                        <span class="text">addcustomregex</span>
                         <span class="shine"></span>
                         <span class="border-tl"></span>
                         <span class="border-tr"></span>
@@ -1574,32 +1574,32 @@
                         <span class="border-br"></span>
                     </button>
 
-                    <!-- 正则配置 -->
+                    <!-- regexconfiguration -->
                     <div class="api-test-section">
-                        <div class="config-title">正则表达式配置</div>
+                        <div class="config-title">regexexpressionconfiguration</div>
                         <div class="regex-config">
                             <div class="regex-item">
-                                <label>绝对路径API正则:</label>
+                                <label>绝对路径APIregex:</label>
                                 <textarea id="absoluteApiRegex" rows="2" placeholder="用于匹配绝对路径API的正则表达式，如：/api/user/info"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>相对路径API正则:</label>
+                                <label>相对路径APIregex:</label>
                                 <textarea id="relativeApiRegex" rows="2" placeholder="用于匹配相对路径API的正则表达式，如：./api/data.json"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>域名正则:</label>
+                                <label>domainregex:</label>
                                 <textarea id="domainRegex" rows="2" placeholder="用于匹配域名的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>邮箱正则:</label>
+                                <label>emailregex:</label>
                                 <textarea id="emailRegex" rows="2" placeholder="用于匹配邮箱的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>电话正则:</label>
+                                <label>telephoneregex:</label>
                                 <textarea id="phoneRegex" rows="2" placeholder="用于匹配电话号码的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>敏感信息正则:</label>
+                                <label>敏感informationregex:</label>
                                 <textarea id="sensitiveRegex" rows="2" placeholder="用于匹配敏感信息的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
@@ -1619,11 +1619,11 @@
                                 <textarea id="vueRegex" rows="2" placeholder="用于匹配Vue文件的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>公司名称正则:</label>
+                                <label>company名称regex:</label>
                                 <textarea id="companyRegex" rows="2" placeholder="用于匹配公司名称的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>身份证号正则:</label>
+                                <label>ID card号regex:</label>
                                 <textarea id="idCardRegex" rows="2" placeholder="用于匹配身份证号的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
@@ -1639,7 +1639,7 @@
                                 <textarea id="authHeaderRegex" rows="2" placeholder="用于匹配Authorization Header的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>微信AppID正则:</label>
+                                <label>微信AppIDregex:</label>
                                 <textarea id="wechatAppIdRegex" rows="2" placeholder="用于匹配微信AppID的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
@@ -1663,17 +1663,17 @@
                                 <textarea id="webhookUrlsRegex" rows="2" placeholder="用于匹配Webhook URLs的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>加密算法调用正则:</label>
+                                <label>加密算法调forregex:</label>
                                 <textarea id="cryptoUsageRegex" rows="2" placeholder="用于检测加密算法调用的正则表达式"></textarea>
                             </div>
                             <div class="regex-item">
-                                <label>注释正则:</label>
+                                <label>注释regex:</label>
                                 <textarea id="commentRegex" rows="2" placeholder="用于匹配代码注释的正则表达式"></textarea>
                             </div>
                         </div>
                         <div class="regex-actions">
                             <button id="saveRegexBtn" class="action-button">
-                                <span class="text">保存配置</span>
+                                <span class="text">保存configuration</span>
                                 <span class="shine"></span>
                                 <span class="border-tl"></span>
                                 <span class="border-tr"></span>
@@ -1691,14 +1691,14 @@
                         </div>
                     </div>
 
-                    <!-- 数据管理 -->
+                    <!-- data管理 -->
                     <!-- <div class="api-test-section">
-                        <div class="config-title">🗑️ 数据管理</div>
+                        <div class="config-title">🗑️ data管理</div>
                         <div style="margin-bottom: 10px; color: #ccc; font-size: 12px;">
-                            清空所有页面的扫描数据，包括基础扫描结果、深度扫描结果和相关配置。
+                            清空allpage面scandata，includingbasicscanresult、deep scanresultand相关configuration。
                         </div>
                         <button id="clearAllDataBtn" class="action-button" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">
-                            <span class="text">清空全部数据</span>
+                            <span class="text">清空全部data</span>
                             <span class="shine"></span>
                             <span class="border-tl"></span>
                             <span class="border-tr"></span>
@@ -1708,13 +1708,13 @@
                     </div> -->
                 </div>
 
-                <!-- 关于页面 -->
+                <!-- 关于page面 -->
                 <div class="page" id="about-page">
                     <div class="api-test-section">
-                        <div class="config-title">工具信息</div>
+                        <div class="config-title">工具information</div>
                         <div style="color: #ccc; line-height: 1.6; font-size: 13px;">
                             <p><strong>工具名称:</strong> 幻影</p>
-                            <p><strong>版本:</strong> 1.7.6</p>
+                            <p><strong>version:</strong> 1.7.6</p>
                             <p><strong>作者:</strong> Phantom&yihuo&Xuan8a1</p>
                             <p><strong>site:</strong> https://www.cn-fnst.top/</p>
                             <p><strong>site:</strong> https://blog.h-acker.cn/</p>
@@ -1723,10 +1723,10 @@
                             <br>
                             <p><strong>主要特性:</strong></p>
                             <ul style="margin-left: 20px; margin-top: 5px;">
-                                <li>自动扫描页面敏感信息</li>
-                                <li>深度递归扫描多层文件</li>
-                                <li>批量API接口测试</li>
-                                <li>智能信息分类展示</li>
+                                <li>automaticscanpage面敏感information</li>
+                                <li>deep递归scan多层文件</li>
+                                <li>批量API接口test</li>
+                                <li>智能information分class展示</li>
                                 <li>jsHook脚本注入</li>
                             </ul>
                         </div>
@@ -1739,11 +1739,11 @@
     <div id="requestResultModal" class="modal">
         <div class="modal-content">
             <button id="closeModalBtn" class="modal-close">×</button>
-            <h3>批量请求结果</h3>
+            <h3>批量requestresult</h3>
             <div id="requestResults"></div>
             <div style="margin-top: 15px; text-align: right;">
                 <button id="copyAllResultsBtn" class="action-button" style="width: auto; margin: 0;">
-                    <span class="text">复制全部结果</span>
+                    <span class="text">复制全部result</span>
                     <span class="shine"></span>
                     <span class="border-tl"></span>
                     <span class="border-tr"></span>
@@ -1754,18 +1754,18 @@
         </div>
     </div>
 
-    <!-- 导出格式选择弹窗 -->
+    <!-- exportformat选择popup -->
     <div id="exportModal" class="modal" style="display: none;">
         <div class="modal-content export-modal-content">
             <button id="closeExportModal" class="modal-close">×</button>
-            <h3>选择导出格式</h3>
+            <h3>选择exportformat</h3>
             <div class="export-modal-body">
-                <p>请选择要导出的文件格式：</p>
+                <p>请选择要export文件format：</p>
                 <div class="export-buttons">
                     <button class="action-button export-option" id="exportJSON">
                         <span class="text">
                             <strong>JSON格式</strong>
-                            <br><small>包含完整测试信息和结果数据</small>
+                            <br><small>containscompletetestinformationandresultdata</small>
                         </span>
                         <span class="shine"></span>
                         <span class="border-tl"></span>
@@ -1789,27 +1789,27 @@
         </div>
     </div>
 
-    <!-- 自定义正则配置弹窗 -->
+    <!-- customregexconfigurationpopup -->
     <div id="customRegexModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 500px;">
             <button id="closeCustomRegexModal" class="modal-close">×</button>
-            <h3 style="color: #00d4aa; margin-bottom: 20px; text-align: center;">添加自定义正则配置</h3>
+            <h3 style="color: #00d4aa; margin-bottom: 20px; text-align: center;">addcustomregexconfiguration</h3>
             <div class="custom-regex-form">
                 <div class="regex-item">
                     <label>显示名称:</label>
                     <input type="text" id="customRegexName" placeholder="输入方便用户查看的提取内容名称，如：自定义API" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 12px;">
                 </div>
                 <div class="regex-item">
-                    <label>存储键名:</label>
+                    <label>storage键名:</label>
                     <input type="text" id="customRegexKey" placeholder="输入存储在chrome.storage中的键名，如：customApi" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 12px;">
                 </div>
                 <div class="regex-item">
-                    <label>正则表达式:</label>
+                    <label>regexexpression:</label>
                     <textarea id="customRegexPattern" rows="3" placeholder="输入正则表达式内容，如：/api/[a-zA-Z0-9/]+\\.json" style="width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.5); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 12px; resize: vertical; font-family: monospace;"></textarea>
                 </div>
                 <div class="custom-regex-actions" style="display: flex; gap: 10px; margin-top: 20px;">
                     <button id="confirmCustomRegexBtn" class="action-button" style="flex: 1;">
-                        <span class="text">确认添加</span>
+                        <span class="text">confirmadd</span>
                         <span class="shine"></span>
                         <span class="border-tl"></span>
                         <span class="border-tr"></span>
@@ -1829,11 +1829,11 @@
         </div>
     </div>
     
-    <!-- 添加脚本弹窗 -->
+    <!-- add脚本popup -->
     <div id="addScriptModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>添加新脚本</h3>
+                <h3>addnew脚本</h3>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -1887,11 +1887,11 @@
                     <div id="scriptDetailDesc" style="padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; color: #fff; font-size: 12px; margin-top: 5px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; line-height: 1.4; user-select: text; cursor: text;"></div>
                 </div>
                 <!--<div class="form-group">
-                    <label>创建时间:</label>
+                    <label>create时间:</label>
                     <div id="scriptDetailCreated" style="padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; color: #aaa; font-size: 12px; margin-top: 5px;"></div>
                 </div>
                 <div class="form-group" id="scriptDetailUpdatedGroup" style="display: none;">
-                    <label>更新时间:</label>
+                    <label>更new时间:</label>
                     <div id="scriptDetailUpdated" style="padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; color: #aaa; font-size: 12px; margin-top: 5px;"></div>
                 </div>-->
             </div>
@@ -1916,7 +1916,7 @@
         </div>
     </div>
     
-    <!-- 按顺序引入所有模块 -->
+    <!-- 按顺序引入allmod块 -->
     <script src="src/core/IndexedDBManager.js"></script>
     <script src="src/scanner/PatternExtractor.js"></script>
     <script src="src/scanner/ContentExtractor.js"></script>
