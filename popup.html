@@ -1253,6 +1253,84 @@
         .inject-btn:hover, .modify-btn:hover, .delete-btn:hover {
             background: #5a5a5a;
         }
+        
+        /* Packer Integration Styles */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .status-dot.connected {
+            background: #10b981 !important;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        
+        .status-dot.disconnected {
+            background: #ef4444 !important;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        
+        .status-dot.checking {
+            background: #f59e0b !important;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+        
+        .packer-scan-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .packer-scan-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status-refresh-btn:hover {
+            transform: rotate(180deg);
+            transition: transform 0.3s ease;
+        }
+        
+        .packer-results-content {
+            scrollbar-width: thin;
+            scrollbar-color: #667eea rgba(255,255,255,0.1);
+        }
+        
+        .packer-results-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .packer-results-content::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+        
+        .packer-results-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+        
+        .packer-result-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .packer-result-item .result-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 8px;
+        }
+        
+        .packer-result-item .result-value {
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -1314,6 +1392,46 @@
                             <span class="border-bl"></span>
                             <span class="border-br"></span>
                         </button>
+                    </div>
+                    
+                    <!-- Packer Backend Connection Status -->
+                    <div class="packer-status-bar" id="packerStatusBar" style="display: none; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="status-indicator" style="display: flex; align-items: center; gap: 10px;">
+                            <div class="status-dot" id="packerStatusDot" style="width: 12px; height: 12px; border-radius: 50%; background: #666; animation: pulse 2s infinite;"></div>
+                            <span class="status-text" id="packerStatusText" style="font-size: 14px;">检查连接...</span>
+                        </div>
+                        <button class="status-refresh-btn" id="packerRefreshBtn" title="刷新连接状态" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 18px; padding: 5px 10px;">🔄</button>
+                    </div>
+                    
+                    <!-- Packer Deep Analysis Button Container -->
+                    <div id="packerButtonContainer" style="display: none; margin: 10px 0;">
+                        <button id="packerScanBtn" class="action-button packer-scan-button" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 2px solid #764ba2;">
+                            <span class="text">🚀 Packer深度分析</span>
+                            <span class="shine"></span>
+                            <span class="border-tl"></span>
+                            <span class="border-tr"></span>
+                            <span class="border-bl"></span>
+                            <span class="border-br"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- Packer Analysis Progress -->
+                    <div class="packer-progress-bar" id="packerProgressBar" style="display: none; margin: 10px 0; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
+                        <div class="progress-content" style="display: flex; align-items: center; gap: 15px;">
+                            <div class="progress-spinner" style="width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <span class="progress-text" id="packerProgressText" style="font-size: 14px; color: #fff;">正在分析...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Packer Results Section -->
+                    <div class="packer-results-section" id="packerResultsSection" style="display: none; margin: 10px 0; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
+                        <div class="packer-results-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 16px; color: #667eea;">🚀 Packer深度分析结果</h3>
+                            <button class="close-btn" id="closePackerResults" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 24px; line-height: 1; padding: 0; width: 30px; height: 30px;">×</button>
+                        </div>
+                        <div class="packer-results-content" id="packerResultsContent" style="max-height: 300px; overflow-y: auto;">
+                            <!-- Results will be populated here -->
+                        </div>
                     </div>
                     
                     <!-- 收放按钮 -->
@@ -1446,6 +1564,91 @@
                             <select id="requestMethod">
                                 <option value="GET">GET</option>
                                 <option value="POST">POST</option>
+
+                    <!-- Packer-InfoFinder 集成设置 -->
+                    <div class="api-test-section">
+                        <div class="config-title">🚀 Packer-InfoFinder 深度分析集成</div>
+                        <div class="config-options" style="flex-direction: column; gap: 15px; align-items: flex-start;">
+                            <label class="config-option" style="width: 100%; justify-content: space-between;">
+                                <span style="display: flex; align-items: center; gap: 8px;">
+                                    <span>启用Packer深度分析</span>
+                                    <small style="color: #888;">(需要本地运行Packer后端服务)</small>
+                                </span>
+                                <input type="checkbox" id="packerEnabled" checked style="margin-left: auto;">
+                            </label>
+                            
+                            <div style="width: 100%;">
+                                <label style="display: block; margin-bottom: 8px; color: #00d4aa;">API端点地址</label>
+                                <input 
+                                    type="text" 
+                                    id="packerEndpoint" 
+                                    value="http://localhost:8765"
+                                    placeholder="http://localhost:8765"
+                                    style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,170,0.3); border-radius: 6px; color: #fff; font-size: 14px;"
+                                />
+                                <small style="color: #888; display: block; margin-top: 5px;">默认: http://localhost:8765</small>
+                            </div>
+                            
+                            <div style="width: 100%;">
+                                <label style="display: block; margin-bottom: 8px; color: #00d4aa;">API密钥 <span style="color: #888; font-size: 12px;">(可选)</span></label>
+                                <input 
+                                    type="password" 
+                                    id="packerApiKey" 
+                                    placeholder="留空表示无需认证"
+                                    style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,212,170,0.3); border-radius: 6px; color: #fff; font-size: 14px;"
+                                />
+                                <small style="color: #888; display: block; margin-top: 5px;">如果后端设置了API密钥认证，请在此输入</small>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <button id="testPackerConnectionBtn" class="action-button" style="flex: 1;">
+                                    <span class="text">🔍 测试连接</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                                <button id="savePackerSettingsBtn" class="action-button" style="flex: 1;">
+                                    <span class="text">💾 保存配置</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                                <button id="comprehensivePackerTestBtn" class="action-button" style="flex: 1;">
+                                    <span class="text">🔬 完整测试</span>
+                                    <span class="shine"></span>
+                                    <span class="border-tl"></span>
+                                    <span class="border-tr"></span>
+                                    <span class="border-bl"></span>
+                                    <span class="border-br"></span>
+                                </button>
+                            </div>
+                            
+                            <div id="packerConnectionStatus" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; display: none;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div id="packerStatusIndicator" style="width: 12px; height: 12px; border-radius: 50%; background: #666;"></div>
+                                    <span id="packerStatusMessage" style="color: #fff; font-size: 14px;">检查连接中...</span>
+                                </div>
+                            </div>
+                            
+                            <div style="width: 100%; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; border-left: 3px solid #667eea;">
+                                <div style="color: #667eea; font-weight: bold; margin-bottom: 8px;">📖 快速启动指南</div>
+                                <div style="color: #ccc; font-size: 13px; line-height: 1.6;">
+                                    <p style="margin: 5px 0;">1. 克隆仓库并进入后端目录</p>
+                                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; display: block; margin: 5px 0;">cd packer-backend</code>
+                                    <p style="margin: 5px 0;">2. 安装依赖</p>
+                                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; display: block; margin: 5px 0;">pip install -r requirements.txt</code>
+                                    <p style="margin: 5px 0;">3. 启动API服务器</p>
+                                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; display: block; margin: 5px 0;">python packer_api.py</code>
+                                    <p style="margin: 10px 0 5px 0; color: #888;">详细文档: <a href="https://github.com/Zeeeepa/Phantom" target="_blank" style="color: #667eea;">INTEGRATION_GUIDE.md</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                             </select>
                             <select id="categorySelect">
                                 <option value="">选择要测试的分类</option>
@@ -1929,6 +2132,10 @@
     <script src="src/utils/SettingsManager.js"></script>
     <script src="src/core/jshook-presets.js"></script>
     <script src="src/core/JSInjector.js"></script>
+    <script src="src/utils/PackerValidator.js"></script>
+    <script src="src/utils/PackerSettingsHandler.js"></script>
+    <script src="src/api/PackerBridge.js"></script>
+    <script src="src/ui/PackerIntegrationUI.js"></script>
     <script src="src/main.js"></script>
 </body>
 </html>
