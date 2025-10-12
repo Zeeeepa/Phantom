@@ -7,7 +7,7 @@ class PatternExtractor {
         // 静态文件扩展名列表 - 用于过滤绝对路径和相对路径API
         this.staticFileExtensions = [
             // 图片文件
-            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff', '.tif',
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff', '.tif','.jpg)', '.jpeg)', '.png)', '.gif)', '.bmp)', '.webp)', '.svg)', '.ico)', '.tiff)', '.tif)',
             // 样式文件
             '.css', '.scss', '.sass', '.less',
             // 脚本文件
@@ -17,7 +17,7 @@ class PatternExtractor {
             // 音频文件
             '.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac',
             // 视频文件
-            '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'
+            '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.swf'
         ];
 
         // 域名黑名单：不会展示以下域名
@@ -44,7 +44,6 @@ class PatternExtractor {
             'firefox/',
             'edge/',
             'examples/element-ui',
-            'static/js/',
             'static/css/',
             'stylesheet/less',
             'jpg/jpeg/png/pdf',
@@ -113,7 +112,38 @@ class PatternExtractor {
             '/Math.LN10',
             '/2-z-Y-Ie-A.mainAxis',
             '/top/.test',
-            '/Y/.test'
+            '/Y/.test',
+            '.test(',
+            '/s.x',
+            '/s.y',
+            '/x/g',
+            '/Math.PI',
+            '/t.length',
+            '/c.async',
+            '/./.exec',
+            '/__/g',
+            '/s/g',
+            '/a/g',
+            '/--/',
+            '/-./',
+            '/.source.replace',
+            '/.11',
+            '/a/i',
+            '/a/b',
+            '/i.11',
+            '/e.1t',
+            '/4i/',
+            '/`',
+            '`/'
+        ];
+        
+        // 新增：基于正则的二次过滤规则（用于过滤 /字母.字母... 这类噪声，且避免误伤常见静态资源）
+        this.FILTERED_REGEXES = [
+            // 1) /i.test /e.offsetHeight /t.getWidth /i.exec 等（单字母.标识符，末尾可接 ( 或 / 或 结尾）
+            /\/[A-Za-z]\.[A-Za-z][A-Za-z]*(?:\(|\/|$)/,
+            // 2) /t.ratio/a.value 这类“单字母.标识符/单字母.标识符”的链式片段
+            /\/[A-Za-z]\.[A-Za-z][A-Za-z]*(?:\/[A-Za-z]\.[A-Za-z][A-Za-z]*)+(?:\(|\/|$)/,
+            /^\/[a-zA-Z]\/[a-zA-Z]$/gm
         ];
         
         // 引入身份证验证过滤器
@@ -194,6 +224,49 @@ class PatternExtractor {
     }
 
     /**
+     * 🔥 检查URL是否为图片文件
+     * @param {string} url - 要检查的URL
+     * @returns {boolean} 是否为图片文件
+     */
+    isImageFile(url) {
+        if (!url || typeof url !== 'string') {
+            return false;
+        }
+        
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.ico', '.tiff', '.tif','.jpg)', '.jpeg)', '.png)', '.gif)', '.bmp)', '.webp)', '.svg)', '.ico)', '.tiff)', '.tif)','.ttf','.woff','.eot','.woff2'];
+        const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
+        return imageExtensions.some(ext => cleanUrl.endsWith(ext));
+    }
+
+    /**
+     * 🔥 检查URL是否为JS文件
+     * @param {string} url - 要检查的URL
+     * @returns {boolean} 是否为JS文件
+     */
+    isJsFile(url) {
+        if (!url || typeof url !== 'string') {
+            return false;
+        }
+        
+        const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
+        return cleanUrl.endsWith('.js') || cleanUrl.includes('.js?');
+    }
+
+    /**
+     * 🔥 检查URL是否为CSS文件
+     * @param {string} url - 要检查的URL
+     * @returns {boolean} 是否为CSS文件
+     */
+    isCssFile(url) {
+        if (!url || typeof url !== 'string') {
+            return false;
+        }
+        
+        const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
+        return cleanUrl.endsWith('.css') || cleanUrl.includes('.css?');
+    }
+
+    /**
      * 检查域名是否在黑名单中
      * @param {string} domain - 要检查的域名
      * @returns {boolean} 是否在黑名单中
@@ -214,7 +287,7 @@ class PatternExtractor {
         const isBlacklisted = this.DOMAIN_BLACKLIST.includes(cleanDomain);
         
         if (isBlacklisted) {
-            console.log(`🚫 [PatternExtractor] 域名已被黑名单过滤: "${cleanDomain}"`);
+            //console.log(`🚫 [PatternExtractor] 域名已被黑名单过滤: "${cleanDomain}"`);
         }
         
         return isBlacklisted;
@@ -238,10 +311,35 @@ class PatternExtractor {
         });
         
         if (isFiltered) {
-            console.log(`🚫 [PatternExtractor] 路径包含过滤内容类型，已过滤: "${path}"`);
+            //console.log(`🚫 [PatternExtractor] 路径包含过滤内容类型，已过滤: "${path}"`);
         }
         
         return isFiltered;
+    }
+
+    /**
+     * 正则二次过滤：命中任意 FILTERED_REGEXES 则视为需要过滤
+     * @param {string} text
+     * @returns {boolean}
+     */
+    isFilteredByRegex(text) {
+        if (!text || typeof text !== 'string') return false;
+        try {
+            return this.FILTERED_REGEXES?.some(re => {
+                try { return re.test(text); } catch { return false; }
+            }) || false;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * 统一过滤入口：先执行内容类型包含式过滤，再执行正则二次过滤
+     * @param {string} text
+     * @returns {boolean}
+     */
+    shouldFilter(text) {
+        return this.containsFilteredContentType(text) || this.isFilteredByRegex(text);
     }
 
     /**
@@ -253,6 +351,10 @@ class PatternExtractor {
         return paths.filter(path => {
             // 检查是否包含需要过滤的内容类型
             if (this.containsFilteredContentType(path)) {
+                return false;
+            }
+            // 新增：基于正则的二次过滤
+            if (this.isFilteredByRegex(path)) {
                 return false;
             }
             
@@ -276,6 +378,10 @@ class PatternExtractor {
             if (this.containsFilteredContentType(path)) {
                 return false;
             }
+            // 新增：基于正则的二次过滤
+            if (this.isFilteredByRegex(path)) {
+                return false;
+            }
             
             // 处理相对路径，可能包含 ../ 或 ./
             const normalizedPath = path.replace(/^\.\.?\//, '');
@@ -289,7 +395,7 @@ class PatternExtractor {
             
             // 记录过滤的静态文件（用于调试）
             if (isStaticFile) {
-                console.log(`🚫 [PatternExtractor] 过滤相对路径静态文件: ${path}`);
+                //console.log(`🚫 [PatternExtractor] 过滤相对路径静态文件: ${path}`);
             }
             
             return !isStaticFile;
@@ -723,6 +829,12 @@ class PatternExtractor {
                     matchCount++;
                     continue;
                 }
+                // 新增：基于正则的二次过滤
+                if (this.isFilteredByRegex(trimmedText)) {
+                    //console.log(`🚫 [PatternExtractor] ${patternKey} 命中正则过滤，已过滤: "${trimmedText}"`);
+                    matchCount++;
+                    continue;
+                }
                 
                 results[resultKey].add(trimmedText);
                 matchCount++;
@@ -807,8 +919,8 @@ class PatternExtractor {
                         //console.log(`🚫 [PatternExtractor] 绝对路径API为静态文件，已过滤: "${trimmedApi}"`);
                     }
                     // 🔥 新增校验：过滤掉包含过滤内容类型的API
-                    else if (this.containsFilteredContentType(trimmedApi)) {
-                        //console.log(`🚫 [PatternExtractor] 绝对路径API包含过滤内容类型，已过滤: "${trimmedApi}"`);
+                    else if (this.shouldFilter(trimmedApi)) {
+                        //console.log(`🚫 [PatternExtractor] 绝对路径API被shouldFilter过滤: "${trimmedApi}"`);
                     } else {
                         results.absoluteApis.add(trimmedApi);
                         absoluteApiCount++;
@@ -864,8 +976,8 @@ class PatternExtractor {
                         //console.log(`🚫 [PatternExtractor] 相对路径API为静态文件，已过滤: "${processedApi}"`);
                     }
                     // 🔥 新增特殊处理：过滤相对路径API中包含过滤内容类型的API
-                    else if (this.containsFilteredContentType(processedApi)) {
-                        //console.log(`🚫 [PatternExtractor] 相对路径API包含过滤内容类型，已过滤: "${processedApi}"`);
+                    else if (this.shouldFilter(processedApi)) {
+                        //console.log(`🚫 [PatternExtractor] 相对路径API被shouldFilter过滤: "${processedApi}"`);
                     } else {
                         results.relativeApis.add(processedApi);
                         relativeApiCount++;
@@ -972,15 +1084,42 @@ class PatternExtractor {
             //console.log(`📊 [PatternExtractor] 图片提取完成，共找到 ${imageCount} 个`);
         }
         
-        // 提取URL
+        // 提取URL - 🔥 新增：过滤图片文件，重新分类JS文件和CSS文件
         if (this.patterns.url) {
             //console.log('🔍 [PatternExtractor] 开始提取URL...');
             this.patterns.url.lastIndex = 0;
             let match;
             let urlCount = 0;
+            let filteredImageCount = 0;
+            let reclassifiedJsCount = 0;
+            let reclassifiedCssCount = 0;
+            
             while ((match = this.patterns.url.exec(processContent)) !== null) {
                 const url = match[0];
                 if (url) {
+                    // 🔥 新增：检查是否为图片文件
+                    if (this.isImageFile(url)) {
+                        filteredImageCount++;
+                        //console.log(`🚫 [PatternExtractor] URL为图片文件，已过滤: "${url}"`);
+                        continue;
+                    }
+                    
+                    // 🔥 新增：检查是否为JS文件，如果是则重新分类到JS文件中
+                    if (this.isJsFile(url)) {
+                        results.jsFiles.add(url);
+                        reclassifiedJsCount++;
+                        //console.log(`🔄 [PatternExtractor] URL为JS文件，已重新分类到JS文件: "${url}"`);
+                        continue;
+                    }
+                    
+                    // 🔥 新增：检查是否为CSS文件，如果是则重新分类到CSS文件中
+                    if (this.isCssFile(url)) {
+                        results.cssFiles.add(url);
+                        reclassifiedCssCount++;
+                        //console.log(`🔄 [PatternExtractor] URL为CSS文件，已重新分类到CSS文件: "${url}"`);
+                        continue;
+                    }
+                    
                     // 🔥 应用过滤：检查是否包含过滤内容类型
                     if (!this.containsFilteredContentType(url)) {
                         results.urls.add(url);
@@ -991,7 +1130,7 @@ class PatternExtractor {
                     }
                 }
             }
-            //console.log(`📊 [PatternExtractor] URL提取完成，共找到 ${urlCount} 个`);
+            //console.log(`📊 [PatternExtractor] URL提取完成，共找到 ${urlCount} 个，过滤图片 ${filteredImageCount} 个，重新分类JS ${reclassifiedJsCount} 个，重新分类CSS ${reclassifiedCssCount} 个`);
         }
         
         //console.log('✅ [PatternExtractor] 其他资源提取完成');
@@ -1277,6 +1416,12 @@ class PatternExtractor {
                                         return;
                                     }
                                     
+                                    // 🔥 新增特殊处理：过滤注释中的空内容
+                                    if (patternKey === 'comments' && this.isEmptyComment(trimmedText)) {
+                                        //console.log(`🚫 [PatternExtractor] 注释内容为空，已过滤: "${trimmedText}"`);
+                                        return;
+                                    }
+                                    
                                     results[resultKey].add(trimmedText);
                                     //console.log(`✅ [PatternExtractor] ${patternKey} 匹配到 ${index + 1}: "${trimmedText}"`);
                                 }
@@ -1504,6 +1649,28 @@ class PatternExtractor {
             console.error('❌ [PatternExtractor] 提取模式失败:', error);
             return {};
         }
+    }
+
+    /**
+     * 🔥 检查注释内容是否为空
+     * @param {string} comment - 要检查的注释内容
+     * @returns {boolean} 是否为空注释
+     */
+    isEmptyComment(comment) {
+        if (!comment || typeof comment !== 'string') {
+            return true;
+        }
+        
+        // 移除常见的注释标记和空白字符
+        const cleanedComment = comment
+            .replace(/^\/\*+|\*+\/$/g, '')  // 移除 /* */ 标记
+            .replace(/^\/\/+/g, '')         // 移除 // 标记
+            .replace(/^<!--+|--+>$/g, '')   // 移除 <!-- --> 标记
+            .replace(/^\*+/g, '')           // 移除开头的 * 标记
+            .trim();                        // 移除首尾空白
+        
+        // 检查清理后的内容是否为空或只包含空白字符
+        return cleanedComment.length === 0 || /^\s*$/.test(cleanedComment);
     }
 }
 

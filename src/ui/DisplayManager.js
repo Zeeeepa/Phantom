@@ -317,17 +317,27 @@ class DisplayManager {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'item';
             
-            // 🔥 修复：正确处理对象显示
+            // 🔥 修复：正确处理对象显示和HTML转义
+            let displayText = '';
             if (typeof item === 'object' && item !== null) {
                 // 如果是对象，尝试获取有意义的属性或转换为JSON
                 if (item.url || item.path || item.value || item.content || item.name) {
-                    itemDiv.textContent = item.url || item.path || item.value || item.content || item.name || JSON.stringify(item);
+                    displayText = item.url || item.path || item.value || item.content || item.name || JSON.stringify(item);
                 } else {
-                    itemDiv.textContent = JSON.stringify(item);
+                    displayText = JSON.stringify(item);
                 }
             } else {
                 // 如果是字符串或其他基本类型，直接显示
-                itemDiv.textContent = String(item);
+                displayText = String(item);
+            }
+            
+            // 🔥 修复：对注释内容进行HTML转义，防止被浏览器解释为HTML注释
+            if (category.key === 'comments') {
+                // 对注释内容进行HTML转义
+                displayText = this.escapeHtml(displayText);
+                itemDiv.innerHTML = displayText; // 使用innerHTML以支持转义后的HTML实体
+            } else {
+                itemDiv.textContent = displayText; // 其他内容正常显示
             }
             
             itemDiv.title = '点击复制';
@@ -1686,5 +1696,20 @@ class DisplayManager {
                 }
             }, 300);
         }, 3000);
+    }
+    
+    /**
+     * 🔥 HTML转义方法 - 防止注释内容被浏览器解释为HTML注释
+     * @param {string} text - 需要转义的文本
+     * @returns {string} 转义后的文本
+     */
+    escapeHtml(text) {
+        if (!text || typeof text !== 'string') {
+            return text;
+        }
+        
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }

@@ -45,6 +45,343 @@ let displayUpdateCount = 0;
 let memoryCleanupTimer = null;
 const MEMORY_CLEANUP_INTERVAL = 30000; // 30秒清理一次内存
 
+/**
+ * 虚拟滚动列表组件：只渲染可视区域 + 上下缓冲行
+ * - 使用 transform: translateY 开启合成层
+ * - will-change: transform 提示浏览器优化
+ * - 统一使用 textContent 安全渲染
+ */
+class VirtualList {
+    constructor(container, {
+        itemHeight = 24,
+        buffer = 8,
+        renderItem = null
+    } = {}) {
+        this.container = container;
+        this.itemHeight = itemHeight;
+        this.buffer = buffer;
+        this.renderItem = renderItem || ((item) => {
+            const div = document.createElement('div');
+            div.className = 'vl-item';
+            // 可变高度：不固定高度/行高，允许多行换行
+            div.style.display = 'block';
+            div.style.boxSizing = 'border-box';
+            div.style.width = '100%';
+            div.style.whiteSpace = 'normal';
+            div.style.wordBreak = 'break-word';
+            div.style.overflowWrap = 'anywhere';
+            div.textContent = String(item);
+            return div;
+        });
+
+        // 容器样式与合成层（被动视口模式：不在自身开启滚动）
+        const cs = window.getComputedStyle(this.container);
+        // 保证定位上下文
+        const pos = cs.position;
+        if ((pos === 'static' || !pos) && !this.container.style.position) {
+            this.container.style.position = 'relative';
+        }
+        // 硬件加速/合成层
+        this.container.style.willChange = 'transform';
+        this.container.style.transform = this.container.style.transform || 'translateZ(0)';
+        // 限定重绘范围，减少父层影响
+        this.container.style.contain = this.container.style.contain || 'paint';
+        // 记录滚动父容器并监听
+        this.scrollParent = this.getScrollParent(this.container) || window;
+        this.onScroll = this.onScroll.bind(this);
+        const sp = this.scrollParent === window ? window : this.scrollParent;
+        sp.addEventListener('scroll', this.onScroll, { passive: true });
+        window.addEventListener('resize', () => this.render());
+
+        // 内容容器
+        this.content = document.createElement('div');
+        this.content.className = 'vl-content';
+        this.content.style.position = 'relative';
+        this.content.style.willChange = 'transform';
+        this.content.style.width = '100%';
+        this.container.innerHTML = '';
+        this.container.appendChild(this.content);
+
+        // 切片容器：承载可视区（可变高度：不再绝对定位/平移）
+        this.slice = document.createElement('div');
+        this.slice.className = 'vl-slice';
+        this.slice.style.position = 'relative';
+        this.slice.style.width = '100%';
+        this.content.appendChild(this.slice);
+
+        this.items = [];
+        // 可变高度支持：高度缓存与估算参数
+        this.heightMap = [];               // index -> measured height(px)
+        this._avgH = this.itemHeight;      // 运行期估计行高
+        this.minRowHeight = this.itemHeight; // 基线行高
+        this.avgCharWidth = 7;             // 预估每字符宽度（px），可按需要调整
+        // 可变高度支持：高度缓存与估算参数
+        this.heightMap = [];               // index -> measured height(px)
+        this._avgH = this.itemHeight;      // 运行期估计行高
+        this.minRowHeight = this.itemHeight; // 基线行高
+        this.avgCharWidth = 7;             // 预估每字符宽度（px），可按需要调整
+
+        // 事件绑定在被动视口模式下已绑定到滚动父容器
+    }
+
+    // 查找最近的可滚动父容器
+    getScrollParent(el) {
+        let p = el.parentElement;
+        while (p && p !== document.body && p !== document.documentElement) {
+            const style = window.getComputedStyle(p);
+            const oy = style.overflowY;
+            if (oy === 'auto' || oy === 'scroll') return p;
+            p = p.parentElement;
+        }
+        return window;
+    }
+    // 计算容器相对滚动父容器的顶部偏移
+    getOffsetTopRelativeToScrollParent() {
+        const spEl = this.scrollParent === window ? (document.scrollingElement || document.documentElement) : this.scrollParent;
+        let el = this.container;
+        let top = 0;
+        while (el && el !== spEl && el.offsetParent) {
+            top += el.offsetTop;
+            el = el.offsetParent;
+        }
+        return top;
+    }
+
+    setItems(items) {
+        this.items = Array.isArray(items) ? items : [];
+
+        // 动态测量首项高度，校准 itemHeight，避免位移与实际高度不一致造成重叠
+        if (this.items.length > 0) {
+            try {
+                // 清空切片，仅用于测量
+                this.slice.innerHTML = '';
+                const probe = this.renderItem(this.items[0], 0);
+                // 强制布局样式，避免外部样式干扰测量
+                probe.style.display = 'block';
+                probe.style.boxSizing = 'border-box';
+                probe.style.width = '100%';
+                // 若未设高度，则给出预设高度再测量
+                if (!probe.style.height) {
+                    probe.style.height = this.itemHeight + 'px';
+                    probe.style.lineHeight = this.itemHeight + 'px';
+                }
+                this.slice.appendChild(probe);
+                const h = probe.getBoundingClientRect().height;
+                if (h > 0 && Math.abs(h - this.itemHeight) >= 0.5) {
+                    this.itemHeight = Math.round(h);
+                }
+                this.slice.innerHTML = '';
+            } catch (e) {
+                // 忽略测量错误，使用默认 itemHeight
+            }
+        }
+
+        // 初始化高度缓存，使用可变高度渲染（用 padding 占位）
+        this.heightMap = new Array(this.items.length).fill(0);
+        this._avgH = this.minRowHeight;
+        this.content.style.height = 'auto';
+        this.content.style.paddingTop = '0px';
+        this.content.style.paddingBottom = '0px';
+        this.render();
+    }
+
+    onScroll() {
+        this.render();
+    }
+
+    // 增量追加数据：保留高度缓存，仅为新增项扩容
+    appendItems(newItems) {
+        if (!Array.isArray(newItems) || newItems.length === 0) return;
+        const startLen = this.items.length;
+        this.items.push(...newItems);
+        if (!Array.isArray(this.heightMap)) this.heightMap = [];
+        for (let i = 0; i < newItems.length; i++) {
+            this.heightMap[startLen + i] = 0;
+        }
+        // 渲染即可，测量将在本帧内完成并回写 heightMap
+        this.render();
+    }
+
+    render() {
+        // 使用滚动父容器作为视口
+        const sp = this.scrollParent === window ? window : this.scrollParent;
+        let viewportHeight, scrollTop;
+        if (sp === window) {
+            viewportHeight = window.innerHeight || document.documentElement.clientHeight || 300;
+            scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+        } else {
+            viewportHeight = sp.clientHeight || 300;
+            scrollTop = sp.scrollTop || 0;
+        }
+        const containerOffset = this.getOffsetTopRelativeToScrollParent();
+        const effectiveScrollTop = Math.max(0, scrollTop - containerOffset);
+
+        // 宽度用于估算行数
+        const containerWidth = this.container.clientWidth || this.content.clientWidth || 300;
+
+        // 简单估高函数：按字符数估计行数，再乘基线行高
+        const estimateHeight = (item) => {
+            try {
+                const text = String(item ?? '');
+                const chars = text.length;
+                const lineChars = Math.max(1, Math.floor(containerWidth / this.avgCharWidth));
+                const lines = Math.max(1, Math.ceil(chars / lineChars));
+                return Math.max(this.minRowHeight, lines * this.minRowHeight);
+            } catch {
+                return this.minRowHeight;
+            }
+        };
+
+        // 计算可视起止索引与上下占位（padding）
+        const total = this.items.length;
+        if (total === 0) {
+            this.slice.innerHTML = '';
+            this.content.style.paddingTop = '0px';
+            this.content.style.paddingBottom = '0px';
+            return;
+        }
+
+        let topPad = 0;
+        // 从粗略起点开始线性前进，避免全量累加
+        const avgH = Math.max(this.minRowHeight, (this._avgH || this.minRowHeight));
+        let startIndex = Math.max(0, Math.floor(effectiveScrollTop / avgH) - this.buffer);
+
+        // 前推修正
+        let acc = 0;
+        for (let i = 0; i < startIndex; i++) {
+            const h = this.heightMap[i] || estimateHeight(this.items[i]);
+            acc += h;
+        }
+        while (startIndex > 0 && acc > effectiveScrollTop) {
+            startIndex--;
+            acc -= (this.heightMap[startIndex] || estimateHeight(this.items[startIndex]));
+        }
+        while (startIndex < total && acc + (this.heightMap[startIndex] || estimateHeight(this.items[startIndex])) <= effectiveScrollTop) {
+            acc += (this.heightMap[startIndex] || estimateHeight(this.items[startIndex]));
+            startIndex++;
+        }
+        topPad = acc;
+
+        // 计算结束索引直到窗口底部 + 缓冲
+        const limit = effectiveScrollTop + viewportHeight + this.buffer * this.minRowHeight;
+        let endIndex = startIndex;
+        let run = acc;
+        while (endIndex < total && run <= limit) {
+            run += (this.heightMap[endIndex] || estimateHeight(this.items[endIndex]));
+            endIndex++;
+        }
+        endIndex = Math.min(total, endIndex);
+
+        // 计算底部占位
+        let bottomPad = 0;
+        let remaining = 0;
+        for (let i = endIndex; i < total; i++) {
+            remaining += (this.heightMap[i] || estimateHeight(this.items[i]));
+        }
+        const totalEstimated = run + remaining;
+        bottomPad = Math.max(0, totalEstimated - run);
+
+        // 应用占位：不再使用 translateY
+        this.content.style.paddingTop = `${topPad}px`;
+        this.content.style.paddingBottom = `${bottomPad}px`;
+
+        // 渲染可视区
+        this.slice.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        for (let idx = startIndex; idx < endIndex; idx++) {
+            const node = this.renderItem(this.items[idx], idx);
+            // 统一安全布局（允许多行换行）
+            node.style.display = 'block';
+            node.style.boxSizing = 'border-box';
+            node.style.width = '100%';
+            node.style.whiteSpace = node.style.whiteSpace || 'normal';
+            node.style.wordBreak = node.style.wordBreak || 'break-word';
+            node.style.overflowWrap = node.style.overflowWrap || 'anywhere';
+            frag.appendChild(node);
+        }
+        this.slice.appendChild(frag);
+
+        // 实测高度回写 heightMap，计算新的平均高度以优化下一次起点估计
+        const children = Array.from(this.slice.children);
+        let measuredChanged = false;
+        let measuredCount = 0;
+        let measuredSum = 0;
+        for (let k = 0; k < children.length; k++) {
+            const i = startIndex + k;
+            const h = Math.round(children[k].getBoundingClientRect().height || this.minRowHeight);
+            if (h > 0 && h !== this.heightMap[i]) {
+                this.heightMap[i] = h;
+                measuredChanged = true;
+            }
+            if (h > 0) {
+                measuredSum += h;
+                measuredCount++;
+            }
+        }
+        if (measuredChanged) {
+            const countMeasured = this.heightMap.filter(Boolean).length;
+            if (countMeasured > 0) {
+                const sum = this.heightMap.reduce((s, v) => s + (v || 0), 0);
+                this._avgH = Math.max(this.minRowHeight, Math.round(sum / countMeasured));
+            } else if (measuredCount > 0) {
+                this._avgH = Math.max(this.minRowHeight, Math.round(measuredSum / measuredCount));
+            }
+            // 轻微微调：下一帧重渲染，使 paddingTop/Bottom 更精确
+            requestAnimationFrame(() => this.render());
+        }
+    }
+}
+
+// 虚拟列表实例注册
+const __virtualLists = new Map();
+// 文本缓存与增量计数：按分类 key 维护
+const __renderedTextCache = {};
+const __lastRenderedCounts = {};
+
+/**
+ * 获取或创建虚拟列表实例
+ * @param {string} elementId
+ * @param {object} options
+ */
+function getVirtualList(elementId, options = {}) {
+    const key = elementId;
+    if (__virtualLists.has(key)) return __virtualLists.get(key);
+    const el = document.getElementById(elementId);
+    if (!el) return null;
+    const vl = new VirtualList(el, options);
+    __virtualLists.set(key, vl);
+    return vl;
+}
+
+/**
+ * 更新虚拟列表数据
+ * @param {string} elementId
+ * @param {any[]} items
+ * @param {object} options
+ */
+function updateVirtualList(elementId, items, options = {}) {
+    const vl = getVirtualList(elementId, options);
+    if (!vl) return;
+    vl.setItems(items || []);
+}
+
+/**
+ * 仅追加新增条目，避免全量重建
+ */
+function updateVirtualListAppend(elementId, newItems, options = {}) {
+    let vl = getVirtualList(elementId);
+    if (!vl) {
+        // 首次创建时需要完整初始化
+        vl = getVirtualList(elementId, options);
+        if (!vl) return;
+        vl.setItems(newItems || []);
+        return;
+    }
+    if (newItems && newItems.length) {
+        vl.appendItems(newItems);
+    }
+}
+
 // -------------------- 性能优化工具函数 --------------------
 
 // 🚀 内存清理函数
@@ -178,10 +515,10 @@ async function extractFromContent(content, sourceUrl = 'unknown') {
 
 // -------------------- 智能相对路径解析 --------------------
 async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
-    console.log('🔍 [DEBUG] 开始智能相对路径解析，当前源URL:', currentSourceUrl);
+    //console.log('🔍 [DEBUG] 开始智能相对路径解析，当前源URL:', currentSourceUrl);
     
     if (!results.relativeApis || results.relativeApis.length === 0) {
-        console.log('⚠️ 没有相对路径API需要解析');
+        //console.log('⚠️ 没有相对路径API需要解析');
         return;
     }
     
@@ -230,12 +567,12 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
         allScanData.forEach((scanData, dataIndex) => {
             if (!scanData.results) return;
             
-            console.log(`🔍 [DEBUG] 分析数据源 ${dataIndex + 1}:`, {
-                url: scanData.url,
-                sourceUrl: scanData.sourceUrl,
-                domain: scanData.domain,
-                pageTitle: scanData.pageTitle
-            });
+            //console.log(`🔍 [DEBUG] 分析数据源 ${dataIndex + 1}:`, {
+            //    url: scanData.url,
+            //    sourceUrl: scanData.sourceUrl,
+            //    domain: scanData.domain,
+            //    pageTitle: scanData.pageTitle
+            //});
             
             // 遍历所有类型的数据
             Object.entries(scanData.results).forEach(([category, items]) => {
@@ -257,9 +594,9 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                                 sourceUrlToBasePath.set(itemSourceUrl, fullBasePath);
                                 itemToSourceUrlMap.set(itemValue, itemSourceUrl);
                                 
-                                console.log(`📋 [DEBUG] 映射建立: "${itemValue}" -> "${itemSourceUrl}" -> "${fullBasePath}"`);
+                                //console.log(`📋 [DEBUG] 映射建立: "${itemValue}" -> "${itemSourceUrl}" -> "${fullBasePath}"`);
                             } catch (e) {
-                                console.warn('⚠️ 无效的sourceUrl:', itemSourceUrl, e);
+                                //console.warn('⚠️ 无效的sourceUrl:', itemSourceUrl, e);
                             }
                         }
                     } else if (typeof item === 'string') {
@@ -294,9 +631,14 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
         
         for (const apiItem of results.relativeApis) {
             const apiValue = typeof apiItem === 'object' ? apiItem.value : apiItem;
+            // 硬过滤：剔除仅为 "/" 的无效相对路径
+            if (String(apiValue ?? '').trim() === '/') {
+                console.log('⛔ [过滤] 跳过无效相对路径 "/"');
+                continue;
+            }
             let apiSourceUrl = typeof apiItem === 'object' ? apiItem.sourceUrl : currentSourceUrl;
             
-            console.log(`🔍 [DEBUG] 处理相对路径API: "${apiValue}", 源URL: "${apiSourceUrl}"`);
+            //console.log(`🔍 [DEBUG] 处理相对路径API: "${apiValue}", 源URL: "${apiSourceUrl}"`);
             
             let resolvedUrl = null;
             let usedSourceUrl = null;
@@ -332,7 +674,7 @@ async function enhanceRelativePathsWithIndexedDB(results, currentSourceUrl) {
                             if (testUrl) {
                                 resolvedUrl = testUrl;
                                 usedSourceUrl = sourceUrl;
-                                console.log('✅ [域名匹配] 找到同域名的源URL:', apiValue, '->', resolvedUrl, '(源:', sourceUrl, ')');
+                                //console.log('✅ [域名匹配] 找到同域名的源URL:', apiValue, '->', resolvedUrl, '(源:', sourceUrl, ')');
                                 break;
                             }
                         }
@@ -529,7 +871,7 @@ function performDisplayUpdate() {
     try {
         // 使用 requestAnimationFrame 确保在下一帧更新
         requestAnimationFrame(() => {
-            updateResultsDisplay();
+            updateResultsDisplayVirtual();
             updateStatusDisplay();
             isUpdating = false;
         });
@@ -552,10 +894,19 @@ function batchMergeResults(newResults) {
         if (Array.isArray(newResults[key])) {
             newResults[key].forEach(item => {
                 if (item) {
+                    // 硬过滤：relativeApis 中剔除仅为 "/" 的无效相对路径
+                    if (key === 'relativeApis') {
+                        const raw = (typeof item === 'object' ? (item.value || item.url || item.path || item.content) : item);
+                        if (String(raw ?? '').trim() === '/') {
+                            // console.log('⛔ [过滤] batchMergeResults 跳过 "/"');
+                            return;
+                        }
+                    }
                     // 处理结构化对象（带sourceUrl）和简单字符串
                     const itemKey = typeof item === 'object' ? item.value : item;
                     const itemData = typeof item === 'object' ? item : { value: item, sourceUrl: 'unknown' };
                     
+                    if (itemKey == null) return;
                     if (!pendingResults[key].has(itemKey)) {
                         pendingResults[key].set(itemKey, itemData);
                         hasNewData = true;
@@ -589,6 +940,11 @@ function flushPendingResults() {
         
         // 添加新的结果项
         pendingResults[key].forEach((itemData, itemKey) => {
+            // 硬过滤：relativeApis 中剔除仅为 "/" 的无效相对路径
+            if (key === 'relativeApis' && String(itemKey ?? '').trim() === '/') {
+                // console.log('⛔ [过滤] flushPendingResults 跳过 "/"');
+                return;
+            }
             if (!existingKeys.has(itemKey)) {
                 scanResults[key].push(itemData);
             }
@@ -1293,6 +1649,11 @@ async function saveResultsToStorage() {
             scanResults[key].forEach(item => {
                 if (item) {
                     const itemKey = typeof item === 'object' ? item.value : item;
+                    // 硬过滤：relativeApis 中剔除仅为 "/" 的无效相对路径
+                    if (key === 'relativeApis' && String(itemKey ?? '').trim() === '/') {
+                        // console.log('⛔ [过滤] saveResultsToStorage 跳过 "/"');
+                        return;
+                    }
                     if (!existingKeys.has(itemKey)) {
                         mergedResults[key].push(item);
                         existingKeys.add(itemKey);
@@ -1580,40 +1941,45 @@ function updateResultsDisplay() {
                         const li = document.createElement('li');
                         li.className = 'result-item';
                         
-                        // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示，支持智能解析的URL
+                        // 安全渲染：统一使用 textContent
+                        let displayValue = '';
+                        let titleValue = '';
+                        const sourceUrl = (typeof item === 'object' && item !== null) ? item.sourceUrl : null;
+
                         if (typeof item === 'object' && item !== null) {
-                            // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
-                            if (item.value !== undefined && item.sourceUrl) {
-                                const itemValue = String(item.value);
-                                const itemSourceUrl = String(item.sourceUrl);
-                                
-                                // 🔥 新增：如果是相对路径API且有智能解析的URL，显示额外信息
-                                if (key === 'relativeApis' && item.resolvedUrl) {
-                                    li.innerHTML = `<span class="result-value">${itemValue}</span> <span class="resolved-url" style="color: #666; font-size: 0.9em;">→ ${item.resolvedUrl}</span>`;
-                                    li.title = `原始值: ${itemValue}
+                            const itemValue = item.value || item.url || item.path || item.content || '';
+                            const itemSourceUrl = item.sourceUrl || '未知';
+
+                            displayValue = String(itemValue);
+                            
+                            if (key === 'relativeApis' && item.resolvedUrl) {
+                                displayValue += ` → ${item.resolvedUrl}`;
+                                titleValue = `原始值: ${itemValue}
 智能解析: ${item.resolvedUrl}
 来源: ${itemSourceUrl}`;
-                                } else {
-                                    // 只显示值，不直接显示来源URL，仅在悬停时显示
-                                    li.innerHTML = `<span class="result-value">${itemValue}</span>`;
-                                    li.title = `来源: ${itemSourceUrl}`;
-                                }
-                                li.style.cssText = 'padding: 5px 0;';
-                            } else if (item.url || item.path || item.value || item.content) {
-                                // 兼容其他对象格式
-                                const displayValue = item.url || item.path || item.value || item.content || JSON.stringify(item);
-                                li.textContent = String(displayValue);
-                                li.title = String(displayValue);
                             } else {
-                                const jsonStr = JSON.stringify(item);
-                                li.textContent = jsonStr;
-                                li.title = jsonStr;
+                                titleValue = `来源: ${itemSourceUrl}`;
+                            }
+                            
+                            if (!itemValue) {
+                                displayValue = JSON.stringify(item);
+                                titleValue = displayValue;
                             }
                         } else {
-                            // 如果是字符串或其他基本类型，直接显示
-                            const displayValue = String(item);
-                            li.textContent = displayValue;
-                            li.title = displayValue;
+                            displayValue = String(item);
+                            titleValue = displayValue;
+                        }
+
+                        li.textContent = displayValue;
+                        li.title = titleValue;
+
+                        // 如果有来源URL，添加右键点击跳转功能
+                        if (sourceUrl) {
+                            li.style.cursor = 'pointer';
+                            li.addEventListener('contextmenu', (e) => {
+                                e.preventDefault();
+                                window.open(sourceUrl, '_blank');
+                            });
                         }
                         
                         fragment.appendChild(li);
@@ -1657,7 +2023,20 @@ function createCustomResultCategory(key, items) {
         resultDiv.className = 'result-category';
         
         const title = document.createElement('h3');
-        title.innerHTML = `🔍 ${key.replace('custom_', '自定义-')} (<span id="${key}Count">0</span>)`;
+        // 安全构建标题：🔍 自定义-xxx ( countSpan )
+        const prefixText = document.createTextNode('🔍 ');
+        const nameText = document.createTextNode(key.replace('custom_', '自定义-'));
+        const openParen = document.createTextNode(' (');
+        const countSpan = document.createElement('span');
+        countSpan.id = `${key}Count`;
+        countSpan.textContent = '0';
+        const closeParen = document.createTextNode(')');
+
+        title.appendChild(prefixText);
+        title.appendChild(nameText);
+        title.appendChild(openParen);
+        title.appendChild(countSpan);
+        title.appendChild(closeParen);
         
         const list = document.createElement('ul');
         list.id = key + 'List';
@@ -1682,36 +2061,45 @@ function createCustomResultCategory(key, items) {
             const li = document.createElement('li');
             li.className = 'result-item';
             
-            // 🔥 修复：使用每个项目自己的sourceUrl进行悬停显示，支持智能解析的URL
+            // 安全渲染：统一使用 textContent
+            let displayValue = '';
+            let titleValue = '';
+            const sourceUrl = (typeof item === 'object' && item !== null) ? item.sourceUrl : null;
+
             if (typeof item === 'object' && item !== null) {
-                // 处理带有sourceUrl的结构化对象 {value: '/fly/user/login', sourceUrl: 'http://notify.dinnovate.cn/assets/index.esm-USutLI8H.js'}
-                if (item.value !== undefined && item.sourceUrl) {
-                    const itemValue = String(item.value);
-                    const itemSourceUrl = String(item.sourceUrl);
-                    
-                    // 🔥 新增：如果是相对路径API且有智能解析的URL，显示额外信息
-                    if (key === 'relativeApis' && item.resolvedUrl) {
-                        li.innerHTML = `<span class="result-value">${itemValue}</span> <span class="resolved-url" style="color: #666; font-size: 0.9em;">→ ${item.resolvedUrl}</span>`;
-                        li.title = `原始值: ${itemValue}
+                const itemValue = item.value || item.url || item.path || item.content || '';
+                const itemSourceUrl = item.sourceUrl || '未知';
+
+                displayValue = String(itemValue);
+                
+                if (key === 'relativeApis' && item.resolvedUrl) {
+                    displayValue += ` → ${item.resolvedUrl}`;
+                    titleValue = `原始值: ${itemValue}
 智能解析: ${item.resolvedUrl}
 来源: ${itemSourceUrl}`;
-                    } else {
-                        // 只显示值，不直接显示来源URL，仅在悬停时显示
-                        li.innerHTML = `<span class="result-value">${itemValue}</span>`;
-                        li.title = `来源: ${itemSourceUrl}`;
-                    }
-                    li.style.cssText = 'padding: 5px 0;';
                 } else {
-                    // 兼容其他对象格式
-                    const jsonStr = JSON.stringify(item);
-                    li.textContent = jsonStr;
-                    li.title = jsonStr;
+                    titleValue = `来源: ${itemSourceUrl}`;
+                }
+                
+                if (!itemValue) {
+                    displayValue = JSON.stringify(item);
+                    titleValue = displayValue;
                 }
             } else {
-                // 如果是字符串或其他基本类型，直接显示
-                const displayValue = String(item);
-                li.textContent = displayValue;
-                li.title = displayValue;
+                displayValue = String(item);
+                titleValue = displayValue;
+            }
+
+            li.textContent = displayValue;
+            li.title = titleValue;
+
+            // 如果有来源URL，添加右键点击跳转功能
+            if (sourceUrl) {
+                li.style.cursor = 'pointer';
+                li.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    window.open(sourceUrl, '_blank');
+                });
             }
             
             listElement.appendChild(li);
@@ -1764,7 +2152,7 @@ function flushLogBuffer() {
     }
     
     // 更新显示
-    updateLogDisplay();
+    updateLogDisplayVirtual();
 }
 
 // 🚀 优化的日志显示函数 - 减少DOM操作频率
@@ -1837,23 +2225,23 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
     try {
         if (!url) return null;
         
-        console.log(`🔍 [URL解析] 开始解析: "${url}", 基础URL: "${baseUrl}", 源URL: "${sourceUrl}"`);
+        //console.log(`🔍 [URL解析] 开始解析: "${url}", 基础URL: "${baseUrl}", 源URL: "${sourceUrl}"`);
         
         // 如果已经是绝对URL，直接返回
         if (url.startsWith('http://') || url.startsWith('https://')) {
-            console.log(`✅ [URL解析] 已是绝对URL: "${url}"`);
+            //console.log(`✅ [URL解析] 已是绝对URL: "${url}"`);
             return url;
         }
         
         if (url.startsWith('//')) {
             const result = new URL(baseUrl).protocol + url;
-            console.log(`✅ [URL解析] 协议相对URL: "${url}" -> "${result}"`);
+            //console.log(`✅ [URL解析] 协议相对URL: "${url}" -> "${result}"`);
             return result;
         }
         
         // 🔥 修复：严格按照IndexedDB数据获取提取来源路径进行相对路径解析
         if (sourceUrl && (url.startsWith('./') || url.startsWith('../') || !url.startsWith('/'))) {
-            console.log(`🔍 [URL解析] 检测到相对路径，尝试使用IndexedDB数据解析`);
+            //console.log(`🔍 [URL解析] 检测到相对路径，尝试使用IndexedDB数据解析`);
             
             try {
                 // 获取所有IndexedDB扫描数据
@@ -1865,7 +2253,7 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                         const currentData = await window.IndexedDBManager.loadScanResults(baseUrl);
                         if (currentData && currentData.results) {
                             allScanData.push(currentData);
-                            console.log(`✅ [URL解析] 获取到当前域名数据`);
+                            //console.log(`✅ [URL解析] 获取到当前域名数据`);
                         }
                     }
                 } catch (error) {
@@ -1878,7 +2266,7 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                         const allData = await window.IndexedDBManager.getAllScanResults();
                         if (Array.isArray(allData)) {
                             allScanData = allScanData.concat(allData);
-                            console.log(`✅ [URL解析] 获取到所有扫描数据，共 ${allData.length} 个`);
+                            //console.log(`✅ [URL解析] 获取到所有扫描数据，共 ${allData.length} 个`);
                         }
                     }
                 } catch (error) {
@@ -1889,7 +2277,7 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                     // 构建sourceUrl到basePath的映射
                     const sourceUrlToBasePath = new Map();
                     
-                    console.log(`🔍 [URL解析] 开始分析 ${allScanData.length} 个扫描数据源`);
+                    //console.log(`🔍 [URL解析] 开始分析 ${allScanData.length} 个扫描数据源`);
                     
                     // 遍历所有扫描数据，建立映射关系
                     allScanData.forEach((scanData, dataIndex) => {
@@ -1907,9 +2295,9 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                                             const correctBaseUrl = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
                                             sourceUrlToBasePath.set(item.sourceUrl, correctBaseUrl);
                                             
-                                            console.log(`📋 [URL解析] 映射建立: ${item.sourceUrl} → ${correctBaseUrl}`);
+                                            //console.log(`📋 [URL解析] 映射建立: ${item.sourceUrl} → ${correctBaseUrl}`);
                                         } catch (e) {
-                                            console.warn('无效的sourceUrl:', item.sourceUrl, e);
+                                            //console.warn('无效的sourceUrl:', item.sourceUrl, e);
                                         }
                                     }
                                 });
@@ -1924,21 +2312,21 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                                 const correctBaseUrl = `${sourceUrlObj.protocol}//${sourceUrlObj.host}${basePath}`;
                                 sourceUrlToBasePath.set(scanData.sourceUrl, correctBaseUrl);
                                 
-                                console.log(`📋 [URL解析] 备选映射: ${scanData.sourceUrl} → ${correctBaseUrl}`);
+                                //console.log(`📋 [URL解析] 备选映射: ${scanData.sourceUrl} → ${correctBaseUrl}`);
                             } catch (e) {
-                                console.warn('无效的备选sourceUrl:', scanData.sourceUrl, e);
+                                //console.warn('无效的备选sourceUrl:', scanData.sourceUrl, e);
                             }
                         }
                     });
                     
-                    console.log(`📊 [URL解析] 映射建立完成，共 ${sourceUrlToBasePath.size} 个映射`);
+                    //console.log(`📊 [URL解析] 映射建立完成，共 ${sourceUrlToBasePath.size} 个映射`);
                     
                     // 🔥 方法1：精确匹配sourceUrl
                     if (sourceUrlToBasePath.has(sourceUrl)) {
                         const correctBasePath = sourceUrlToBasePath.get(sourceUrl);
                         const resolvedUrl = resolveRelativePath(url, correctBasePath);
                         if (resolvedUrl) {
-                            console.log(`🎯 [URL解析] 精确匹配成功: ${url} → ${resolvedUrl} (基于源: ${sourceUrl})`);
+                            //console.log(`🎯 [URL解析] 精确匹配成功: ${url} → ${resolvedUrl} (基于源: ${sourceUrl})`);
                             return resolvedUrl;
                         }
                     }
@@ -1952,7 +2340,7 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                                 if (sourceDomain === targetDomain) {
                                     const testUrl = resolveRelativePath(url, basePath);
                                     if (testUrl) {
-                                        console.log(`🎯 [URL解析] 域名匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
+                                        //console.log(`🎯 [URL解析] 域名匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
                                         return testUrl;
                                     }
                                 }
@@ -1966,23 +2354,23 @@ async function resolveUrl(url, baseUrl, sourceUrl = null) {
                     for (const [storedSourceUrl, basePath] of sourceUrlToBasePath.entries()) {
                         const testUrl = resolveRelativePath(url, basePath);
                         if (testUrl) {
-                            console.log(`🎯 [URL解析] 通用匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
+                            //console.log(`🎯 [URL解析] 通用匹配成功: ${url} → ${testUrl} (基于源: ${storedSourceUrl})`);
                             return testUrl;
                         }
                     }
                 }
                 
-                console.log(`⚠️ [URL解析] IndexedDB智能解析未找到匹配，使用默认方法`);
+                //console.log(`⚠️ [URL解析] IndexedDB智能解析未找到匹配，使用默认方法`);
                 
             } catch (error) {
-                console.warn('IndexedDB智能路径解析失败，使用默认方法:', error);
+                //console.warn('IndexedDB智能路径解析失败，使用默认方法:', error);
             }
         }
         
         // 🔥 默认方法：直接基于baseUrl解析
         try {
             const resolvedUrl = new URL(url, baseUrl).href;
-            console.log(`📍 [URL解析] 默认解析: ${url} → ${resolvedUrl} (基于: ${baseUrl})`);
+            //console.log(`📍 [URL解析] 默认解析: ${url} → ${resolvedUrl} (基于: ${baseUrl})`);
             return resolvedUrl;
         } catch (error) {
             console.warn('默认URL解析失败:', error);
@@ -2313,6 +2701,191 @@ async function generateFileName(extension = 'json') {
     const randomNum = Math.floor(100000 + Math.random() * 900000);
     
     return `${domain}__${randomNum}`;
+}
+
+/**
+ * 使用虚拟滚动渲染所有结果分类：
+ * - 仅渲染可视区域 + 上下缓冲
+ * - 安全渲染（textContent）
+ * - 同步计数
+ */
+function updateResultsDisplayVirtual() {
+    // 先合并所有待处理的结果，保持与原逻辑一致
+    flushPendingResults();
+
+    const categoryMapping = {
+        absoluteApis: { containerId: 'absoluteApisResult', countId: 'absoluteApisCount', listId: 'absoluteApisList' },
+        relativeApis: { containerId: 'relativeApisResult', countId: 'relativeApisCount', listId: 'relativeApisList' },
+        moduleApis: { containerId: 'modulePathsResult', countId: 'modulePathsCount', listId: 'modulePathsList' },
+        domains: { containerId: 'domainsResult', countId: 'domainsCount', listId: 'domainsList' },
+        urls: { containerId: 'urlsResult', countId: 'urlsCount', listId: 'urlsList' },
+        images: { containerId: 'imagesResult', countId: 'imagesCount', listId: 'imagesList' },
+        jsFiles: { containerId: 'jsFilesResult', countId: 'jsFilesCount', listId: 'jsFilesList' },
+        cssFiles: { containerId: 'cssFilesResult', countId: 'cssFilesCount', listId: 'cssFilesList' },
+        vueFiles: { containerId: 'vueFilesResult', countId: 'vueFilesCount', listId: 'vueFilesList' },
+        emails: { containerId: 'emailsResult', countId: 'emailsCount', listId: 'emailsList' },
+        phoneNumbers: { containerId: 'phoneNumbersResult', countId: 'phoneNumbersCount', listId: 'phoneNumbersList' },
+        ipAddresses: { containerId: 'ipAddressesResult', countId: 'ipAddressesCount', listId: 'ipAddressesList' },
+        sensitiveKeywords: { containerId: 'sensitiveKeywordsResult', countId: 'sensitiveKeywordsCount', listId: 'sensitiveKeywordsList' },
+        comments: { containerId: 'commentsResult', countId: 'commentsCount', listId: 'commentsList' },
+        paths: { containerId: 'pathsResult', countId: 'pathsCount', listId: 'pathsList' },
+        parameters: { containerId: 'parametersResult', countId: 'parametersCount', listId: 'parametersList' },
+        credentials: { containerId: 'credentialsResult', countId: 'credentialsCount', listId: 'credentialsList' },
+        cookies: { containerId: 'cookiesResult', countId: 'cookiesCount', listId: 'cookiesList' },
+        idKeys: { containerId: 'idKeysResult', countId: 'idKeysCount', listId: 'idKeysList' },
+        companies: { containerId: 'companiesResult', countId: 'companiesCount', listId: 'companiesList' },
+        jwts: { containerId: 'jwtsResult', countId: 'jwtsCount', listId: 'jwtsList' },
+        githubUrls: { containerId: 'githubUrlsResult', countId: 'githubUrlsCount', listId: 'githubUrlsList' },
+        bearerTokens: { containerId: 'bearerTokensResult', countId: 'bearerTokensCount', listId: 'bearerTokensList' },
+        basicAuth: { containerId: 'basicAuthResult', countId: 'basicAuthCount', listId: 'basicAuthList' },
+        authHeaders: { containerId: 'authHeadersResult', countId: 'authHeadersCount', listId: 'authHeadersList' },
+        wechatAppIds: { containerId: 'wechatAppIdsResult', countId: 'wechatAppIdsCount', listId: 'wechatAppIdsList' },
+        awsKeys: { containerId: 'awsKeysResult', countId: 'awsKeysCount', listId: 'awsKeysList' },
+        googleApiKeys: { containerId: 'googleApiKeysResult', countId: 'googleApiKeysCount', listId: 'googleApiKeysList' },
+        githubTokens: { containerId: 'githubTokensResult', countId: 'githubTokensCount', listId: 'githubTokensList' },
+        gitlabTokens: { containerId: 'gitlabTokensResult', countId: 'gitlabTokensCount', listId: 'gitlabTokensList' },
+        webhookUrls: { containerId: 'webhookUrlsResult', countId: 'webhookUrlsCount', listId: 'webhookUrlsList' },
+        idCards: { containerId: 'idCardsResult', countId: 'idCardsCount', listId: 'idCardsList' },
+        cryptoUsage: { containerId: 'cryptoUsageResult', countId: 'cryptoUsageCount', listId: 'cryptoUsageList' }
+    };
+
+    const defaultRender = (text) => {
+        const li = document.createElement('div');
+        li.className = 'result-item';
+        li.style.display = 'block';
+        li.style.boxSizing = 'border-box';
+        li.style.width = '100%';
+        // 可变高度：允许多行换行，避免重叠
+        li.style.whiteSpace = 'normal';
+        li.style.wordBreak = 'break-word';
+        li.style.overflowWrap = 'anywhere';
+        li.textContent = String(text);
+        return li;
+    };
+
+    Object.keys(categoryMapping).forEach(key => {
+        const mapping = categoryMapping[key];
+        const itemsRaw = scanResults[key] || [];
+
+        // 显示容器
+        const resultDiv = document.getElementById(mapping.containerId);
+        if (resultDiv) {
+            resultDiv.style.display = itemsRaw.length > 0 ? 'block' : resultDiv.style.display;
+            // 合成层提示
+            resultDiv.style.willChange = 'transform';
+            resultDiv.style.transform = resultDiv.style.transform || 'translateZ(0)';
+        }
+
+        // 计数
+        const countEl = document.getElementById(mapping.countId);
+        if (countEl) countEl.textContent = String(itemsRaw.length);
+
+        // 增量渲染：缓存文本并仅对新增项追加
+        // 规则：relativeApis 中剔除仅为单独 "/" 的无效相对路径
+        const isTrivialSlash = (it) => {
+            if (typeof it === 'object' && it) {
+                const raw = (it.value || it.url || it.path || it.content || '').trim();
+                return raw === '/';
+            }
+            return String(it || '').trim() === '/';
+        };
+
+        const toText = (it) => {
+            if (typeof it === 'object' && it) {
+                const val = it.value || it.url || it.path || it.content || '';
+                if (key === 'relativeApis' && it.resolvedUrl) {
+                    return `${String(val)} → ${String(it.resolvedUrl)}`;
+                }
+                return String(val || JSON.stringify(it));
+            }
+            return String(it);
+        };
+
+        const prevCount = __lastRenderedCounts[key] || 0;
+        let itemsText = __renderedTextCache[key];
+
+        // 如果数量减少或结构变化，进行全量重建
+        if (!Array.isArray(itemsText) || itemsText.length > itemsRaw.length || prevCount > itemsRaw.length) {
+            const filteredRaw = key === 'relativeApis' ? itemsRaw.filter(it => !isTrivialSlash(it)) : itemsRaw;
+            itemsText = filteredRaw.map(toText);
+            __renderedTextCache[key] = itemsText;
+            __lastRenderedCounts[key] = itemsText.length;
+            updateVirtualList(mapping.listId, itemsText, {
+                itemHeight: 24,
+                buffer: 8,
+                renderItem: defaultRender
+            });
+        } else if (itemsRaw.length > prevCount) {
+            // 仅追加新增部分
+            let newSliceRaw = itemsRaw.slice(prevCount);
+            if (key === 'relativeApis') {
+                newSliceRaw = newSliceRaw.filter(it => !isTrivialSlash(it));
+            }
+            const newSlice = newSliceRaw.map(toText);
+            itemsText.push(...newSlice);
+            __lastRenderedCounts[key] = itemsRaw.length;
+            updateVirtualListAppend(mapping.listId, newSlice, {
+                itemHeight: 24,
+                buffer: 8,
+                renderItem: defaultRender
+            });
+        } else {
+            // 无变化，跳过渲染
+        }
+    });
+
+    // 处理自定义类别与未知类别（保留原有创建逻辑）
+    Object.keys(scanResults).forEach(key => {
+        if (key.startsWith('custom_') && Array.isArray(scanResults[key]) && scanResults[key].length > 0) {
+            createCustomResultCategory(key, scanResults[key]);
+        }
+    });
+    Object.keys(scanResults).forEach(key => {
+        if (!categoryMapping[key] && !key.startsWith('custom_') && Array.isArray(scanResults[key]) && scanResults[key].length > 0) {
+            createCustomResultCategory(key, scanResults[key]);
+        }
+    });
+}
+
+/**
+ * 日志显示：自然高度完整渲染最近 maxLogEntries 条，避免固定行高导致的重叠
+ */
+function updateLogDisplayVirtual() {
+    const logSection = document.getElementById('logSection');
+    if (!logSection || !logEntries) return;
+
+    // 合成层/独立层提示
+    logSection.style.willChange = 'transform';
+    logSection.style.transform = logSection.style.transform || 'translateZ(0)';
+
+    // 渲染最近的日志（数量已由 maxLogEntries 控制）
+    const recentLogs = logEntries.slice(-maxLogEntries);
+
+    // 当前是否需要吸底（用户未在主动滚动且接近底部）
+    const shouldStickToBottom = !logSection.isUserScrolling &&
+        (logSection.scrollTop + logSection.clientHeight >= logSection.scrollHeight - 4);
+
+    const frag = document.createDocumentFragment();
+    for (const l of recentLogs) {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        // 自然高度，允许多行换行，避免任何重叠
+        div.style.display = 'block';
+        div.style.boxSizing = 'border-box';
+        div.style.width = '100%';
+        div.style.whiteSpace = 'normal';
+        div.style.wordBreak = 'break-word';
+        div.style.overflowWrap = 'anywhere';
+        div.textContent = `[${l.time}] ${l.message}`;
+        frag.appendChild(div);
+    }
+
+    logSection.innerHTML = '';
+    logSection.appendChild(frag);
+
+    if (shouldStickToBottom) {
+        logSection.scrollTop = logSection.scrollHeight;
+    }
 }
 
 //console.log('✅ [DEBUG] 深度扫描窗口脚本（统一正则版本）加载完成');
