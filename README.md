@@ -127,7 +127,7 @@ Tips：由于这个项目刚刚开始，所以可能会有一些bug，师傅们�
 + 在进行深度扫描与批量请求时，请遵循目标站点策略与相关法律法规
 
 ## 版本与致谢
-+ 版本：1.7.7
++ 版本：1.7.8
 + 作者： 
   - [Phantom](https://github.com/Attack-Phantom)  
   - [Xuan8a1](https://github.com/Xuan8a1)  
