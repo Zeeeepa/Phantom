@@ -2584,18 +2584,30 @@ async function exportAsExcel() {
    <Column ss:Width="50"/>
    <Column ss:Width="400"/>
    <Column ss:Width="120"/>
+   <Column ss:Width="350"/>
+   <Column ss:Width="220"/>
+   <Column ss:Width="160"/>
    <Row>
     <Cell ss:StyleID="Header"><Data ss:Type="String">序号</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">内容</Data></Cell>
     <Cell ss:StyleID="Header"><Data ss:Type="String">分类</Data></Cell>
+   <Cell ss:StyleID="Header"><Data ss:Type="String">来源URL</Data></Cell>
+   <Cell ss:StyleID="Header"><Data ss:Type="String">页面标题</Data></Cell>
+   <Cell ss:StyleID="Header"><Data ss:Type="String">提取时间</Data></Cell>
    </Row>`;
 
                 items.forEach((item, index) => {
+                    const normalized = normalizeExportItem(item, category);
+                    const extractedTime = normalized.extractedAt ? new Date(normalized.extractedAt).toLocaleString('zh-CN') : '';
+
                     xlsContent += `
    <Row>
     <Cell ss:StyleID="Data"><Data ss:Type="Number">${index + 1}</Data></Cell>
-    <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(String(item))}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(normalized.value)}</Data></Cell>
     <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(category)}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(normalized.sourceUrl)}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(normalized.pageTitle)}</Data></Cell>
+    <Cell ss:StyleID="Data"><Data ss:Type="String">${escapeXml(extractedTime)}</Data></Cell>
    </Row>`;
                 });
 
@@ -2643,6 +2655,50 @@ async function exportAsExcel() {
         addLogEntry(`❌ Excel导出失败: ${error.message}`, 'error');
         console.error('Excel导出错误:', error);
     }
+}
+
+// 规范化导出条目，确保不会出现 [object Object]
+function normalizeExportItem(item, category) {
+    if (item == null) {
+        return {
+            value: '',
+            category,
+            sourceUrl: '',
+            pageTitle: '',
+            extractedAt: ''
+        };
+    }
+
+    if (typeof item !== 'object') {
+        return {
+            value: String(item),
+            category,
+            sourceUrl: '',
+            pageTitle: '',
+            extractedAt: ''
+        };
+    }
+
+    const candidates = [item.value, item.text, item.content, item.url, item.path, item.name];
+    let displayValue = candidates.find(val => val !== undefined && val !== null);
+
+    if (displayValue === undefined || displayValue === null) {
+        displayValue = JSON.stringify(item);
+    } else if (typeof displayValue === 'object') {
+        try {
+            displayValue = JSON.stringify(displayValue);
+        } catch (e) {
+            displayValue = String(displayValue);
+        }
+    }
+
+    return {
+        value: String(displayValue),
+        category,
+        sourceUrl: item.sourceUrl || '',
+        pageTitle: item.pageTitle || '',
+        extractedAt: item.extractedAt || ''
+    };
 }
 
 // 清理工作表名称（Excel工作表名称有特殊字符限制）
