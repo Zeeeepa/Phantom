@@ -138,7 +138,7 @@ Tips：由于这个项目刚刚开始，所以可能会有一些bug，师傅们�
     - [https://blog.h-acker.cn/](https://blog.h-acker.cn/)
     - [https://www.hdsec.cn/](https://www.hdsec.cn/)
 + 开源地址：[https://github.com/Team-intN18-SoybeanSeclab/Phantom/](https://github.com/Team-intN18-SoybeanSeclab/Phantom/)
-+ 致谢个人/团体/工具：D3f4ultX、findsomething、SnowEyes
++ 致谢个人/团体/工具：D3f4ultX、findsomething、SnowEyes、0xsdeo
 + 致谢媒体：隼目安全、知攻善防实验室、零羊Web
 
 ## 宣传文章
